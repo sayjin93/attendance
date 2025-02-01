@@ -8,13 +8,9 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const classId = searchParams.get("classId");
 
-    if (!classId) {
-      return NextResponse.json([], { status: 400 });
-    }
-
     const students = await prisma.student.findMany({
-      where: { classId },
-      include: { attendance: true }, // Sigurohemi që të lidhim të dhënat e prezencës
+      where: classId ? { classId } : {}, // Fetch all students if classId is not provided
+      include: { class: true, attendance: true }, // Ensure we include class data
     });
 
     return NextResponse.json(students, { status: 200 });
