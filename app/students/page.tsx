@@ -2,28 +2,40 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+
+import { useAuth } from "@/hooks/useAuth";
 import AddStudentForm from "@/components/AddStudentForm";
 
-async function fetchStudents(classId: string) {
-    const res = await fetch(`/api/students?classId=${classId}`);
+async function fetchStudents(classId: string, professorId: string | null) {
+    if (!classId || !professorId) return [];
+
+    const res = await fetch(`/api/students?classId=${classId}&professorId=${professorId}`);
     return res.json();
 }
 
 async function fetchClasses() {
-    const res = await fetch("/api/classes");
+    const professorId = localStorage.getItem("professorId");
+    if (!professorId) return [];
+
+    const res = await fetch(`/api/classes?professorId=${professorId}`);
     return res.json();
 }
 
 export default function StudentsPage() {
     const [classId, setClassId] = useState("");
+    const professorId = localStorage.getItem("professorId"); // ✅ Ensure professorId is available
+
     const { data: classes } = useQuery({ queryKey: ["classes"], queryFn: fetchClasses });
 
-    // ✅ Only fetch students when classId is set
+    // ✅ Only fetch students when classId & professorId are set
     const { data: students, isLoading, error } = useQuery({
-        queryKey: ["students", classId],
-        queryFn: () => fetchStudents(classId),
-        enabled: !!classId, // ✅ Prevents API requests when classId is empty
+        queryKey: ["students", classId, professorId],
+        queryFn: () => fetchStudents(classId, professorId),
+        enabled: !!classId && !!professorId, // ✅ Prevents API requests when classId is empty or professorId is missing
     });
+
+    const isAuthenticated = useAuth();
+    if (!isAuthenticated) return <p>Loading...</p>;
 
     return (
         <div className="p-6">
@@ -68,6 +80,11 @@ export default function StudentsPage() {
                         </div>
                     ))}
                 </div>
+            )}
+
+            {/* Show message if no students are found */}
+            {students?.length === 0 && classId && (
+                <p className="text-gray-500 text-center mt-4">🚀 Nuk ka studentë në këtë klasë.</p>
             )}
         </div>
     );

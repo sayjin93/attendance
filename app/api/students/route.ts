@@ -6,18 +6,28 @@ const prisma = new PrismaClient();
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const classId = searchParams.get("classId");
+    const professorId = searchParams.get("professorId"); // ✅ Get professor ID
 
+    if (!professorId) {
+      return NextResponse.json(
+        { error: "❌ Professor ID is required!" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Fetch students only for classes belonging to the professor
     const students = await prisma.student.findMany({
-      where: classId ? { classId } : {}, // Fetch all students if classId is not provided
-      include: { class: true, attendance: true }, // Ensure we include class data
+      where: {
+        class: { professorId }, // ✅ Filter students by professor's classes
+      },
+      include: { class: true },
     });
 
     return NextResponse.json(students, { status: 200 });
   } catch (error) {
     console.error("❌ Error fetching students:", error);
     return NextResponse.json(
-      { error: "⚠️ Gabim gjatë marrjes së studentëve" },
+      { error: "⚠️ Failed to fetch students" },
       { status: 500 }
     );
   }

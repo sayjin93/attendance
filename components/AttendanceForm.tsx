@@ -11,47 +11,83 @@ export default function AttendanceForm() {
     const [message, setMessage] = useState<{ text: string; type: string } | null>(null);
     const queryClient = useQueryClient();
     const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+    const [professorId, setProfessorId] = useState<string | null>(null);
 
-    // ✅ Fetch classes
+    // ✅ Load professorId from localStorage before making API calls
     useEffect(() => {
-        fetch("/api/classes")
-            .then((res) => res.json())
-            .then((data) => setClasses(data));
+        const storedProfessorId = localStorage.getItem("professorId");
+        if (storedProfessorId) {
+            setProfessorId(storedProfessorId);
+        }
     }, []);
 
-    // ✅ Fetch lectures when class is selected
+    // ✅ Fetch classes belonging to the professor
     useEffect(() => {
-        if (classId) {
-            fetch(`/api/lectures?classId=${classId}`)
-                .then((res) => res.json())
-                .then((data) => setLectures(data));
-        } else {
+        if (!professorId) return;
+
+        fetch(`/api/classes?professorId=${professorId}`)
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to fetch classes");
+                return res.json();
+            })
+            .then((data) => setClasses(data))
+            .catch((error) => {
+                console.error("❌ Error fetching classes:", error);
+                setClasses([]);
+            });
+    }, [professorId]);
+
+    // ✅ Fetch lectures based on selected class
+    useEffect(() => {
+        if (!classId) {
             setLectures([]);
+            return;
         }
+
+        fetch(`/api/lectures?classId=${classId}`)
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to fetch lectures");
+                return res.json();
+            })
+            .then((data) => setLectures(data))
+            .catch((error) => {
+                console.error("❌ Error fetching lectures:", error);
+                setLectures([]);
+            });
     }, [classId]);
 
-    // ✅ Fetch students only if both class & lecture are selected
+    // ✅ Fetch students & attendance records only if both class & lecture are selected
     useEffect(() => {
         if (!classId || !lectureId) {
-            setStudents([]); // Hide students list when missing class/lecture selection
+            setStudents([]);
             return;
         }
 
         Promise.all([
             fetch(`/api/students?classId=${classId}`).then((res) => res.json()),
-            fetch(`/api/attendance?classId=${classId}&lectureId=${lectureId}`).then((res) => res.json())
-        ]).then(([studentsData, attendanceData]) => {
-            const updatedStudents = studentsData.map((student: { id: string; name: string }) => {
-                const attendanceRecord = attendanceData.find((att: { student: { id: string } }) => att.student.id === student.id);
-                return {
-                    id: student.id,
-                    name: student.name,
-                    status: attendanceRecord ? attendanceRecord.status : "PRESENT",
-                };
-            });
+            fetch(`/api/attendance?classId=${classId}&lectureId=${lectureId}`).then((res) => res.json()),
+        ])
+            .then(([studentsData, attendanceData]) => {
+                if (!Array.isArray(studentsData)) studentsData = [];
+                if (!Array.isArray(attendanceData)) attendanceData = [];
 
-            setStudents(updatedStudents);
-        });
+                const updatedStudents = studentsData.map((student: { id: string; name: string }) => {
+                    const attendanceRecord = attendanceData.find(
+                        (att: { student: { id: string } }) => att.student.id === student.id
+                    );
+                    return {
+                        id: student.id,
+                        name: student.name,
+                        status: attendanceRecord ? attendanceRecord.status : "PRESENT",
+                    };
+                });
+
+                setStudents(updatedStudents);
+            })
+            .catch((error) => {
+                console.error("❌ Error fetching students or attendance records:", error);
+                setStudents([]);
+            });
     }, [classId, lectureId]);
 
     // ✅ Function to change attendance status
@@ -118,6 +154,7 @@ export default function AttendanceForm() {
                     setStudents([]); // Clear students when changing class
                 }}
                 className="p-2 border rounded w-full mb-2"
+                disabled={!professorId}
             >
                 <option value="">📚 Zgjidh Klasën</option>
                 {classes.map((cls) => (
@@ -135,18 +172,14 @@ export default function AttendanceForm() {
                 disabled={!classId}
             >
                 <option value="">📅 Zgjidh Datën e Leksionit</option>
-                {lectures.length > 0 ? (
-                    lectures.map((lec) => (
-                        <option key={lec.id} value={lec.id}>
-                            {new Date(lec.date).toLocaleDateString()}
-                        </option>
-                    ))
-                ) : (
-                    <option value="" disabled>⚠️ Nuk ka leksione</option>
-                )}
+                {lectures.map((lec) => (
+                    <option key={lec.id} value={lec.id}>
+                        {new Date(lec.date).toLocaleDateString()}
+                    </option>
+                ))}
             </select>
 
-            {/* Students table (Hidden if no lecture is selected) */}
+            {/* Students table */}
             {students.length > 0 && lectureId && (
                 <table className="w-full bg-white shadow-md rounded-lg mt-4">
                     <thead className="bg-gray-200">
@@ -176,7 +209,7 @@ export default function AttendanceForm() {
                 </table>
             )}
 
-            {/* Register attendance button (Hidden if no lecture is selected) */}
+            {/* Register attendance button */}
             {students.length > 0 && lectureId && (
                 <button onClick={handleSubmit} className="mt-4 bg-orange-500 text-white px-4 py-2 rounded w-full">
                     ➕ Regjistro Prezencën për të Gjithë

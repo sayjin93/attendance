@@ -6,18 +6,21 @@ const prisma = new PrismaClient();
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const classId = searchParams.get("classId");
-    const lectureId = searchParams.get("lectureId");
+    const professorId = searchParams.get("professorId"); // ✅ Get professor ID
 
-    if (!classId || !lectureId) {
-      return NextResponse.json([], { status: 400 });
+    if (!professorId) {
+      return NextResponse.json(
+        { error: "❌ Professor ID is required!" },
+        { status: 400 }
+      );
     }
 
-    // Merr të dhënat e prezencës vetëm për klasën dhe leksionin e zgjedhur
+    // ✅ Fetch attendance only for the professor's students
     const attendanceRecords = await prisma.attendance.findMany({
       where: {
-        student: { classId },
-        lectureId,
+        student: {
+          class: { professorId }, // ✅ Only fetch attendance of professor's students
+        },
       },
       include: { student: true, lecture: true },
     });
@@ -26,7 +29,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("❌ Error fetching attendance:", error);
     return NextResponse.json(
-      { error: "⚠️ Gabim gjatë marrjes së prezencave" },
+      { error: "⚠️ Failed to fetch attendance" },
       { status: 500 }
     );
   }

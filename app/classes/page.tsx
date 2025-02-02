@@ -2,10 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+
+import { useAuth } from "@/hooks/useAuth";
 import AddClassForm from "@/components/AddClassForm";
 
 async function fetchClasses() {
-  const res = await fetch("/api/classes");
+  const professorId = localStorage.getItem("professorId");
+  if (!professorId) return [];
+
+  const res = await fetch(`/api/classes?professorId=${professorId}`);
   return res.json();
 }
 
@@ -15,7 +20,8 @@ export default function ClassesPage() {
     queryFn: fetchClasses,
   });
 
-  if (isLoading) return <p>Loading...</p>;
+  const isAuthenticated = useAuth();
+  if (isLoading || !isAuthenticated) return <p>Loading...</p>;
   if (error) return <p>Error loading classes</p>;
 
   return (
@@ -27,14 +33,18 @@ export default function ClassesPage() {
 
       {/* Lista e klasave */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        {classes.map((classItem: { id: string; name: string }) => (
-          <div key={classItem.id} className="p-4 bg-white shadow-md rounded-lg">
-            <h2 className="text-xl font-semibold">{classItem.name}</h2>
-            <Link href={`/classes/${classItem.id}`} className="text-blue-500 mt-2 block">
-              Shiko detajet →
-            </Link>
-          </div>
-        ))}
+        {classes.length === 0 ? (
+          <p className="text-gray-500">🚀 Nuk keni ende klasa. Shtoni një klasë më sipër!</p>
+        ) : (
+          classes.map((classItem: { id: string; name: string }) => (
+            <div key={classItem.id} className="p-4 bg-white shadow-md rounded-lg">
+              <h2 className="text-xl font-semibold">{classItem.name}</h2>
+              <Link href={`/classes/${classItem.id}`} className="text-blue-500 mt-2 block">
+                Shiko detajet →
+              </Link>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

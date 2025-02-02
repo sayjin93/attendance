@@ -6,36 +6,47 @@ import autoTable from "jspdf-autotable";
 import { Bar } from "react-chartjs-2";
 import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 
-// ✅ Regjistrojmë shkallët për barchart
+import { useAuth } from "@/hooks/useAuth";
+
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function Reports() {
+async function fetchClasses(professorId: string | null) {
+    if (!professorId) return [];
+
+    const res = await fetch(`/api/classes?professorId=${professorId}`);
+    return res.json();
+}
+
+async function fetchReports(classId: string, professorId: string | null) {
+    if (!classId || !professorId) return [];
+
+    const res = await fetch(`/api/reports?classId=${classId}&professorId=${professorId}`);
+    return res.json();
+}
+
+export default function ReportsPage() {
     const [classId, setClassId] = useState("");
     const [students, setStudents] = useState<{ id: string; name: string; presence: number; absence: number; participation: number }[]>([]);
     const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+    const professorId = localStorage.getItem("professorId"); // ✅ Get professorId
 
-    // Fetch klasat për dropdown
     useEffect(() => {
-        fetch("/api/classes")
-            .then((res) => res.json())
-            .then((data) => setClasses(data));
-    }, []);
+        if (professorId) {
+            fetchClasses(professorId).then(setClasses);
+        }
+    }, [professorId]);
 
-    // Fetch raportet e studentëve sipas klasës
     useEffect(() => {
-        if (classId) {
-            fetch(`/api/reports?classId=${classId}`)
-                .then((res) => res.json())
-                .then((data) => setStudents(data));
+        if (classId && professorId) {
+            fetchReports(classId, professorId).then(setStudents);
         } else {
             setStudents([]);
         }
-    }, [classId]);
+    }, [classId, professorId]);
 
-    // ✅ Marrim emrin e klasës sipas `classId`
     const selectedClass = classes.find((cls) => cls.id === classId)?.name || "Zgjidh një klasë";
 
-    // ✅ Funksioni për shkarkimin e raportit në PDF
+    // ✅ Function to download PDF report
     const downloadPDF = () => {
         const doc = new jsPDF();
         doc.text(`Raporti i Studentëve - ${selectedClass}`, 20, 10);
@@ -48,11 +59,14 @@ export default function Reports() {
         doc.save(`Raporti_${selectedClass}.pdf`);
     };
 
+    const isAuthenticated = useAuth();
+    if (!isAuthenticated) return <p>Loading...</p>;
+
     return (
         <div className="p-6">
             <h1 className="text-3xl font-bold mb-4">📊 Raporti i Studentëve - {selectedClass}</h1>
 
-            {/* Dropdown për filtrimin sipas klasës */}
+            {/* Dropdown for selecting class */}
             <select
                 value={classId}
                 onChange={(e) => setClassId(e.target.value)}
@@ -66,8 +80,13 @@ export default function Reports() {
                 ))}
             </select>
 
-            {/* Tabela me raportet e studentëve */}
-            {students.length > 0 && (
+            {/* Show message if no class is selected */}
+            {!classId && (
+                <p className="text-gray-500 text-center mt-4">⚠️ Zgjidh një klasë për të parë raportin.</p>
+            )}
+
+            {/* Student Report Table */}
+            {students.length > 0 && classId && (
                 <>
                     <table className="w-full bg-white shadow-md rounded-lg">
                         <thead className="bg-gray-200">
@@ -90,12 +109,12 @@ export default function Reports() {
                         </tbody>
                     </table>
 
-                    {/* Butoni për shkarkimin e PDF */}
+                    {/* Download Report Button */}
                     <button onClick={downloadPDF} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
                         📥 Shkarko Raportin në PDF
                     </button>
 
-                    {/* Grafiku i analizës së prezencës */}
+                    {/* Attendance Analysis Chart */}
                     <div className="mt-6" style={{ height: "400px" }}>
                         <h2 className="text-2xl font-bold mb-2">📊 Analiza e Prezencës</h2>
                         <Bar

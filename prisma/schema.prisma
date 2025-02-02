@@ -14,11 +14,21 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+model Professor {
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  password String
+  classes  Class[]
+}
+
 model Class {
-  id       String    @id @default(uuid())
-  name     String    @unique
-  students Student[]
-  lectures Lecture[]
+  id          String    @id @default(uuid())
+  name        String
+  professorId String
+  professor   Professor @relation(fields: [professorId], references: [id])
+  students    Student[]
+  lectures    Lecture[]
 }
 
 model Student {
@@ -27,7 +37,7 @@ model Student {
   email      String       @unique
   classId    String
   class      Class        @relation(fields: [classId], references: [id])
-  attendance Attendance[]
+  attendance Attendance[] // ✅ Added this relation field
 }
 
 model Lecture {
@@ -39,12 +49,12 @@ model Lecture {
 }
 
 model Attendance {
-  id        String           @id @default(uuid())
+  id        String  @id @default(uuid())
   studentId String
+  student   Student @relation(fields: [studentId], references: [id]) // ✅ No change needed here
   lectureId String
-  status    AttendanceStatus
-  student   Student          @relation(fields: [studentId], references: [id])
-  lecture   Lecture          @relation(fields: [lectureId], references: [id])
+  lecture   Lecture @relation(fields: [lectureId], references: [id])
+  status    String // PRESENT, ABSENT, PARTICIPATED
 }
 
 enum AttendanceStatus {
