@@ -2,7 +2,6 @@
 
 import { useState, MouseEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
 import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
@@ -13,30 +12,40 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    const handleLogin = async (e: MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-
-        const res = await fetch("/api/auth", {
-            method: "POST",
-            body: JSON.stringify({ email, password }),
-            headers: { "Content-Type": "application/json" },
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("professorId", data.professorId);
-            router.push("/dashboard");
-        } else {
-            setError(data.error);
-        }
-    };
-
     useEffect(() => {
         if (isAuthenticated) {
             router.push("/dashboard");
         }
     }, [isAuthenticated, router]);
+
+    const handleLogin = async (e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        setError("");
+
+        if (!email || !password) {
+            setError("Please enter both email and password.");
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/auth", {
+                method: "POST",
+                body: JSON.stringify({ email, password }),
+                headers: { "Content-Type": "application/json" },
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("professorId", data.professorId);
+                router.push("/dashboard");
+            } else {
+                setError(data.error);
+            }
+        } catch {
+            setError("Something went wrong. Please try again.");
+        }
+    };
 
     return (
         <>
@@ -46,7 +55,7 @@ export default function LoginPage() {
                     src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
                     className="mx-auto h-10 w-auto"
                 />
-                <h2 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+                <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
                     🔐 Sign in to your account
                 </h2>
             </div>
@@ -55,34 +64,39 @@ export default function LoginPage() {
                 <div className="bg-white px-6 py-12 shadow-sm sm:rounded-lg sm:px-12">
                     <form className="space-y-6">
                         <div>
-                            <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-900">
                                 Email address
                             </label>
-                            <div className="mt-2">
-                                <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 border rounded mb-2" />
-                            </div>
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full p-2 border rounded mb-2"
+                            />
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-900">
                                 Password
                             </label>
-                            <div className="mt-2">
-                                <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-2 border rounded mb-2" />
-                            </div>
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full p-2 border rounded mb-2"
+                            />
                         </div>
 
-                        <div>
-                            <button
-                                onClick={handleLogin}
-                                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                            >
-                                Sign in
-                            </button>
+                        <button
+                            onClick={handleLogin}
+                            className="w-full rounded-md bg-indigo-600 px-3 py-1.5 text-white shadow-xs hover:bg-indigo-500 focus:outline-none"
+                        >
+                            Sign in
+                        </button>
 
-                            {error && <p className="mt-4 text-red-500">{error}</p>}
-
-                        </div>
+                        {error && <p className="mt-4 text-red-500">{error}</p>}
                     </form>
                 </div>
             </div>

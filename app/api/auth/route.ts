@@ -4,11 +4,18 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
-const SECRET_KEY = "my_super_secret_key_jk";
+const SECRET_KEY = process.env.SECRET_KEY || "fallback_secret_key"; // ✅ Use environment variable
 
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Missing email or password" },
+        { status: 400 }
+      );
+    }
 
     const professor = await prisma.professor.findUnique({
       where: { email },
@@ -37,7 +44,10 @@ export async function POST(req: Request) {
       { token, professorId: professor.id, name: professor.name },
       { status: 200 }
     );
-  } catch {
+  } catch (error) {
+    console.error("Login error:", error);
     return NextResponse.json({ error: "Login failed" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect(); // ✅ Ensure proper Prisma connection handling
   }
 }
