@@ -3,11 +3,9 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// ✅ API për të marrë të dhënat e një profesori sipas ID
-export async function GET(context: { params: { id: string } }) {
+export async function GET(req: Request, context: { params: Promise<{ id?: string }> }) {
   try {
-    const params = await context.params; // ✅ Prit params për të shmangur gabimin
-    const professorId = params.id;
+    const professorId = (await context.params).id; // ✅ Correct way to access params
 
     if (!professorId) {
       return NextResponse.json(
@@ -18,7 +16,7 @@ export async function GET(context: { params: { id: string } }) {
 
     const professor = await prisma.professor.findUnique({
       where: { id: professorId },
-      select: { id: true, name: true, email: true, classes: true }, // ✅ Vetëm të dhënat e nevojshme
+      select: { id: true, name: true, email: true, classes: true },
     });
 
     if (!professor) {
