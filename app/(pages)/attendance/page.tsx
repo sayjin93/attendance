@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AttendanceForm from "@/components/AttendanceForm";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +13,12 @@ async function fetchAttendance(professorId: string | null) {
 }
 
 export default function AttendancePage() {
-    const professorId = localStorage.getItem("professorId"); // ✅ Ensure professorId is available
+    const [professorId, setProfessorId] = useState<string | null>(null);
+
+    // ✅ Fetch professorId only on the client
+    useEffect(() => {
+        setProfessorId(localStorage.getItem("professorId"));
+    }, []);
 
     const { data: attendanceRecords, isLoading, error } = useQuery({
         queryKey: ["attendance", professorId],
