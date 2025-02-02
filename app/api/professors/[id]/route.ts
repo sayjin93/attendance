@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // ✅ API për të marrë të dhënat e një profesori sipas ID
-export async function GET(req: Request, context: { params: { id: string } }) {
+export async function GET(context: { params: { id: string } }) {
   try {
     const params = await context.params; // ✅ Prit params për të shmangur gabimin
     const professorId = params.id;
