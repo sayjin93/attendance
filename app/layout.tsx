@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "@/app/globals.css";
 
 import Providers from "@/components/Providers";
 
@@ -8,16 +8,16 @@ export const metadata: Metadata = {
   description: "Crafted by JK",
 };
 
-export default function RootLayout({
+export default function LoginLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased bg-gray-100 text-gray-900">
+    <html lang="en" className="h-full bg-gray-50">
+      <body className="antialiased h-full">
         <Providers>
-          <main className="container mx-auto p-6">{children}</main>
+          {children}
         </Providers>
       </body>
     </html>
