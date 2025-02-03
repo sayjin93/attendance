@@ -42,7 +42,7 @@ export default function AttendancePage() {
             <h1 className="text-3xl font-bold mb-4">✅ Lista e Prezencës</h1>
 
             {/* Attendance Form */}
-            <AttendanceForm professorId={professorId} />
+            <AttendanceForm />
 
             {/* Show loading state */}
             {isLoading && <Loader />}
