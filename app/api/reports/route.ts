@@ -6,7 +6,8 @@ const prisma = new PrismaClient();
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const professorId = searchParams.get("professorId"); // ✅ Get professor ID
+    const professorId = searchParams.get("professorId");
+    const classId = searchParams.get("classId");
 
     if (!professorId) {
       return NextResponse.json(
@@ -15,18 +16,43 @@ export async function GET(req: Request) {
       );
     }
 
-    // ✅ Fetch reports only for professor's students
-    const reports = await prisma.attendance.groupBy({
-      by: ["studentId"],
-      where: {
-        student: { class: { professorId } }, // ✅ Only fetch reports for professor's students
-      },
-      _count: {
-        status: true,
+    if (!classId) {
+      return NextResponse.json(
+        { error: "❌ Class ID is required!" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Fetch student reports for the given professor and class
+    const reports = await prisma.student.findMany({
+      where: { classId, class: { professorId } },
+      select: {
+        id: true,
+        name: true,
+        attendance: {
+          select: {
+            status: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(reports, { status: 200 });
+    // ✅ Format the data into proper presence/absence/participation counts
+    const formattedReports = reports.map((student) => {
+      const presence = student.attendance.filter((a) => a.status === "PRESENT").length;
+      const absence = student.attendance.filter((a) => a.status === "ABSENT").length;
+      const participation = student.attendance.filter((a) => a.status === "PARTICIPATED").length;
+
+      return {
+        id: student.id,
+        name: student.name,
+        presence,
+        absence,
+        participation,
+      };
+    });
+
+    return NextResponse.json(formattedReports, { status: 200 });
   } catch (error) {
     console.error("❌ Error fetching reports:", error);
     return NextResponse.json(

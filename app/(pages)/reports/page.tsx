@@ -1,51 +1,80 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Bar } from "react-chartjs-2";
 import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 
 import { useAuth } from "@/hooks/useAuth";
 import Loader from "@/components/Loader";
+import { useQuery } from "@tanstack/react-query";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-async function fetchClasses(professorId: string | null) {
+// ✅ Define TypeScript interfaces
+interface Class {
+    id: string;
+    name: string;
+}
+
+interface StudentReport {
+    id: string;
+    name: string;
+    presence: number;
+    absence: number;
+    participation: number;
+}
+
+// ✅ Function to fetch classes
+async function fetchClasses(professorId: string | null): Promise<Class[]> {
     if (!professorId) return [];
 
     const res = await fetch(`/api/classes?professorId=${professorId}`);
     return res.json();
 }
 
-async function fetchReports(classId: string, professorId: string | null) {
+// ✅ Function to fetch reports
+async function fetchReports(classId: string, professorId: string | null): Promise<StudentReport[]> {
     if (!classId || !professorId) return [];
 
     const res = await fetch(`/api/reports?classId=${classId}&professorId=${professorId}`);
+
+    if (!res.ok) {
+        console.error("❌ Error fetching reports:", await res.text());
+        return [];
+    }
+
     return res.json();
 }
 
 export default function ReportsPage() {
+    const [professorId, setProfessorId] = useState<string | null>(null);
     const [classId, setClassId] = useState("");
-    const [students, setStudents] = useState<{ id: string; name: string; presence: number; absence: number; participation: number }[]>([]);
-    const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
-    const professorId = localStorage.getItem("professorId"); // ✅ Get professorId
 
+    // ✅ Fetch professor ID only when component mounts
     useEffect(() => {
-        if (professorId) {
-            fetchClasses(professorId).then(setClasses);
+        const storedProfessorId = localStorage.getItem("professorId");
+        if (storedProfessorId) {
+            setProfessorId(storedProfessorId);
         }
-    }, [professorId]);
+    }, []);
 
-    useEffect(() => {
-        if (classId && professorId) {
-            fetchReports(classId, professorId).then(setStudents);
-        } else {
-            setStudents([]);
-        }
-    }, [classId, professorId]);
+    // ✅ Fetch available classes
+    const { data: classes = [], isLoading: loadingClasses } = useQuery<Class[]>({
+        queryKey: ["classes", professorId],
+        queryFn: () => fetchClasses(professorId),
+        enabled: !!professorId,
+    });
 
-    const selectedClass = classes.find((cls) => cls.id === classId)?.name || "Zgjidh një klasë";
+    // ✅ Fetch reports based on selected class
+    const { data: students = [], isLoading: loadingReports, error } = useQuery<StudentReport[]>({
+        queryKey: ["reports", classId, professorId],
+        queryFn: () => fetchReports(classId, professorId),
+        enabled: !!classId && !!professorId,
+    });
+
+    const selectedClass = classes.find((cls: Class) => cls.id === classId)?.name || "Zgjidh një klasë";
 
     // ✅ Function to download PDF report
     const downloadPDF = () => {
@@ -54,14 +83,15 @@ export default function ReportsPage() {
 
         autoTable(doc, {
             head: [["Studenti", "Prezencë", "Mungesë", "Aktivizim"]],
-            body: students.map((s) => [s.name, s.presence, s.absence, s.participation]),
+            body: students.map((s: StudentReport) => [s.name, s.presence, s.absence, s.participation]),
         });
 
         doc.save(`Raporti_${selectedClass}.pdf`);
     };
 
     const isAuthenticated = useAuth();
-    if (!isAuthenticated) return <Loader />;
+    if (!isAuthenticated || loadingClasses) return <Loader />;
+    if (error) return <p className="text-red-500">⚠️ Error loading reports. Try again later.</p>;
 
     return (
         <div className="p-6">
@@ -72,9 +102,10 @@ export default function ReportsPage() {
                 value={classId}
                 onChange={(e) => setClassId(e.target.value)}
                 className="p-2 border rounded w-full mb-4"
+                disabled={loadingClasses || classes.length === 0}
             >
                 <option value="">📚 Zgjidh Klasën</option>
-                {classes.map((cls) => (
+                {classes.map((cls: Class) => (
                     <option key={cls.id} value={cls.id}>
                         {cls.name}
                     </option>
@@ -82,9 +113,10 @@ export default function ReportsPage() {
             </select>
 
             {/* Show message if no class is selected */}
-            {!classId && (
-                <p className="text-gray-500 text-center mt-4">⚠️ Zgjidh një klasë për të parë raportin.</p>
-            )}
+            {!classId && <p className="text-gray-500 text-center mt-4">⚠️ Zgjidh një klasë për të parë raportin.</p>}
+
+            {/* Show loading state */}
+            {loadingReports && classId && <Loader />}
 
             {/* Student Report Table */}
             {students.length > 0 && classId && (
@@ -99,7 +131,7 @@ export default function ReportsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {students.map((student) => (
+                            {students.map((student: StudentReport) => (
                                 <tr key={student.id} className="border-b">
                                     <td className="p-3">{student.name}</td>
                                     <td className="p-3 text-center">{student.presence}</td>
