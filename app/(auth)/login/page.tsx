@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotify } from "@/contexts/NotifyContext";
 
-
 export default function LoginPage() {
     //#region constants
     const router = useRouter();
