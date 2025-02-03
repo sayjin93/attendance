@@ -3,57 +3,64 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-export default function AddLectureForm() {
+export default function AddLectureForm({ professorId, classId }: { professorId: string | null, classId: string }) {
     const [date, setDate] = useState("");
-    const [classId, setClassId] = useState("");
-    const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
-    const [professorId, setProfessorId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
     const queryClient = useQueryClient();
 
-    // ✅ Fetch professorId from localStorage
+    // ✅ Set today's date as default (formatted to yyyy-MM-dd for input)
     useEffect(() => {
-        const storedProfessorId = localStorage.getItem("professorId");
-        if (storedProfessorId) {
-            setProfessorId(storedProfessorId);
-        }
+        const today = new Date();
+        const formattedDate = today.toISOString().split("T")[0];
+        setDate(formattedDate);
     }, []);
 
-    // ✅ Fetch classes only when professorId is available
-    useEffect(() => {
-        if (!professorId) return;
-
-        fetch(`/api/classes?professorId=${professorId}`)
-            .then((res) => {
-                if (!res.ok) throw new Error("Failed to fetch classes");
-                return res.json();
-            })
-            .then((data) => setClasses(data))
-            .catch((error) => {
-                console.error("❌ Error fetching classes:", error);
-                setClasses([]);
-            });
-    }, [professorId]);
-
+    // ✅ Prevent adding duplicate lectures on the same date
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!date || !classId) return;
+        if (!date || !classId) {
+            setError("⚠️ Ju lutem zgjidhni një klasë!");
+            setTimeout(() => setError(null), 3000);
+            return;
+        }
 
         const res = await fetch("/api/lectures", {
             method: "POST",
-            body: JSON.stringify({ date, classId }),
+            body: JSON.stringify({ date, classId, professorId }),
             headers: { "Content-Type": "application/json" },
         });
 
         if (res.ok) {
-            setDate("");
-            setClassId("");
-            queryClient.invalidateQueries({ queryKey: ["lectures"] }); // 🔄 Refresh lectures list
+            setSuccess("✅ Leksioni u shtua me sukses!");
+            setTimeout(() => setSuccess(null), 3000);
+            setDate(new Date().toISOString().split("T")[0]); // Reset to today's date
+            queryClient.invalidateQueries({ queryKey: ["lectures", classId] });
+        } else {
+            setError("❌ Dështoi shtimi i leksionit!");
+            setTimeout(() => setError(null), 3000);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="mt-4 p-4 bg-gray-200 rounded">
+        <form onSubmit={handleSubmit} className="mt-4 p-4 bg-gray-100 shadow-md rounded-lg relative">
+            {/* ✅ Success Message */}
+            {success && (
+                <div className="absolute top-0 right-0 mt-2 mr-2 px-4 py-2 bg-green-500 text-white text-sm rounded shadow-lg">
+                    {success}
+                </div>
+            )}
+
+            {/* ❌ Error Message */}
+            {error && (
+                <div className="absolute top-0 right-0 mt-2 mr-2 px-4 py-2 bg-red-500 text-white text-sm rounded shadow-lg">
+                    {error}
+                </div>
+            )}
+
+            {/* 📅 Date Input */}
+            <label className="block text-sm font-medium text-gray-700">📅 Data e Leksionit</label>
             <input
                 type="date"
                 value={date}
@@ -61,25 +68,12 @@ export default function AddLectureForm() {
                 className="p-2 border rounded w-full mb-2"
             />
 
-            <select
-                value={classId}
-                onChange={(e) => setClassId(e.target.value)}
-                className="p-2 border rounded w-full mb-2"
-                disabled={!professorId || classes.length === 0}
+            {/* ✅ Submit Button - Disabled if no class is selected */}
+            <button
+                type="submit"
+                className="mt-2 bg-purple-500 text-white px-4 py-2 rounded w-full"
+                disabled={!classId || !date}
             >
-                <option value="">📚 Zgjidh Klasën</option>
-                {Array.isArray(classes) && classes.length > 0 ? (
-                    classes.map((cls) => (
-                        <option key={cls.id} value={cls.id}>
-                            {cls.name}
-                        </option>
-                    ))
-                ) : (
-                    <option disabled>⚠️ Nuk ka klasa të disponueshme</option>
-                )}
-            </select>
-
-            <button type="submit" className="mt-2 bg-purple-500 text-white px-4 py-2 rounded" disabled={!classId || !date}>
                 ➕ Shto Leksion
             </button>
         </form>

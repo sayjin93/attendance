@@ -70,6 +70,7 @@ export default function LoginPage() {
                             <input
                                 type="email"
                                 placeholder="Email"
+                                autoComplete="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full p-2 border rounded mb-2"
@@ -83,6 +84,7 @@ export default function LoginPage() {
                             <input
                                 type="password"
                                 placeholder="Password"
+                                autoComplete="current-password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full p-2 border rounded mb-2"

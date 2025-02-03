@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useAuth } from "@/hooks/useAuth";
 import AddStudentForm from "@/components/AddStudentForm";
+import Loader from "@/components/Loader";
 
 async function fetchStudents(classId: string, professorId: string | null) {
     if (!classId || !professorId) return [];
@@ -13,8 +14,7 @@ async function fetchStudents(classId: string, professorId: string | null) {
     return res.json();
 }
 
-async function fetchClasses() {
-    const professorId = localStorage.getItem("professorId");
+async function fetchClasses(professorId: string | null) {
     if (!professorId) return [];
 
     const res = await fetch(`/api/classes?professorId=${professorId}`);
@@ -23,25 +23,35 @@ async function fetchClasses() {
 
 export default function StudentsPage() {
     const [classId, setClassId] = useState("");
-    const professorId = localStorage.getItem("professorId"); // ✅ Ensure professorId is available
+    const [professorId, setProfessorId] = useState<string | null>(null);
 
-    const { data: classes } = useQuery({ queryKey: ["classes"], queryFn: fetchClasses });
+    // ✅ Fetch professorId on client-side safely
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            setProfessorId(localStorage.getItem("professorId"));
+        }
+    }, []);
 
-    // ✅ Only fetch students when classId & professorId are set
+    const { data: classes, isLoading: classesLoading } = useQuery({
+        queryKey: ["classes", professorId],
+        queryFn: () => fetchClasses(professorId),
+        enabled: !!professorId,
+    });
+
     const { data: students, isLoading, error } = useQuery({
         queryKey: ["students", classId, professorId],
         queryFn: () => fetchStudents(classId, professorId),
-        enabled: !!classId && !!professorId, // ✅ Prevents API requests when classId is empty or professorId is missing
+        enabled: !!classId && !!professorId,
     });
 
     const isAuthenticated = useAuth();
-    if (!isAuthenticated) return <p>Loading...</p>;
+    if (!isAuthenticated || classesLoading) return <Loader />;
 
     return (
         <div className="p-6">
             <h1 className="text-3xl font-bold mb-4">🧑‍🎓 Studentët</h1>
 
-            {/* ✅ Dropdown to dynamically load class IDs */}
+            {/* ✅ Dropdown for selecting class */}
             <select
                 value={classId}
                 onChange={(e) => setClassId(e.target.value)}
@@ -55,21 +65,15 @@ export default function StudentsPage() {
                 ))}
             </select>
 
-            {/* Show message if no class is selected */}
             {!classId && (
                 <p className="text-gray-500 text-center mt-4">⚠️ Zgjidh një klasë për të parë studentët.</p>
             )}
 
-            {/* ✅ Pass correct classId to AddStudentForm */}
-            {classId && <AddStudentForm classId={classId} />}
+            {classId && <AddStudentForm classId={classId} professorId={professorId} />}
 
-            {/* Show loading state */}
-            {isLoading && classId && <p>Loading...</p>}
+            {isLoading && classId && <Loader />}
+            {error && classId && <p className="text-red-500 text-center mt-4">Error loading students</p>}
 
-            {/* Show error state */}
-            {error && classId && <p>Error loading students</p>}
-
-            {/* Show student list when students exist */}
             {students?.length > 0 && classId && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                     {students.map((student: { id: string; name: string; email: string; class: { name: string } }) => (
@@ -82,7 +86,6 @@ export default function StudentsPage() {
                 </div>
             )}
 
-            {/* Show message if no students are found */}
             {students?.length === 0 && classId && (
                 <p className="text-gray-500 text-center mt-4">🚀 Nuk ka studentë në këtë klasë.</p>
             )}

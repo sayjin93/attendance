@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 
 export default function Loader({
-  size = "w-10 h-10",
-  color = "border-indigo-500",
+  size = "w-16 h-16",
+  color = "border-blue-500",
 }) {
   return (
     <div className="flex justify-center items-center h-full">

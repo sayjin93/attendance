@@ -1,13 +1,16 @@
 "use client";
-
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
+//hooks
 import { useAuth } from "@/hooks/useAuth";
+
+//components
+import Loader from "@/components/Loader";
 import AddClassForm from "@/components/AddClassForm";
 
-async function fetchClasses() {
-  const professorId = localStorage.getItem("professorId");
+async function fetchClasses(professorId: string | null) {
   if (!professorId) return [];
 
   const res = await fetch(`/api/classes?professorId=${professorId}`);
@@ -15,14 +18,24 @@ async function fetchClasses() {
 }
 
 export default function ClassesPage() {
+  const [professorId, setProfessorId] = useState<string | null>(null);
+
+  // ✅ Fetch professorId on client-side
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setProfessorId(localStorage.getItem("professorId"));
+    }
+  }, []);
+
   const { data: classes, isLoading, error } = useQuery({
-    queryKey: ["classes"],
-    queryFn: fetchClasses,
+    queryKey: ["classes", professorId], // 🔥 Add professorId as a dependency
+    queryFn: () => fetchClasses(professorId),
+    enabled: !!professorId, // ✅ Prevent API requests if professorId is missing
   });
 
   const isAuthenticated = useAuth();
-  if (isLoading || !isAuthenticated) return <p>Loading...</p>;
-  if (error) return <p>Error loading classes</p>;
+  if (isLoading || !isAuthenticated) return <Loader />;
+  if (error) return <p className="text-red-500">Error loading classes</p>;
 
   return (
     <div className="p-6">

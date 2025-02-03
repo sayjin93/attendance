@@ -7,6 +7,7 @@ import { Bar } from "react-chartjs-2";
 import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 
 import { useAuth } from "@/hooks/useAuth";
+import Loader from "@/components/Loader";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -60,7 +61,7 @@ export default function ReportsPage() {
     };
 
     const isAuthenticated = useAuth();
-    if (!isAuthenticated) return <p>Loading...</p>;
+    if (!isAuthenticated) return <Loader />;
 
     return (
         <div className="p-6">

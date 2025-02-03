@@ -3,10 +3,13 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// ✅ Fetch Attendance API
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const professorId = searchParams.get("professorId"); // ✅ Get professor ID
+    const professorId = searchParams.get("professorId") ?? undefined;
+    const classId = searchParams.get("classId") ?? undefined;
+    const lectureId = searchParams.get("lectureId") ?? undefined;
 
     if (!professorId) {
       return NextResponse.json(
@@ -15,26 +18,47 @@ export async function GET(req: Request) {
       );
     }
 
-    // ✅ Fetch attendance only for the professor's students
-    const attendanceRecords = await prisma.attendance.findMany({
+    // ✅ Fetch students of the selected class
+    const students = await prisma.student.findMany({
       where: {
-        student: {
-          class: { professorId }, // ✅ Only fetch attendance of professor's students
-        },
+        classId: classId ?? undefined, // ✅ Ensure classId is not null
       },
-      include: { student: true, lecture: true },
+      select: { id: true, name: true },
     });
 
-    return NextResponse.json(attendanceRecords, { status: 200 });
+    // ✅ Fetch attendance records for the selected lecture
+    const attendanceRecords = await prisma.attendance.findMany({
+      where: {
+        lectureId: lectureId ?? undefined, // ✅ Ensure lectureId is not null
+      },
+      select: { studentId: true, status: true },
+    });
+
+    // ✅ Merge attendance status with students list
+    const studentsWithAttendance = students.map((student) => {
+      const attendance = attendanceRecords.find(
+        (att) => att.studentId === student.id
+      );
+      return {
+        id: student.id,
+        name: student.name,
+        status: attendance ? attendance.status : "PRESENT", // Default status
+      };
+    });
+
+    return NextResponse.json(studentsWithAttendance || [], { status: 200 });
   } catch (error) {
     console.error("❌ Error fetching attendance:", error);
     return NextResponse.json(
       { error: "⚠️ Failed to fetch attendance" },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
+// ✅ Update/Create Attendance API
 export async function PUT(req: Request) {
   try {
     const { studentId, lectureId, status } = await req.json();
@@ -51,7 +75,6 @@ export async function PUT(req: Request) {
     });
 
     if (existingAttendance) {
-      // Përditëso nëse ekziston
       await prisma.attendance.update({
         where: { id: existingAttendance.id },
         data: { status },
@@ -61,7 +84,6 @@ export async function PUT(req: Request) {
         { status: 200 }
       );
     } else {
-      // Krijo nëse nuk ekziston
       await prisma.attendance.create({
         data: { studentId, lectureId, status },
       });
@@ -71,10 +93,12 @@ export async function PUT(req: Request) {
       );
     }
   } catch (error) {
-    console.error("❌ Error gjatë regjistrimit të prezencës:", error);
+    console.error("❌ Error during attendance update:", error);
     return NextResponse.json(
       { error: "⚠️ Gabim në server, provo përsëri!" },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

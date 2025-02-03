@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const professorId = searchParams.get("professorId"); // ✅ Get professor ID from request
+    const professorId = searchParams.get("professorId");
 
     if (!professorId) {
       return NextResponse.json(
@@ -15,8 +15,20 @@ export async function GET(req: Request) {
       );
     }
 
+    // ✅ Verify professor existence
+    const professorExists = await prisma.professor.findUnique({
+      where: { id: professorId },
+    });
+
+    if (!professorExists) {
+      return NextResponse.json(
+        { error: "❌ Professor not found!" },
+        { status: 404 }
+      );
+    }
+
     const classes = await prisma.class.findMany({
-      where: { professorId }, // ✅ Only fetch classes of logged-in professor
+      where: { professorId },
       include: { students: true, lectures: true },
     });
 
@@ -27,12 +39,14 @@ export async function GET(req: Request) {
       { error: "⚠️ Failed to fetch classes" },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect(); // ✅ Close Prisma connection properly
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const { name, professorId } = await req.json(); // ✅ Tani API pret professorId
+    const { name, professorId } = await req.json();
 
     if (!professorId) {
       return NextResponse.json(
@@ -41,8 +55,20 @@ export async function POST(req: Request) {
       );
     }
 
+    // ✅ Verify professor existence before creating a class
+    const professorExists = await prisma.professor.findUnique({
+      where: { id: professorId },
+    });
+
+    if (!professorExists) {
+      return NextResponse.json(
+        { error: "❌ Profesor nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
     const newClass = await prisma.class.create({
-      data: { name, professorId }, // ✅ Lidh klasën me profesorin
+      data: { name, professorId },
     });
 
     return NextResponse.json(newClass, { status: 201 });
@@ -52,5 +78,7 @@ export async function POST(req: Request) {
       { error: "⚠️ Dështoi krijimi i klasës" },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect(); // ✅ Close Prisma connection properly
   }
 }
