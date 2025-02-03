@@ -1,16 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
-
-import { useAuth } from "@/hooks/useAuth";
-import Loader from "@/components/Loader";
 import { useQuery } from "@tanstack/react-query";
 
+//chart.js
+import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
+import { Bar } from "react-chartjs-2";
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+//jspdf
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+
+//hooks
+import { useAuth } from "@/hooks/useAuth";
+
+//components
+import Loader from "@/components/Loader";
 
 // ✅ Define TypeScript interfaces
 interface Class {

@@ -1,29 +1,30 @@
 "use client";
-
 import { useState, MouseEvent, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotify } from "@/contexts/NotifyContext";
+
 
 export default function LoginPage() {
+    //#region constants
     const router = useRouter();
     const isAuthenticated = useAuth();
+    const { showMessage } = useNotify(); // ✅ Use the hook
 
+    //#endregion
+
+    //#region states
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    //#endregion
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            router.push("/dashboard");
-        }
-    }, [isAuthenticated, router]);
-
+    //#region functions
     const handleLogin = async (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        setError("");
 
         if (!email || !password) {
-            setError("Please enter both email and password.");
+            showMessage("Please enter both email and password.", "warning");
             return;
         }
 
@@ -40,23 +41,35 @@ export default function LoginPage() {
                 localStorage.setItem("professorId", data.professorId);
                 router.push("/dashboard");
             } else {
-                setError(data.error);
+                showMessage(data.error, "error");
             }
         } catch {
-            setError("Something went wrong. Please try again.");
+            showMessage("Something went wrong. Please try again.", "error");
         }
     };
+    //#endregion
+
+    //#region states
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.push("/dashboard");
+        }
+    }, [isAuthenticated, router]);
+    //#endregion
 
     return (
         <>
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <img
-                    alt="Your Company"
-                    src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-                    className="mx-auto h-10 w-auto"
+                <Image
+                    alt="JK"
+                    src="https://uet.edu.al/wp-content/uploads/2022/12/Logo-pa-adrese.png"
+                    width={160} // ✅ Set width
+                    height={80} // ✅ Set height
+                    className="mx-auto h-20 w-auto"
                 />
                 <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
-                    🔐 Sign in to your account
+                    Sign in to your account
                 </h2>
             </div>
 
@@ -68,6 +81,7 @@ export default function LoginPage() {
                                 Email address
                             </label>
                             <input
+                                required
                                 type="email"
                                 placeholder="Email"
                                 autoComplete="email"
@@ -82,6 +96,7 @@ export default function LoginPage() {
                                 Password
                             </label>
                             <input
+                                required
                                 type="password"
                                 placeholder="Password"
                                 autoComplete="current-password"
@@ -95,10 +110,8 @@ export default function LoginPage() {
                             onClick={handleLogin}
                             className="w-full rounded-md bg-indigo-600 px-3 py-1.5 text-white shadow-xs hover:bg-indigo-500 focus:outline-none"
                         >
-                            Sign in
+                            🔐 Sign in
                         </button>
-
-                        {error && <p className="mt-4 text-red-500">{error}</p>}
                     </form>
                 </div>
             </div>

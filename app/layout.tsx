@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
 
-import Providers from "@/components/Providers";
+import TanstackProvider from "@/contexts/TanstackProvider";
+import NotifyProvider from "@/contexts/NotifyContext";
 
 export const metadata: Metadata = {
   title: "Attendance Manager",
@@ -16,10 +17,12 @@ export default function LoginLayout({
   return (
     <html lang="en" className="h-full bg-gray-50">
       <body className="antialiased h-full">
-        <Providers>
-          {children}
-        </Providers>
+        <TanstackProvider>
+          <NotifyProvider>
+            {children}
+          </NotifyProvider>
+        </TanstackProvider>
       </body>
-    </html>
+    </html >
   );
 }
