@@ -4,18 +4,39 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [professorId, setProfessorId] = useState<number | null>(null);
+  const [professorName, setProfessorName] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/session", {
+          credentials: "include",
+        });
 
-    if (!token) {
-      router.push("/login"); // 🚀 Redirect to login if not authenticated
-    } else {
-      setIsAuthenticated(true);
+        if (res.ok) {
+          const data = await res.json();
+          setIsAuthenticated(true);
+          setProfessorId(data.professorId); // ✅ Save professor ID
+          setProfessorName(data.name); // ✅ Save professor name
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch {
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      router.push("/login");
     }
-  }, [router]);
+  }, [isAuthenticated, router]);
 
-  return isAuthenticated;
+  return { isAuthenticated, professorId, professorName }; // ✅ Return all values
 }

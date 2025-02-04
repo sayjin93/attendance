@@ -6,10 +6,12 @@ import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessu
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 //hooks
-import useLogout from '@/hooks/useLogout';
+import { handleLogout } from '@/hooks/functions';
 
 //constants
 import navigationItems from '@/constants/navigation';
+
+//components
 import Header from '@/components/Header';
 
 function classNames(...classes: (string | false | null | undefined)[]): string {
@@ -18,7 +20,6 @@ function classNames(...classes: (string | false | null | undefined)[]): string {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   //#region constants
-  const logout = useLogout();
   const pathname = usePathname();
   const navigation = navigationItems.map((item) => ({
     ...item,
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
   //#region states
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
   //#endregion
 
   return (
@@ -84,7 +86,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                   </li>
                   <li className="-mx-6 mt-auto">
                     <a
-                      onClick={logout}
+                      onClick={handleLogout}
                       href="#"
                       className="flex items-center gap-x-4 px-6 py-3 text-sm/6 font-semibold text-white hover:bg-gray-800"
                     >
@@ -137,7 +139,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               </li>
               <li className="-mx-6 mt-auto">
                 <a
-                  onClick={logout}
+                  onClick={handleLogout}
                   href="#"
                   className="flex items-center gap-x-4 px-6 py-3 text-sm/6 font-semibold text-white hover:bg-gray-800"
                 >
@@ -161,7 +163,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div className="flex-1 text-sm/6 font-semibold text-white">
           {navigation.find((item) => item.current)?.name || 'Dashboard'}
         </div>
-        <a onClick={logout} href="#">
+        <a onClick={handleLogout} href="#">
           <span className="sr-only">Logout</span>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8 rounded-full bg-slate-400 p-1">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />

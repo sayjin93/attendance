@@ -1,44 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+//hooks
+import { useAuth } from "@/hooks/useAuth";
+
+//components
 import Loader from "@/components/Loader";
 
 export default function Dashboard() {
-  const [professor, setProfessor] = useState<{ name: string } | null>(null);
+  //#region constants
   const router = useRouter();
+  const { isAuthenticated, professorName } = useAuth();
+  //#endregion
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const professorId = localStorage.getItem("professorId");
-
-    if (!token || !professorId) {
-      router.push("/login"); // 🚀 Ridrejto në login nëse s'ka autentifikim
-      return;
-    }
-
-    // ✅ Kontrollojmë nëse professorId është i vlefshëm para se të bëjmë fetch
-    if (professorId) {
-      fetch(`/api/professors/${professorId}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Profesori nuk u gjet");
-          return res.json();
-        })
-        .then((data) => setProfessor(data))
-        .catch(() => {
-          localStorage.removeItem("token"); // Nëse profesori nuk gjendet, fshij tokenin
-          localStorage.removeItem("professorId");
-          router.push("/login");
-        });
-    }
-  }, [router]);
-
-  if (!professor) return <Loader />;
+  if (isAuthenticated === null) return <Loader />;
+  if (!isAuthenticated) return router.push("/login");
 
   return (
     <div className="lg:pt-16 flex flex-col items-center justify-center">
-      <h2 className="text-xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-balance text-gray-900">🎓 Mirësevini, {professor.name}!</h2>
+      <h2 className="text-xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-balance text-gray-900">🎓 Mirësevini, {professorName}!</h2>
 
       <p className="text-base sm:text-lg text-gray-600">
         Menaxhoni klasat, studentët dhe leksionet tuaja.

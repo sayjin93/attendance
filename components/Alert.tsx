@@ -9,7 +9,7 @@ import {
 interface AlertProps {
     type?: "default" | "warning" | "error" | "success";
     title: string;
-    desc: string;
+    desc?: string;
 }
 
 const alertStyles = {
@@ -54,9 +54,11 @@ const Alert: React.FC<AlertProps> = ({ type = "default", title, desc }) => {
                 </div>
                 <div className="ml-3">
                     <h3 className={`text-sm font-medium ${titleColor}`}>{title}</h3>
-                    <div className={`mt-2 text-sm ${descColor}`}>
-                        <p>{desc}</p>
-                    </div>
+                    {desc && (
+                        <div className={`mt-2 text-sm ${descColor}`}>
+                            <p>{desc}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { serialize } from "cookie";
 
 const prisma = new PrismaClient();
-const SECRET_KEY = process.env.SECRET_KEY || "fallback_secret_key"; // ✅ Use environment variable
+const SECRET_KEY = process.env.SECRET_KEY || "fallback_secret_key";
 
 export async function POST(req: Request) {
   try {
@@ -17,9 +18,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const professor = await prisma.professor.findUnique({
-      where: { email },
-    });
+    const professor = await prisma.professor.findUnique({ where: { email } });
 
     if (!professor) {
       return NextResponse.json(
@@ -36,18 +35,36 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = jwt.sign({ professorId: professor.id }, SECRET_KEY, {
-      expiresIn: "1h",
+    const token = jwt.sign(
+      {
+        professorId: professor.id,
+        name: professor.name,
+      },
+      SECRET_KEY,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    const cookie = serialize("session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60, // 1 orë
     });
 
-    return NextResponse.json(
-      { token, professorId: professor.id, name: professor.name },
-      { status: 200 }
+    return new NextResponse(
+      JSON.stringify({ professorId: professor.id, name: professor.name }),
+      {
+        status: 200,
+        headers: { "Set-Cookie": cookie },
+      }
     );
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json({ error: "Login failed" }, { status: 500 });
   } finally {
-    await prisma.$disconnect(); // ✅ Ensure proper Prisma connection handling
+    await prisma.$disconnect();
   }
 }

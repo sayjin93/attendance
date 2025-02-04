@@ -1,16 +1,23 @@
 "use client";
-import { useState, MouseEvent, useEffect } from "react";
+import { useState, MouseEvent } from "react";
+
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+
+//hooks
 import { useAuth } from "@/hooks/useAuth";
+
+//context
 import { useNotify } from "@/contexts/NotifyContext";
+
+//components
+import Loader from "@/components/Loader";
 
 export default function LoginPage() {
     //#region constants
     const router = useRouter();
-    const isAuthenticated = useAuth();
-    const { showMessage } = useNotify(); // ✅ Use the hook
-
+    const { isAuthenticated } = useAuth();
+    const { showMessage } = useNotify();
     //#endregion
 
     //#region states
@@ -28,18 +35,17 @@ export default function LoginPage() {
         }
 
         try {
-            const res = await fetch("/api/auth", {
+            const res = await fetch("/api/auth/login", {
                 method: "POST",
                 body: JSON.stringify({ email, password }),
                 headers: { "Content-Type": "application/json" },
+                credentials: "include", // ✅ Siguro që cookie të dërgohet
             });
 
-            const data = await res.json();
             if (res.ok) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("professorId", data.professorId);
                 router.push("/dashboard");
             } else {
+                const data = await res.json();
                 showMessage(data.error, "error");
             }
         } catch {
@@ -48,26 +54,13 @@ export default function LoginPage() {
     };
     //#endregion
 
-    //#region states
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            router.push("/dashboard");
-        }
-    }, [isAuthenticated, router]);
-    //#endregion
+    if (isAuthenticated === null) return <Loader />;
+    if (isAuthenticated) return router.push("/dashboard");
 
     return (
         <>
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <Image
-                    alt="JK"
-                    src="/logo.webp"
-                    width={163} // ✅ Set width
-                    height={80} // ✅ Set height
-                    priority
-                    className="mx-auto h-20 w-auto"
-                />
+                <Image alt="JK" src="/logo.webp" width={163} height={80} priority className="mx-auto h-20 w-auto" />
                 <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
                     Sign in to your account
                 </h2>
