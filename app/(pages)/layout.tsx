@@ -161,20 +161,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div className="flex-1 text-sm/6 font-semibold text-white">
           {navigation.find((item) => item.current)?.name || 'Dashboard'}
         </div>
-        <a href="#">
-          <span className="sr-only">Your profile</span>
-          <img
-            alt=""
-            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-            className="size-8 rounded-full bg-gray-800"
-          />
+        <a onClick={logout} href="#">
+          <span className="sr-only">Logout</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8 rounded-full bg-slate-400 p-1">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+          </svg>
         </a>
       </div>
 
-      <main className="p-4 sm:p-6 lg:px-8 lg:pl-80 flex flex-col">
+      <main className="p-4 sm:p-6 lg:px-8 lg:pl-80 flex flex-col [height:calc(100%-64px)] lg:h-full">
         <Header name={navigation.find((item) => item.current)?.name || 'Dashboard'} />
 
-        <div className="flex flex-col flex-1">
+        <div className="h-full">
           {children}
         </div>
       </main>

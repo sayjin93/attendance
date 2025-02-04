@@ -15,7 +15,7 @@ export default function LoginLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full bg-gray-50">
+    <html lang="en" className="h-screen bg-gray-50">
       <body className="antialiased h-full">
         <TanstackProvider>
           <NotifyProvider>
