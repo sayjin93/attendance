@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 //components
 import Loader from "@/components/Loader";
 import AddClassForm from "@/components/AddClassForm";
+import Card from "@/components/Card";
 
 async function fetchClasses(professorId: string | null) {
   if (!professorId) return [];
@@ -38,25 +39,29 @@ export default function ClassesPage() {
   if (error) return <p className="text-red-500">Error loading classes</p>;
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       {/* Forma për shtimin e klasave */}
-      <AddClassForm />
+      <Card title="Shto klasë">
+        <AddClassForm />
+      </Card>
 
       {/* Lista e klasave */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        {classes.length === 0 ? (
-          <p className="text-gray-500">🚀 Nuk keni ende klasa. Shtoni një klasë më sipër!</p>
-        ) : (
-          classes.map((classItem: { id: string; name: string }) => (
-            <div key={classItem.id} className="p-4 bg-white shadow-md rounded-lg">
-              <h2 className="text-xl font-semibold">{classItem.name}</h2>
-              <Link href={`/classes/${classItem.id}`} className="text-blue-500 mt-2 block">
-                Shiko detajet →
-              </Link>
-            </div>
-          ))
-        )}
-      </div>
-    </>
+      <Card title="Lista e klasave">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          {classes.length === 0 ? (
+            <p className="text-gray-500">🚀 Nuk keni ende klasa. Shtoni një klasë më sipër!</p>
+          ) : (
+            classes.map((classItem: { id: string; name: string }) => (
+              <div key={classItem.id} className="p-4 bg-white shadow-md rounded-lg">
+                <h2 className="text-xl font-semibold">{classItem.name}</h2>
+                <Link href={`/classes/${classItem.id}`} className="text-blue-500 mt-2 block">
+                  Shiko detajet →
+                </Link>
+              </div>
+            ))
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }
