@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -8,8 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 //components
 import Loader from "@/components/Loader";
-import AddClassForm from "@/components/AddClassForm";
 import Card from "@/components/Card";
+import Alert from "@/components/Alert";
+import AddClassForm from "@/components/AddClassForm";
 
 async function fetchClasses(professorId: string | null) {
   if (!professorId) return [];
@@ -47,16 +47,16 @@ export default function ClassesPage() {
 
       {/* Lista e klasave */}
       <Card title="Lista e klasave">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
           {classes.length === 0 ? (
-            <p className="text-gray-500">🚀 Nuk keni ende klasa. Shtoni një klasë më sipër!</p>
+            <Alert
+              title="Information"
+              desc="Nuk keni ende klasa. Shtoni një klasë më sipër!"
+            />
           ) : (
             classes.map((classItem: { id: string; name: string }) => (
-              <div key={classItem.id} className="p-4 bg-white shadow-md rounded-lg">
+              <div key={classItem.id} className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
                 <h2 className="text-xl font-semibold">{classItem.name}</h2>
-                <Link href={`/classes/${classItem.id}`} className="text-blue-500 mt-2 block">
-                  Shiko detajet →
-                </Link>
               </div>
             ))
           )}
