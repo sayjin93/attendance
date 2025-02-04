@@ -62,7 +62,7 @@ export default function LoginPage() {
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <Image
                     alt="JK"
-                    src="https://uet.edu.al/wp-content/uploads/2022/12/Logo-pa-adrese.png"
+                    src="/logo.webp"
                     width={163} // ✅ Set width
                     height={80} // ✅ Set height
                     priority

@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack -p 9900",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean-install": "npx rimraf node_modules package-lock.json && npm install"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -18,19 +19,14 @@
     "@tanstack/react-query": "^5.66.0",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.7",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
     "framer-motion": "^12.0.6",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
-    "lucide-react": "^0.474.0",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
-    "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.0.1",
-    "tailwindcss-animate": "^1.0.7"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -40,12 +36,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "postcss": "^8.5.1",
     "prisma": "^6.3.0",
     "tailwindcss": "^4.0.3",
+    "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^5"
   }
