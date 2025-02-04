@@ -37,11 +37,11 @@ export default function Dashboard() {
   if (!professor) return <Loader />;
 
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-full flex-1 flex-col justify-center">
       <div className="flex flex-col items-center justify-center">
-        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-balance text-gray-900">🎓 Mirësevini, {professor.name}!</h2>
+        <h2 className="text-xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-balance text-gray-900">🎓 Mirësevini, {professor.name}!</h2>
 
-        <p className="text-lg text-gray-600">
+        <p className="text-base sm:text-lg text-gray-600">
           Menaxhoni klasat, studentët dhe leksionet tuaja.
         </p>
 

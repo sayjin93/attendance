@@ -38,9 +38,7 @@ export default function ClassesPage() {
   if (error) return <p className="text-red-500">Error loading classes</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">📚 Klasat</h1>
-
+    <>
       {/* Forma për shtimin e klasave */}
       <AddClassForm />
 
@@ -59,6 +57,6 @@ export default function ClassesPage() {
           ))
         )}
       </div>
-    </div>
+    </>
   );
 }

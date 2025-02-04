@@ -100,9 +100,7 @@ export default function ReportsPage() {
     if (error) return <p className="text-red-500">⚠️ Error loading reports. Try again later.</p>;
 
     return (
-        <div className="p-6">
-            <h1 className="text-3xl font-bold mb-4">📊 Raporti i Studentëve - {selectedClass}</h1>
-
+        <>
             {/* Dropdown for selecting class */}
             <select
                 value={classId}
@@ -177,6 +175,6 @@ export default function ReportsPage() {
                     </div>
                 </>
             )}
-        </div>
+        </>
     );
 }

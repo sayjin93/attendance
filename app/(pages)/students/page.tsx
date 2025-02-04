@@ -48,8 +48,7 @@ export default function StudentsPage() {
     if (!isAuthenticated || classesLoading) return <Loader />;
 
     return (
-        <div className="p-6">
-            <h1 className="text-3xl font-bold mb-4">🧑‍🎓 Studentët</h1>
+        <>
 
             {/* ✅ Dropdown for selecting class */}
             <select
@@ -89,6 +88,6 @@ export default function StudentsPage() {
             {students?.length === 0 && classId && (
                 <p className="text-gray-500 text-center mt-4">🚀 Nuk ka studentë në këtë klasë.</p>
             )}
-        </div>
+        </>
     );
 }

@@ -63,8 +63,9 @@ export default function LoginPage() {
                 <Image
                     alt="JK"
                     src="https://uet.edu.al/wp-content/uploads/2022/12/Logo-pa-adrese.png"
-                    width={160} // ✅ Set width
+                    width={163} // ✅ Set width
                     height={80} // ✅ Set height
+                    priority
                     className="mx-auto h-20 w-auto"
                 />
                 <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">

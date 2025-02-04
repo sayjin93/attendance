@@ -57,9 +57,7 @@ export default function LecturesPage() {
     if (error) return <p className="text-red-500">⚠️ Error loading lectures. Try again later.</p>;
 
     return (
-        <div className="p-6">
-            <h1 className="text-3xl font-bold mb-4">🎓 Leksionet</h1>
-
+        <>
             {/* ✅ Class selection dropdown */}
             <select
                 value={classId}
@@ -96,6 +94,6 @@ export default function LecturesPage() {
                     ))}
                 </div>
             )}
-        </div>
+        </>
     );
 }

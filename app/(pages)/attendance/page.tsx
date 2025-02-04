@@ -38,9 +38,7 @@ export default function AttendancePage() {
     if (!isAuthenticated) return <Loader />;
 
     return (
-        <div className="p-6">
-            <h1 className="text-3xl font-bold mb-4">✅ Lista e Prezencës</h1>
-
+        <>
             {/* Attendance Form */}
             <AttendanceForm />
 
@@ -56,6 +54,6 @@ export default function AttendancePage() {
                     🚀 Nuk ka të dhëna të prezencës për këtë profesor.
                 </p>
             )}
-        </div>
+        </>
     );
 }
