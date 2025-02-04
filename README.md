@@ -16,3 +16,11 @@ Params should be awaited before using its properties. Learn more: https://nextjs
 ```bash
 npx @next/codemod@canary next-async-request-api .
 ```
+
+<br />
+
+Regenerate prisma schema
+
+```bash
+npx prisma generate
+```
