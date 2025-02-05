@@ -16,9 +16,6 @@ export default function AddStudentForm({
   const queryClient = useQueryClient();
   //#endregion
 
-  console.log("classId", classId);
-  console.log("professorId", professorId);
-
   //#region states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -44,8 +41,12 @@ export default function AddStudentForm({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students", classId] });
+      showMessage("Studenti u krijua me sukses!", "success");
       setName("");
       setEmail("");
+    },
+    onError: () => {
+      showMessage("Dështoi krijimi i studentit!", "error");
     },
   });
   //#endregion

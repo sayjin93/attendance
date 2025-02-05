@@ -44,7 +44,6 @@ export default function StudentsPage() {
   const { showMessage } = useNotify();
   const { isAuthenticated, professorId } = useAuth();
 
-  // ✅ Prevent query if professorId is missing (empty string)
   const professorIdString = professorId ? professorId.toString() : "";
   //#endregion
 
@@ -74,7 +73,7 @@ export default function StudentsPage() {
   });
   //#endregion
 
-  if (isAuthenticated === null) return <Loader />;
+  if (classesLoading || isAuthenticated === null) return <Loader />;
   if (!isAuthenticated) {
     router.push("/login");
     return null;
@@ -89,11 +88,9 @@ export default function StudentsPage() {
     return null;
   }
 
-  if (classesLoading) return <Loader />;
-
   return (
     <div className="flex flex-col gap-4">
-      {/* Dropdown for selecting class */}
+      {/* Class Selector */}
       <Listbox value={classId} onChange={setClassId}>
         <div className="relative mt-2">
           <ListboxButton className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
@@ -135,52 +132,46 @@ export default function StudentsPage() {
         </div>
       </Listbox>
 
-      {/* Forma për shtimin e klasave */}
+      {/* Add Class Form */}
       {classId ? (
         <Card title="Shto student">
           <AddStudentForm classId={classId} professorId={professorIdString} />
         </Card>
       ) : (
-        <Alert title="Zgjidh një klasë për të parë studentët" />
+        <Alert title="Zgjidh një klasë për të shtuar studentë" />
       )}
 
-      {/* Lista e studenteve */}
-      {classId && (
-        <Card title="Lista e studentëve">
+      {/* Classes List */}
+      <Card title="Lista e studentëve">
+        {studentsLoading ? (
+          <Loader />
+        ) : students?.length === 0 ? (
+          <Alert title="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!" />
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {studentsLoading ? (
-              <Loader />
-            ) : students?.length === 0 ? (
-              <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4">
-                <Alert title="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!" />
-              </div>
-            ) : (
-              students?.map(
-                (studentItem: {
-                  id: string;
-                  name: string;
-                  email: string;
-                  class: { name: string };
-                }) => (
-                  <div
-                    key={studentItem.id}
-                    className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-                  >
-                    <h2 className="text-xl font-semibold">
-                      {studentItem.name}
-                    </h2>
+            {students?.map(
+              (studentItem: {
+                id: string;
+                name: string;
+                email: string;
+                class: { name: string };
+              }) => (
+                <div
+                  key={studentItem.id}
+                  className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
+                >
+                  <h2 className="text-xl font-semibold">{studentItem.name}</h2>
 
-                    <p className="text-gray-500">{studentItem.email}</p>
-                    <p className="text-sm text-gray-700 mt-2">
-                      📚 Klasë: {studentItem.class?.name || "Pa klasë"}
-                    </p>
-                  </div>
-                )
+                  <p className="text-gray-500">{studentItem.email}</p>
+                  <p className="text-sm text-gray-700 mt-2">
+                    📚 Klasa: {studentItem.class?.name || "Pa klasë"}
+                  </p>
+                </div>
               )
             )}
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
     </div>
   );
 }

@@ -63,22 +63,20 @@ export default function ClassesPage() {
 
       {/* Lista e klasave */}
       <Card title="Lista e klasave">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-          {classes?.length === 0 ? (
-            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4">
-              <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
-            </div>
-          ) : (
-            classes?.map((classItem: { id: string; name: string }) => (
+        {classes?.length === 0 ? (
+          <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+            {classes?.map((classItem: { id: string; name: string }) => (
               <div
                 key={classItem.id}
                 className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
               >
                 <h2 className="text-xl font-semibold">{classItem.name}</h2>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );

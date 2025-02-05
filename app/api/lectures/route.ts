@@ -3,11 +3,11 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// ✅ Fetch all lectures for a professor
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const professorId = searchParams.get("professorId");
+    const classId = searchParams.get("classId");
 
     if (!professorId) {
       return NextResponse.json(
@@ -16,10 +16,13 @@ export async function GET(req: Request) {
       );
     }
 
-    // ✅ Fetch lectures for all classes that belong to the professor
+    // ✅ Fetch lectures for all classes that belong to the professor (optional filtering by classId)
     const lectures = await prisma.lecture.findMany({
       where: {
-        class: { professorId }, // 🔥 Join `class` to filter by `professorId`
+        class: {
+          professorId: professorId, // ✅ Ensure only lectures for this professor are fetched
+          ...(classId && { id: classId }), // ✅ If classId exists, filter by it
+        },
       },
       include: {
         class: true, // ✅ Include class details
@@ -38,7 +41,6 @@ export async function GET(req: Request) {
   }
 }
 
-// ✅ Add Lecture API
 export async function POST(req: Request) {
   try {
     const { date, classId, professorId } = await req.json();
@@ -62,7 +64,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Check if lecture already exists for this date & class
+    // ✅ Check if a lecture already exists for this date & class
     const existingLecture = await prisma.lecture.findFirst({
       where: { date: new Date(date), classId },
     });
