@@ -3,44 +3,6 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const professorId = searchParams.get("professorId");
-    const classId = searchParams.get("classId");
-
-    if (!professorId) {
-      return NextResponse.json(
-        { error: "❌ Professor ID is required!" },
-        { status: 400 }
-      );
-    }
-
-    // ✅ Fetch lectures for all classes that belong to the professor (optional filtering by classId)
-    const lectures = await prisma.lecture.findMany({
-      where: {
-        class: {
-          professorId: professorId, // ✅ Ensure only lectures for this professor are fetched
-          ...(classId && { id: classId }), // ✅ If classId exists, filter by it
-        },
-      },
-      include: {
-        class: true, // ✅ Include class details
-      },
-    });
-
-    return NextResponse.json(lectures, { status: 200 });
-  } catch (error) {
-    console.error("❌ Error fetching lectures:", error);
-    return NextResponse.json(
-      { error: "⚠️ Failed to fetch lectures" },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
 export async function POST(req: Request) {
   try {
     const { date, classId, professorId } = await req.json();

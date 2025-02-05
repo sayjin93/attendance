@@ -24,17 +24,10 @@ import Alert from "@/components/Alert";
 import Card from "@/components/Card";
 import AddStudentForm from "@/components/AddStudentForm";
 
-async function fetchStudents(classId: string) {
-  if (!classId) return [];
-
-  const res = await fetch(`/api/students?classId=${classId}`);
-  return res.json();
-}
-
 async function fetchClasses(professorId: string) {
   if (!professorId) return [];
 
-  const res = await fetch(`/api/classes?professorId=${professorId}`);
+  const res = await fetch(`/api/classes?professorId=${professorId}&includeStudents=true`);
   return res.json();
 }
 
@@ -53,37 +46,25 @@ export default function StudentsPage() {
 
   //#region useQuery
   const {
-    data: classes,
-    isLoading: classesLoading,
-    error: classesError,
+    data,
+    isLoading,
+    error,
   } = useQuery({
-    queryKey: ["classes", professorIdString],
+    queryKey: ["classes", professorId],
     queryFn: () => fetchClasses(professorIdString),
-    enabled: !!professorIdString,
+    enabled: !!professorId,
   });
 
-  const {
-    data: students,
-    isLoading: studentsLoading,
-    error: studentsError,
-  } = useQuery({
-    queryKey: ["students", classId, professorIdString],
-    queryFn: () => fetchStudents(classId),
-    enabled: !!classId,
-  });
+  const selectedClass = data?.find((cls: { id: string; name: string }) => cls.id === classId);
   //#endregion
 
-  if (classesLoading || isAuthenticated === null) return <Loader />;
+  if (isLoading || isAuthenticated === null) return <Loader />;
   if (!isAuthenticated) {
     router.push("/login");
     return null;
   }
 
-  if (classesError) {
-    showMessage("Error loading classes.", "error");
-    return null;
-  }
-  if (studentsError) {
+  if (error) {
     showMessage("Error loading students.", "error");
     return null;
   }
@@ -95,13 +76,11 @@ export default function StudentsPage() {
         <div className="relative mt-2">
           <ListboxButton className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
             <span className="col-start-1 row-start-1 truncate pr-6">
-              {classes.length === 0
+              {data.length === 0
                 ? "Nuk ka klasa aktive"
                 : classId === ""
-                ? "Zgjidh një klasë"
-                : classes.find(
-                    (cls: { id: string; name: string }) => cls.id === classId
-                  ).name}
+                  ? "Zgjidh një klasë"
+                  : selectedClass?.name}
             </span>
             <ChevronUpDownIcon
               aria-hidden="true"
@@ -113,7 +92,7 @@ export default function StudentsPage() {
             transition
             className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
           >
-            {classes?.map((cls: { id: string; name: string }) => (
+            {data?.map((cls: { id: string; name: string }) => (
               <ListboxOption
                 key={cls.id}
                 value={cls.id}
@@ -132,43 +111,39 @@ export default function StudentsPage() {
         </div>
       </Listbox>
 
-      {/* Add Class Form */}
-      {classId ? (
-        <Card title="Shto student">
+      {/* Add Student Form */}
+      <Card title="Shto student">
+        {!classId ? (
+          <Alert title="Zgjidh një klasë për të shtuar studentë" />
+        ) : (
           <AddStudentForm classId={classId} professorId={professorIdString} />
-        </Card>
-      ) : (
-        <Alert title="Zgjidh një klasë për të shtuar studentë" />
-      )}
+        )}
+      </Card>
 
-      {/* Classes List */}
+      {/* Students List */}
       <Card title="Lista e studentëve">
-        {studentsLoading ? (
-          <Loader />
-        ) : students?.length === 0 ? (
+        {!classId ? (
+          <Alert title="Zgjidh një klasë për të parë studentët" />
+        ) : selectedClass?.students?.length === 0 ? (
           <Alert title="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {students?.map(
-              (studentItem: {
-                id: string;
-                name: string;
-                email: string;
-                class: { name: string };
-              }) => (
-                <div
-                  key={studentItem.id}
-                  className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-                >
-                  <h2 className="text-xl font-semibold">{studentItem.name}</h2>
-
-                  <p className="text-gray-500">{studentItem.email}</p>
-                  <p className="text-sm text-gray-700 mt-2">
-                    📚 Klasa: {studentItem.class?.name || "Pa klasë"}
-                  </p>
+            {selectedClass?.students?.map((student: {
+              id: string;
+              name: string;
+              email: string;
+              class: { name: string };
+            }) => (
+              <div
+                key={student.id}
+                className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
+              >
+                <div className="p-4">
+                  <h2 className="text-xl font-semibold">{student.name}</h2>
+                  <p className="text-gray-500">{student.email}</p>
                 </div>
-              )
-            )}
+              </div>
+            ))}
           </div>
         )}
       </Card>

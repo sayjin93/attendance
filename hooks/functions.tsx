@@ -6,3 +6,12 @@ export const handleLogout = async () => {
         console.error("Logout failed:", error);
     }
 };
+
+export const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // Get month (0-based)
+    const day = date.getUTCDate().toString().padStart(2, '0'); // Get day
+    const year = date.getUTCFullYear(); // Get full year
+
+    return `${month}/${day}/${year}`;
+}

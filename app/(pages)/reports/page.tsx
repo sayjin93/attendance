@@ -1,7 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+
+import {
+    Listbox,
+    ListboxButton,
+    ListboxOption,
+    ListboxOptions,
+} from "@headlessui/react";
+import { ChevronUpDownIcon } from "@heroicons/react/16/solid";
+import { CheckIcon } from "@heroicons/react/20/solid";
 
 //chart.js
 import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
@@ -12,35 +22,26 @@ Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
+//types
+import { Class, StudentReport } from "@/types";
+
 //hooks
 import { useAuth } from "@/hooks/useAuth";
 
+// contexts
+import { useNotify } from "@/contexts/NotifyContext";
+
 //components
 import Loader from "@/components/Loader";
+import Alert from "@/components/Alert";
+import Card from "@/components/Card";
 
-// ✅ Define TypeScript interfaces
-interface Class {
-    id: string;
-    name: string;
-}
-
-interface StudentReport {
-    id: string;
-    name: string;
-    presence: number;
-    absence: number;
-    participation: number;
-}
-
-// ✅ Function to fetch classes
-async function fetchClasses(professorId: string | null): Promise<Class[]> {
+async function fetchClasses(professorId: string) {
     if (!professorId) return [];
 
     const res = await fetch(`/api/classes?professorId=${professorId}`);
     return res.json();
 }
-
-// ✅ Function to fetch reports
 async function fetchReports(classId: string, professorId: string | null): Promise<StudentReport[]> {
     if (!classId || !professorId) return [];
 
@@ -55,34 +56,43 @@ async function fetchReports(classId: string, professorId: string | null): Promis
 }
 
 export default function ReportsPage() {
-    const [professorId, setProfessorId] = useState<string | null>(null);
+    //#region constants
+    const router = useRouter();
+    const { showMessage } = useNotify();
+
+    const { isAuthenticated, professorId } = useAuth();
+
+    const professorIdString = professorId ? professorId.toString() : "";
+    //#endregion
+
+    //#region states
     const [classId, setClassId] = useState("");
+    //#endregion
 
-    // ✅ Fetch professor ID only when component mounts
-    useEffect(() => {
-        const storedProfessorId = localStorage.getItem("professorId");
-        if (storedProfessorId) {
-            setProfessorId(storedProfessorId);
-        }
-    }, []);
-
-    // ✅ Fetch available classes
-    const { data: classes = [], isLoading: loadingClasses } = useQuery<Class[]>({
+    //#region useQuery
+    const {
+        data: classes,
+        isLoading: loadingClasses,
+        error: errorClasses
+    } = useQuery({
         queryKey: ["classes", professorId],
-        queryFn: () => fetchClasses(professorId),
+        queryFn: () => fetchClasses(professorIdString),
         enabled: !!professorId,
     });
 
-    // ✅ Fetch reports based on selected class
-    const { data: students = [], isLoading: loadingReports, error } = useQuery<StudentReport[]>({
-        queryKey: ["reports", classId, professorId],
-        queryFn: () => fetchReports(classId, professorId),
-        enabled: !!classId && !!professorId,
-    });
+    const {
+        data: students = [],
+        isLoading: loadingStudents,
+        error: errorStudents } = useQuery<StudentReport[]>({
+            queryKey: ["reports", classId, professorId],
+            queryFn: () => fetchReports(classId, professorIdString),
+            enabled: !!classId && !!professorId,
+        });
 
-    const selectedClass = classes.find((cls: Class) => cls.id === classId)?.name || "Zgjidh një klasë";
+    const selectedClass = classes?.find((cls: Class) => cls.id === classId);
+    //#endregion
 
-    // ✅ Function to download PDF report
+    //#region functions
     const downloadPDF = () => {
         const doc = new jsPDF();
         doc.text(`Raporti i Studentëve - ${selectedClass}`, 20, 10);
@@ -94,86 +104,131 @@ export default function ReportsPage() {
 
         doc.save(`Raporti_${selectedClass}.pdf`);
     };
-    const { isAuthenticated } = useAuth();
-    if (!isAuthenticated || loadingClasses) return <Loader />;
-    if (error) return <p className="text-red-500">⚠️ Error loading reports. Try again later.</p>;
+    //#endregion
+
+    if (loadingClasses || isAuthenticated === null) return <Loader />;
+    if (!isAuthenticated) {
+        router.push("/login");
+        return null;
+    }
+
+    if (errorClasses) {
+        showMessage("Error loading classes.", "error");
+        return null;
+    }
 
     return (
-        <>
-            {/* Dropdown for selecting class */}
-            <select
-                value={classId}
-                onChange={(e) => setClassId(e.target.value)}
-                className="p-2 border rounded w-full mb-4"
-                disabled={loadingClasses || classes.length === 0}
-            >
-                <option value="">📚 Zgjidh Klasën</option>
-                {classes.map((cls: Class) => (
-                    <option key={cls.id} value={cls.id}>
-                        {cls.name}
-                    </option>
-                ))}
-            </select>
+        <div className="flex flex-col gap-4">
+            {/* Class Selector */}
+            <Listbox value={classId} onChange={setClassId}>
+                <div className="relative mt-2">
+                    <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                        <span className="col-start-1 row-start-1 truncate pr-6">
+                            {classes?.length === 0
+                                ? "Nuk ka klasa aktive"
+                                : !classId
+                                    ? "Zgjidh klasën"
+                                    : selectedClass?.name}
+                        </span>
+                        <ChevronUpDownIcon
+                            aria-hidden="true"
+                            className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                        />
+                    </ListboxButton>
 
-            {/* Show message if no class is selected */}
-            {!classId && <p className="text-gray-500 text-center mt-4">⚠️ Zgjidh një klasë për të parë raportin.</p>}
+                    <ListboxOptions
+                        transition
+                        className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+                    >
+                        {classes?.map((cls: { id: string; name: string }) => (
+                            <ListboxOption
+                                key={cls.id}
+                                value={cls.id}
+                                className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                            >
+                                <span className="block truncate font-normal group-data-selected:font-semibold">
+                                    {cls.name}
+                                </span>
 
-            {/* Show loading state */}
-            {loadingReports && classId && <Loader />}
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                                    <CheckIcon aria-hidden="true" className="size-5" />
+                                </span>
+                            </ListboxOption>
+                        ))}
+                    </ListboxOptions>
+                </div>
+            </Listbox>
 
             {/* Student Report Table */}
-            {students.length > 0 && classId && (
-                <>
-                    <table className="w-full bg-white shadow-md rounded-lg">
-                        <thead className="bg-gray-200">
-                            <tr>
-                                <th className="p-3 text-left">👤 Student</th>
-                                <th className="p-3 text-center">✅ Prezencë</th>
-                                <th className="p-3 text-center">❌ Mungesë</th>
-                                <th className="p-3 text-center">🙋 Aktivizim</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {students.map((student: StudentReport) => (
-                                <tr key={student.id} className="border-b">
-                                    <td className="p-3">{student.name}</td>
-                                    <td className="p-3 text-center">{student.presence}</td>
-                                    <td className="p-3 text-center">{student.absence}</td>
-                                    <td className="p-3 text-center">{student.participation}</td>
+            <Card>
+                {!classId ? (
+                    <Alert title="Zgjidh një klasë për të parë raportet" />
+                ) : loadingStudents ? (
+                    <Loader />
+                ) : errorStudents ? (
+                    <Alert type="error" title="Ka ndodhur një gabim me raportet." />
+                ) : students.length === 0 ? (
+                    <Alert title="Nuk ka të listëprezenca të ruajtura për këtë klasë." />
+                ) : (
+                    <div className="flex flex-col gap-4">
+                        <table className="w-full bg-white shadow-md rounded-lg">
+                            <thead className="bg-gray-200">
+                                <tr>
+                                    <th className="p-3 text-left">👤 Student</th>
+                                    <th className="p-3 text-center">✅ Prezencë</th>
+                                    <th className="p-3 text-center">❌ Mungesë</th>
+                                    <th className="p-3 text-center">🙋 Aktivizim</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {students.map((student: StudentReport) => (
+                                    <tr key={student.id} className="border-b">
+                                        <td className="p-3">{student.name}</td>
+                                        <td className="p-3 text-center">{student.presence}</td>
+                                        <td className="p-3 text-center">{student.absence}</td>
+                                        <td className="p-3 text-center">{student.participation}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
 
-                    {/* Download Report Button */}
-                    <button onClick={downloadPDF} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
-                        📥 Shkarko Raportin në PDF
-                    </button>
+                        {/* Download Report Button */}
+                        <button
+                            onClick={downloadPDF}
+                            className="cursor-pointer inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="-ml-0.5 size-5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                            </svg>
 
-                    {/* Attendance Analysis Chart */}
-                    <div className="mt-6" style={{ height: "400px" }}>
-                        <h2 className="text-2xl font-bold mb-2">📊 Analiza e Prezencës</h2>
-                        <Bar
-                            data={{
-                                labels: students.map((s) => s.name),
-                                datasets: [
-                                    { label: "Prezencë ✅", data: students.map((s) => s.presence), backgroundColor: "#81c784" },
-                                    { label: "Mungesë ❌", data: students.map((s) => s.absence), backgroundColor: "#e57373" },
-                                    { label: "Aktivizim 🙋", data: students.map((s) => s.participation), backgroundColor: "#ffcc80" },
-                                ],
-                            }}
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    x: { type: "category", title: { display: true, text: "Studentët" } },
-                                    y: { beginAtZero: true, title: { display: true, text: "Numri" } },
-                                },
-                            }}
-                        />
+                            Shkarko Raportin në PDF
+                        </button>
+
+                        {/* Attendance Analysis Chart */}
+                        <div className="mt-6" style={{ height: "400px" }}>
+                            <h3 className="text-2xl font-bold mb-2">📊 Analiza e Prezencës</h3>
+                            <Bar
+                                data={{
+                                    labels: students.map((s) => s.name),
+                                    datasets: [
+                                        { label: "Prezencë ✅", data: students.map((s) => s.presence), backgroundColor: "#81c784" },
+                                        { label: "Mungesë ❌", data: students.map((s) => s.absence), backgroundColor: "#e57373" },
+                                        { label: "Aktivizim 🙋", data: students.map((s) => s.participation), backgroundColor: "#ffcc80" },
+                                    ],
+                                }}
+                                options={{
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        x: { type: "category", title: { display: true, text: "Studentët" } },
+                                        y: { beginAtZero: true, title: { display: true, text: "Numri" } },
+                                    },
+                                }}
+                            />
+                        </div>
                     </div>
-                </>
-            )}
-        </>
+                )}
+            </Card>
+        </div>
     );
 }

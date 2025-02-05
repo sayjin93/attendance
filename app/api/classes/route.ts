@@ -7,6 +7,8 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const professorId = searchParams.get("professorId");
+    const includeStudents = searchParams.get("includeStudents") === "true";
+    const includeLectures = searchParams.get("includeLectures") === "true";
 
     if (!professorId) {
       return NextResponse.json(
@@ -15,21 +17,13 @@ export async function GET(req: Request) {
       );
     }
 
-    // ✅ Verify professor existence
-    const professorExists = await prisma.professor.findUnique({
-      where: { id: professorId },
-    });
-
-    if (!professorExists) {
-      return NextResponse.json(
-        { error: "❌ Professor not found!" },
-        { status: 404 }
-      );
-    }
-
+    // ✅ Fetch classes with optional students and lectures
     const classes = await prisma.class.findMany({
       where: { professorId },
-      include: { students: true, lectures: true },
+      include: {
+        students: includeStudents ? true : false, // ✅ Conditionally include students
+        lectures: includeLectures ? true : false, // ✅ Conditionally include lectures
+      },
     });
 
     return NextResponse.json(classes, { status: 200 });
@@ -40,7 +34,7 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect(); // ✅ Close Prisma connection properly
+    await prisma.$disconnect();
   }
 }
 

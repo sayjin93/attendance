@@ -37,7 +37,7 @@ model Student {
   email      String       @unique
   classId    String
   class      Class        @relation(fields: [classId], references: [id])
-  attendance Attendance[] // ✅ Added this relation field
+  attendance Attendance[]
 }
 
 model Lecture {
@@ -51,7 +51,7 @@ model Lecture {
 model Attendance {
   id        String  @id @default(uuid())
   studentId String
-  student   Student @relation(fields: [studentId], references: [id]) // ✅ No change needed here
+  student   Student @relation(fields: [studentId], references: [id])
   lectureId String
   lecture   Lecture @relation(fields: [lectureId], references: [id])
   status    String // PRESENT, ABSENT, PARTICIPATED

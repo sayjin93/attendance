@@ -24,3 +24,13 @@ Regenerate prisma schema
 ```bash
 npx prisma generate
 ```
+<br />
+
+### API calls:
+
+| Request | Behavior |
+|---------|----------|
+| `/api/classes?professorId=123` | 🚀 Returns **only classes** |
+| `/api/classes?professorId=123&includeStudents=true` | ✅ Returns **classes with students** |
+| `/api/classes?professorId=123&includeLectures=true` | ✅ Returns **classes with lectures** |
+| `/api/classes?professorId=123&includeStudents=true&includeLectures=true` | ✅ Returns **classes with students + lectures** |
