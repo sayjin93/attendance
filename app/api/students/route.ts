@@ -37,7 +37,6 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    debugger;
     const { name, email, classId, professorId } = await req.json();
 
     if (!professorId || !classId || !name) {
