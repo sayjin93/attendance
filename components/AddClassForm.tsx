@@ -3,69 +3,65 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export default function AddClassForm() {
-    const [name, setName] = useState("");
-    const [message, setMessage] = useState<{ text: string; type: string } | null>(null);
-    const queryClient = useQueryClient();
+//contexts
+import { useNotify } from "@/contexts/NotifyContext";
 
-    const mutation = useMutation({
-        mutationFn: async () => {
-            const professorId = localStorage.getItem("professorId"); // ✅ Merr ID e profesorit
-            if (!professorId) {
-                setMessage({ text: "❌ Nuk jeni i kyçur si profesor!", type: "error" });
-                return;
-            }
+export default function AddClassForm({ professorId }: { professorId: string }) {
+  //#region constants
+  const { showMessage } = useNotify();
+  const queryClient = useQueryClient();
+  //#endregion
 
-            const res = await fetch("/api/classes", {
-                method: "POST",
-                body: JSON.stringify({ name, professorId }), // ✅ Shtojmë professorId në request
-                headers: { "Content-Type": "application/json" },
-            });
+  //#region states
+  const [name, setName] = useState("");
+  //#endregion
 
-            if (!res.ok) throw new Error("Dështoi krijimi i klasës");
+  //#region mutations
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!professorId) {
+        showMessage("Nuk jeni i kyçur si profesor!", "error");
+        return null;
+      }
 
-            return res.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["classes"] });
-            setMessage({ text: "✅ Klasa u krijua me sukses!", type: "success" });
-            setName("");
+      const res = await fetch("/api/classes", {
+        method: "POST",
+        body: JSON.stringify({ name, professorId }),
+        headers: { "Content-Type": "application/json" },
+      });
 
-            setTimeout(() => setMessage(null), 2000); // 🔥 Fshij mesazhin pas 2 sekondash
-        },
-        onError: () => {
-            setMessage({ text: "❌ Dështoi krijimi i klasës!", type: "error" });
-        },
-    });
+      if (!res.ok) throw new Error("Dështoi krijimi i klasës");
 
-    return (
-        <>
-            {message && (
-                <div className={`p-2 text-white text-center rounded mb-4 ${message.type === "success" ? "bg-green-500" : "bg-red-500"}`}>
-                    {message.text}
-                </div>
-            )}
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      showMessage("Klasa u krijua me sukses!", "success");
+      setName("");
+    },
+    onError: () => {
+      showMessage("Dështoi krijimi i klasës!", "error");
+    },
+  });
+  //#endregion
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-8 ">
-                <input
-                    name="shtoklase"
-                    type="text"
-                    placeholder="Emri klasës"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                />
-                <button
-                    onClick={() => mutation.mutate()}
-                    className="items-center rounded-md bg-indigo-600 disabled:bg-gray-300  px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                    disabled={!name} // ✅ Parandalojmë krijimin e klasës bosh
-                >
-                    Shto klasë
-                </button>
-            </div>
-
-
-
-        </>
-    );
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <input
+        name="shtoklase"
+        type="text"
+        placeholder="Emri klasës"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+      />
+      <button
+        onClick={() => mutation.mutate()}
+        className="cursor-pointer items-center rounded-md bg-indigo-600 disabled:bg-gray-300  px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+        disabled={!name} // ✅ Parandalojmë krijimin e klasës bosh
+      >
+        Shto Klasë
+      </button>
+    </div>
+  );
 }

@@ -34,7 +34,7 @@ export default function AttendancePage() {
         enabled: !!professorId,
     });
 
-    const isAuthenticated = useAuth();
+    const { isAuthenticated } = useAuth();
     if (!isAuthenticated) return <Loader />;
 
     return (

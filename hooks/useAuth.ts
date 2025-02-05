@@ -4,11 +4,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function useAuth() {
+  //#region constants
+  const router = useRouter();
+  //#endregion
+
+  //#region states
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [professorId, setProfessorId] = useState<number | null>(null);
   const [professorName, setProfessorName] = useState<string | null>(null);
-  const router = useRouter();
+  //#endregion
 
+  //#region useEffect
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -37,6 +43,7 @@ export function useAuth() {
       router.push("/login");
     }
   }, [isAuthenticated, router]);
+  //#endregion
 
   return { isAuthenticated, professorId, professorName }; // ✅ Return all values
 }

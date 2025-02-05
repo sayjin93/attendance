@@ -94,8 +94,7 @@ export default function ReportsPage() {
 
         doc.save(`Raporti_${selectedClass}.pdf`);
     };
-
-    const isAuthenticated = useAuth();
+    const { isAuthenticated } = useAuth();
     if (!isAuthenticated || loadingClasses) return <Loader />;
     if (error) return <p className="text-red-500">⚠️ Error loading reports. Try again later.</p>;
 

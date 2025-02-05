@@ -31,23 +31,24 @@ export default function ClassesPage() {
   const professorIdString = professorId ? professorId.toString() : "";
   //#endregion
 
-  // ✅ useQuery must always be executed, so it is placed before any return statements
-  const { data: classes, isLoading, error } = useQuery({
+  //#region useQuery
+  const {
+    data: classes,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["classes", professorIdString],
     queryFn: () => fetchClasses(professorIdString),
     enabled: !!professorIdString, // ✅ Fetch only if professorId exists
   });
+  //#endregion
 
-  // ✅ Handle loading state
   if (isLoading || isAuthenticated === null) return <Loader />;
-
-  // ✅ Redirect only after useQuery is executed
   if (!isAuthenticated) {
     router.push("/login");
     return null;
   }
 
-  // ✅ Handle error messages
   if (error) {
     showMessage("Error loading classes.", "error");
     return null;
@@ -57,19 +58,22 @@ export default function ClassesPage() {
     <div className="flex flex-col gap-4">
       {/* Forma për shtimin e klasave */}
       <Card title="Shto klasë">
-        <AddClassForm />
+        <AddClassForm professorId={professorIdString} />
       </Card>
 
       {/* Lista e klasave */}
       <Card title="Lista e klasave">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
           {classes?.length === 0 ? (
-            <Alert
-              title="Nuk keni ende klasa. Shtoni një klasë më sipër!"
-            />
+            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4">
+              <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
+            </div>
           ) : (
             classes?.map((classItem: { id: string; name: string }) => (
-              <div key={classItem.id} className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
+              <div
+                key={classItem.id}
+                className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
+              >
                 <h2 className="text-xl font-semibold">{classItem.name}</h2>
               </div>
             ))
