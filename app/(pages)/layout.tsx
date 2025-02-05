@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
@@ -71,9 +71,11 @@ export default function RootLayout({
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-2 ring-1 ring-white/10">
               <div className="flex h-16 shrink-0 items-end">
-                <img
-                  alt="Your Company"
+                <Image
+                  alt="UET"
                   src="/icon.svg"
+                  width={30}
+                  height={56}
                   className="h-12 w-auto"
                 />
               </div>
@@ -138,7 +140,13 @@ export default function RootLayout({
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6">
           <div className="flex h-20 shrink-0 items-end">
-            <img alt="Your Company" src="/icon.svg" className="h-14 w-auto" />
+            <Image
+              alt="UET"
+              src="/icon.svg"
+              width={30}
+              height={56}
+              className="h-12 w-auto"
+            />
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -177,7 +185,7 @@ export default function RootLayout({
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="size-8 rounded-full bg-gray-800"
+                    className="size-8 rounded-full bg-gray-800 p-1"
                   >
                     <path
                       strokeLinecap="round"
