@@ -12,13 +12,16 @@ import {
 import { ChevronUpDownIcon } from "@heroicons/react/16/solid";
 import { CheckIcon } from "@heroicons/react/20/solid";
 
-// hooks
+//types
+import { Class, Lecture } from "@/types";
+
+//hooks
 import { useAuth } from "@/hooks/useAuth";
 
-// contexts
+//contexts
 import { useNotify } from "@/contexts/NotifyContext";
 
-// components
+//components
 import Loader from "@/components/Loader";
 import Alert from "@/components/Alert";
 import Card from "@/components/Card";
@@ -60,7 +63,7 @@ export default function LecturesPage() {
     enabled: !!professorIdString,
   });
 
-  const selectedClass = data?.find((cls: { id: string; name: string }) => cls.id === classId);
+  const selectedClass = data?.find((cls: Class) => cls.id === classId);
   //#endregion
 
   //#region mutations
@@ -126,7 +129,7 @@ export default function LecturesPage() {
             transition
             className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
           >
-            {data?.map((cls: { id: string; name: string }) => (
+            {data?.map((cls: Class) => (
               <ListboxOption
                 key={cls.id}
                 value={cls.id}
@@ -179,11 +182,7 @@ export default function LecturesPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
             {selectedClass.lectures.map(
-              (lecture: {
-                id: string;
-                date: string;
-                class?: { name?: string };
-              }) => (
+              (lecture: Lecture) => (
                 <div
                   key={lecture.id}
                   className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"

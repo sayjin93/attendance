@@ -2,6 +2,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
+//types
+import { Class } from "@/types";
+
 //hooks
 import { useAuth } from "@/hooks/useAuth";
 
@@ -66,7 +69,7 @@ export default function ClassesPage() {
           <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {data?.map((classItem: { id: string; name: string }) => (
+            {data?.map((classItem: Class) => (
               <div
                 key={classItem.id}
                 className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"

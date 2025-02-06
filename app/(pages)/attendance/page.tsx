@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 import {
@@ -14,7 +14,7 @@ import { ChevronUpDownIcon } from "@heroicons/react/16/solid";
 import { CheckIcon } from "@heroicons/react/20/solid";
 
 //types
-import { Class, Lecture } from "@/types";
+import { AttendanceRecord, Class, Lecture } from "@/types";
 
 // hooks
 import { useAuth } from "@/hooks/useAuth";
@@ -35,59 +35,120 @@ async function fetchClasses(professorId: string) {
     return res.json();
 }
 
-// async function fetchAttendance(professorId: string, classId: string) {
-//     if (!professorId || !classId) return [];
+async function fetchAttendance(professorId: string, classId: string, lectureId: string): Promise<AttendanceRecord[]> {
+    if (!classId || !lectureId) return [];
 
-//     const res = await fetch(`/api/classes?professorId=${professorId}&includeLectures=true&includeStudents=true`);
+    const res = await fetch(`/api/attendance?professorId=${professorId}&classId=${classId}&lectureId=${lectureId}`);
+    if (!res.ok) {
+        throw new Error("Failed to fetch attendance");
+    }
+    const data = await res.json();
+    console.log("Fetched attendance data:", data); // Debugging log
+    return data;
+}
 
-//     if (!res.ok) {
-//         console.error("❌ Error fetching attendance:", await res.text());
-//         return [];
-//     }
-
-//     return res.json();
-// }
+async function updateAttendance(data: { studentId: string; lectureId: string; status: "PRESENT" | "ABSENT" | "PARTICIPATED" }) {
+    const res = await fetch("/api/attendance", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        throw new Error("Failed to update attendance");
+    }
+    return res.json();
+}
 
 export default function AttendancePage() {
     //#region constants
     const router = useRouter();
     const { showMessage } = useNotify();
+    const queryClient = useQueryClient();
 
     const { isAuthenticated, professorId } = useAuth();
-
     const professorIdString = professorId ? professorId.toString() : "";
     //#endregion
 
     //#region states
     const [classId, setClassId] = useState("");
     const [lectureId, setLectureId] = useState("");
+    const [students, setStudents] = useState<AttendanceRecord[]>([]);
     //#endregion
 
     //#region useQuery
-    const { data, isLoading, error } = useQuery({
+    const {
+        data: classes,
+        isLoading: classesLoading,
+        error: classesError
+    } = useQuery({
         queryKey: ["classes", professorId],
         queryFn: () => fetchClasses(professorIdString),
         enabled: !!professorId,
     });
 
-    const selectedClass = data?.find((cls: Class) => cls.id === classId);
+    const {
+        data: attendance,
+        isLoading: attendanceLoading,
+        error: attendanceError
+    } = useQuery({
+        queryKey: ["attendance", classId, lectureId],
+        queryFn: () => fetchAttendance(professorIdString, classId, lectureId),
+        enabled: !!professorId && !!classId && !!lectureId,
+    });
+
+    const selectedClass = classes?.find((cls: Class) => cls.id === classId);
     const selectedLecture = selectedClass?.lectures.find((lecture: Lecture) => lecture.id === lectureId);
     //#endregion
 
-    if (isLoading || isAuthenticated === null) return <Loader />;
+    //#region useEffect
+    useEffect(() => {
+        if (attendance) {
+            setStudents(
+                attendance.map((student) => ({
+                    ...student,
+                    status: student.status || "PRESENT", // Default status
+                }))
+            );
+        }
+    }, [attendance]);
+    //#endregion
+
+    //#region mutations
+    const mutation = useMutation({
+        mutationFn: (students: AttendanceRecord[]) => {
+            return Promise.all(
+                students.map((student) =>
+                    updateAttendance({
+                        studentId: student.id, // Changed from student.studentId to student.id
+                        lectureId,
+                        status: student.status,
+                    })
+                )
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["attendance", classId, lectureId] });
+            showMessage("Prezenca u shtua me sukses!", "success");
+        },
+        onError: () => {
+            showMessage("Gabim gjatë regjistrimit të prezencës!", "error");
+        },
+    });
+    //#endregion
+
+    if (classesLoading || isAuthenticated === null) return <Loader />;
     if (!isAuthenticated) {
         router.push("/login");
         return null;
     }
 
-    if (error) {
-        showMessage("Error loading attendances.", "error");
+    if (classesError) {
+        showMessage("classesError loading attendances.", "error");
         return null;
     }
 
     return (
         <div className="flex flex-col gap-4 h-full">
-
             <Card>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Class Selector */}
@@ -97,7 +158,7 @@ export default function AttendancePage() {
                             <div className="relative mt-2">
                                 <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
                                     <span className="col-start-1 row-start-1 truncate pr-6">
-                                        {data?.length === 0
+                                        {classes?.length === 0
                                             ? "Nuk ka klasa aktive"
                                             : !classId
                                                 ? "Zgjidh klasën"
@@ -113,7 +174,7 @@ export default function AttendancePage() {
                                     transition
                                     className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
                                 >
-                                    {data?.map((cls: { id: string; name: string }) => (
+                                    {classes?.map((cls: Class) => (
                                         <ListboxOption
                                             key={cls.id}
                                             value={cls.id}
@@ -188,15 +249,62 @@ export default function AttendancePage() {
                     <Alert title="Zgjidhni një klasë" />
                 ) : !lectureId ? (
                     <Alert title="Zgjidhni një leksion" />
-                ) : <Alert type="warning" title="Komponentja në zhvillim!" />}
+                ) : attendanceError ? (
+                    <Alert type="error" title="Problem me marrjen e listës." />
+
+                ) : attendanceLoading ? (
+                    <Loader />
+                ) : (
+                    <div className="overflow-hidden ring-1 shadow-sm ring-black/5 sm:rounded-lg">
+                        <table className="min-w-full divide-y divide-gray-300">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th scope="col" className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6 uppercase">
+                                        Student
+                                    </th>
+                                    <th scope="col" className="py-3.5 pr-3 pl-4 text-center text-sm font-semibold text-gray-900 sm:pl-6 uppercase">
+                                        Prezencë
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-gray-200 bg-white">
+                                {students.map((student) => (
+                                    <tr key={student.id} className="even:bg-gray-50">
+                                        <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6">
+                                            {student.name}
+                                        </td>
+                                        <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 text-center">
+                                            <select
+                                                value={student.status}
+                                                onChange={(e) => {
+                                                    setStudents(prev =>
+                                                        prev.map(s =>
+                                                            s.id === student.id ? { ...s, status: e.target.value as "PRESENT" | "ABSENT" | "PARTICIPATED" } : s
+                                                        )
+                                                    );
+                                                }}
+                                                className="col-start-1 row-start-1 cursor-pointer appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                            >
+                                                <option value="PRESENT">✅ Prezente</option>
+                                                <option value="ABSENT">❌ Mungesë</option>
+                                                <option value="PARTICIPATED">🙋 Aktivizuar</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             <button
-                // onClick={handleSubmit}
+                onClick={() => mutation.mutate(students)}
                 className="w-full cursor-pointer disabled:cursor-not-allowed items-center rounded-md bg-indigo-600 disabled:bg-gray-300  px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                disabled={!classId || !lectureId}
+                disabled={!classId || !lectureId || mutation.isPending}
             >
-                Regjistro Listëprezencën
+                {mutation.isPending ? "Po regjistrohet..." : "Regjistro Listëprezencën"}
             </button>
         </div>
     );

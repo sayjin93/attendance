@@ -12,6 +12,9 @@ import {
 import { ChevronUpDownIcon } from "@heroicons/react/16/solid";
 import { CheckIcon } from "@heroicons/react/20/solid";
 
+//types
+import { Class, Student } from "@/types";
+
 //hooks
 import { useAuth } from "@/hooks/useAuth";
 
@@ -55,7 +58,7 @@ export default function StudentsPage() {
     enabled: !!professorId,
   });
 
-  const selectedClass = data?.find((cls: { id: string; name: string }) => cls.id === classId);
+  const selectedClass = data?.find((cls: Class) => cls.id === classId);
   //#endregion
 
   if (isLoading || isAuthenticated === null) return <Loader />;
@@ -92,7 +95,7 @@ export default function StudentsPage() {
             transition
             className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
           >
-            {data?.map((cls: { id: string; name: string }) => (
+            {data?.map((cls: Class) => (
               <ListboxOption
                 key={cls.id}
                 value={cls.id}
@@ -128,12 +131,7 @@ export default function StudentsPage() {
           <Alert title="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {selectedClass?.students?.map((student: {
-              id: string;
-              name: string;
-              email: string;
-              class: { name: string };
-            }) => (
+            {selectedClass?.students?.map((student: Student) => (
               <div
                 key={student.id}
                 className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"

@@ -1,4 +1,4 @@
-import React from "react";
+import { FC } from "react";
 import {
     ExclamationTriangleIcon,
     XCircleIcon,
@@ -43,7 +43,7 @@ const alertStyles = {
     },
 };
 
-const Alert: React.FC<AlertProps> = ({ type = "default", title, desc }) => {
+const Alert: FC<AlertProps> = ({ type = "default", title, desc }) => {
     const { bg, iconColor, titleColor, descColor, Icon } = alertStyles[type];
 
     return (
