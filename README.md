@@ -23,6 +23,15 @@ Regenerate prisma schema
 
 ```bash
 npx prisma generate
+
+```
+<br />
+
+
+Rikrijo databazen
+
+```bash
+npx prisma migrate dev --name init
 ```
 <br />
 

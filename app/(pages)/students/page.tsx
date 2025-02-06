@@ -136,7 +136,7 @@ export default function StudentsPage() {
                 key={student.id}
                 className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
               >
-                <div className="p-4">
+                <div className="p-4 text-center">
                   <h2 className="text-xl font-semibold">{student.name}</h2>
                   <p className="text-gray-500">{student.email}</p>
                 </div>

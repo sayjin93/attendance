@@ -6,26 +6,25 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding the database...");
 
-  const email = "malvina.niklekaj@uet.edu.al";
-  const existingProfessor = await prisma.professor.findUnique({
-    where: { email },
+  const professors = [
+    {
+      name: "Jurgen Kruja",
+      email: "jurgen.kruja@uet.edu.al",
+      password: await bcrypt.hash("germany6", 10),
+    },
+    {
+      name: "Malvina Niklekaj",
+      email: "malvina.niklekaj@uet.edu.al",
+      password: await bcrypt.hash("priam", 10),
+    },
+  ];
+
+  await prisma.professor.createMany({
+    data: professors,
+    skipDuplicates: true, // ✅ This prevents errors if a professor already exists
   });
 
-  if (!existingProfessor) {
-    const hashedPassword = await bcrypt.hash("priam", 10); // 🔐 Hash the password
-
-    await prisma.professor.create({
-      data: {
-        name: "Malvina Niklekaj",
-        email,
-        password: hashedPassword, // ✅ Store hashed password
-      },
-    });
-
-    console.log("✅ Professor added successfully!");
-  } else {
-    console.log("⚠️ Professor already exists. Skipping...");
-  }
+  console.log("✅ Professors seeded successfully!");
 }
 
 main()
