@@ -24,6 +24,7 @@ export default function LoginPage() {
   //#region states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [posting, setPosting] = useState(false);
   //#endregion
 
   //#region functions
@@ -36,6 +37,8 @@ export default function LoginPage() {
     }
 
     try {
+      setPosting(true);
+
       const res = await fetch("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
@@ -52,6 +55,8 @@ export default function LoginPage() {
     } catch {
       showMessage("Something went wrong. Please try again.", "error");
     }
+
+    setPosting(false);
   };
   //#endregion
 
@@ -122,10 +127,11 @@ export default function LoginPage() {
             <div>
               <button
                 type="submit"
+                disabled={posting}
                 onClick={handleLogin}
-                className="cursor-pointer flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className="cursor-pointer flex w-full justify-center rounded-md bg-indigo-600 disabled:bg-gray-300 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
-                🔐 Sign in
+                {posting ? "Please wait" : "🔐 Sign in"}
               </button>
             </div>
           </form>
