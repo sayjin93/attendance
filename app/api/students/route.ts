@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const { name, email, classId, professorId } = await req.json();
+    const { firstName, lastName, classId, professorId } = await req.json();
 
-    if (!professorId || !classId || !name) {
+    if (!professorId || !classId || !firstName || !lastName) {
       return NextResponse.json(
         { error: "❌ All fields are required!" },
         { status: 400 }
@@ -26,8 +26,19 @@ export async function POST(req: Request) {
       );
     }
 
+    // ✅ Trim spaces and capitalize first letter
+    const formatName = (name: string) =>
+      name.trim().charAt(0).toUpperCase() + name.trim().slice(1).toLowerCase();
+
+    const formattedFirstName = formatName(firstName);
+    const formattedLastName = formatName(lastName);
+
     const newStudent = await prisma.student.create({
-      data: { name, email, classId },
+      data: {
+        firstName: formattedFirstName,
+        lastName: formattedLastName,
+        classId,
+      },
     });
 
     return NextResponse.json(newStudent, { status: 201 });

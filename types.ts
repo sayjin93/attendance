@@ -11,20 +11,22 @@ export interface Lecture {
 
 export interface Student {
   id: string;
-  name: string;
-  email?: string;
+  firstName: string;
+  lastName?: string;
   class?: { name: string };
 }
 
 export interface AttendanceRecord {
   id: string;
-  name: string; // Name i studentit është direkt në objekt
+  firstName: string;
+  lastName: string;
   status: "PRESENT" | "ABSENT" | "PARTICIPATED";
 }
 
 export interface StudentReport {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   presence: number;
   absence: number;
   participation: number;
