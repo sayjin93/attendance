@@ -28,7 +28,7 @@ export default function ClassesPage() {
   //#region constants
   const router = useRouter();
   const { showMessage } = useNotify();
-  const { isAuthenticated, professorId } = useAuth();
+  const { isAuthenticated, professorId, isAdmin } = useAuth();
 
   const professorIdString = professorId ? professorId.toString() : "";
   //#endregion
@@ -41,7 +41,7 @@ export default function ClassesPage() {
   } = useQuery({
     queryKey: ["classes", professorId],
     queryFn: () => fetchClasses(professorIdString),
-    enabled: !!professorId, // ✅ Fetch only if professorId exists
+    enabled: !!professorId && isAdmin, // ✅ Fetch only if professorId exists
   });
   //#endregion
 
@@ -50,7 +50,6 @@ export default function ClassesPage() {
     router.push("/login");
     return null;
   }
-
   if (error) {
     showMessage("Error loading classes.", "error");
     return null;
@@ -60,7 +59,7 @@ export default function ClassesPage() {
     <div className="flex flex-col gap-4">
       {/* Forma për shtimin e klasave */}
       <Card title="Shto klasë">
-        <AddClassForm professorId={professorIdString} />
+        <AddClassForm professorId={professorIdString} isAdmin={isAdmin} />
       </Card>
 
       {/* Lista e klasave */}

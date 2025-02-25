@@ -16,8 +16,12 @@ import { handleLogout } from "@/hooks/functions";
 //constants
 import navigationItems from "@/constants/navigation";
 
+//hooks
+import { useAuth } from "@/hooks/useAuth";
+
 //components
 import Header from "@/components/Header";
+
 
 function classNames(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
@@ -28,15 +32,18 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   //#region constants
   const pathname = usePathname();
-  const navigation = navigationItems.map((item) => ({
-    ...item,
-    current: pathname === item.href,
-  }));
+  const { isAdmin } = useAuth();
+
+  const navigation = navigationItems
+    .filter(item => isAdmin || !item.adminOnly) // ✅ Only show admin items if `isAdmin` is true
+    .map(item => ({
+      ...item,
+      current: pathname === item.href,
+    }));
   //#endregion
 
   //#region states
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   //#endregion
 
   return (

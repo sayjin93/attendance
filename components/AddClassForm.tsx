@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
 
-export default function AddClassForm({ professorId }: { professorId: string }) {
+export default function AddClassForm({ professorId, isAdmin }: { professorId: string, isAdmin: boolean }) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
@@ -19,8 +19,8 @@ export default function AddClassForm({ professorId }: { professorId: string }) {
   //#region mutations
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!professorId) {
-        showMessage("Nuk jeni i kyçur si profesor!", "error");
+      if (!isAdmin) {
+        showMessage("Nuk jeni i kyçur si admin!", "error");
         return null;
       }
 
@@ -30,17 +30,21 @@ export default function AddClassForm({ professorId }: { professorId: string }) {
         headers: { "Content-Type": "application/json" },
       });
 
-      if (!res.ok) throw new Error("Dështoi krijimi i klasës");
+      const data = await res.json();
 
-      return res.json();
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["classes"] });
       showMessage("Klasa u krijua me sukses!", "success");
       setName("");
     },
-    onError: () => {
-      showMessage("Dështoi krijimi i klasës!", "error");
+    onError: (error) => {
+      showMessage(error.message, "error");
     },
   });
   //#endregion

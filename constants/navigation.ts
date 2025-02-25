@@ -9,8 +9,8 @@ import {
 
 const navigationItems = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
-  { name: "Klasat", href: "/classes", icon: UsersIcon },
-  { name: "Studentët", href: "/students", icon: FolderIcon },
+  { name: "Klasat", href: "/classes", icon: UsersIcon, adminOnly: true },
+  { name: "Studentët", href: "/students", icon: FolderIcon, adminOnly: true },
   { name: "Leksionet", href: "/lectures", icon: CalendarIcon },
   { name: "Listëprezenca", href: "/attendance", icon: DocumentDuplicateIcon },
   { name: "Raporte", href: "/reports", icon: ChartPieIcon },

@@ -8,14 +8,28 @@ async function main() {
 
   const professors = [
     {
-      name: "Jurgen Kruja",
-      email: "jurgen.kruja@uet.edu.al",
-      password: await bcrypt.hash("germany6", 10),
+      firstName: "Admin",
+      lastName: "User",
+      username: "admin",
+      email: "info@jkruja.com",
+      password: await bcrypt.hash("Adm!n2025", 10),
+      isAdmin: true,
     },
     {
-      name: "Malvina Niklekaj",
+      firstName: "Jurgen",
+      lastName: "Kruja",
+      username: "jurgenkruja",
+      email: "jurgen.kruja@uet.edu.al",
+      password: await bcrypt.hash("germany6", 10),
+      isAdmin: false,
+    },
+    {
+      firstName: "Malvina",
+      lastName: "Niklekaj",
+      username: "malvinanik",
       email: "malvina.niklekaj@uet.edu.al",
       password: await bcrypt.hash("priam", 10),
+      isAdmin: false,
     },
   ];
 

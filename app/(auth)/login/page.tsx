@@ -4,13 +4,13 @@ import { useState, MouseEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-//hooks
+// hooks
 import { useAuth } from "@/hooks/useAuth";
 
-//context
+// context
 import { useNotify } from "@/contexts/NotifyContext";
 
-//components
+// components
 import Loader from "@/components/Loader";
 import Link from "next/link";
 
@@ -22,7 +22,7 @@ export default function LoginPage() {
   //#endregion
 
   //#region states
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); // 🔹 Username or Email
   const [password, setPassword] = useState("");
   const [posting, setPosting] = useState(false);
   //#endregion
@@ -31,8 +31,8 @@ export default function LoginPage() {
   const handleLogin = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      showMessage("Please enter both email and password.", "warning");
+    if (!identifier || !password) {
+      showMessage("Please enter your username/email and password.", "warning");
       return;
     }
 
@@ -41,9 +41,9 @@ export default function LoginPage() {
 
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ✅ Siguro që cookie të dërgohet
+        credentials: "include",
       });
 
       if (res.ok) {
@@ -84,20 +84,20 @@ export default function LoginPage() {
           <form className="space-y-6">
             <div>
               <label
-                htmlFor="email"
+                htmlFor="identifier"
                 className="block text-sm/6 font-medium text-gray-900"
               >
-                Email address
+                Username or Email
               </label>
               <div className="mt-2">
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
+                  id="identifier"
+                  name="identifier"
+                  type="text"
                   required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="username"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                 />
               </div>
@@ -138,7 +138,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-10 text-center text-sm/6 text-gray-500">
-          Develped by{" "}
+          Developed by{" "}
           <Link
             href="https://jkruja.com"
             target="_blank"

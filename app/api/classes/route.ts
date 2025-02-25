@@ -1,32 +1,68 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { cookies } from "next/headers";
+import jwt, { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 
 const prisma = new PrismaClient();
+const SECRET_KEY = process.env.SECRET_KEY || "fallback_secret_key";
 
+// ✅ Helper function to authenticate user
+async function authenticateRequest() {
+  const cookieStore = await cookies(); // ✅ Get cookies
+  const token = cookieStore.get("session")?.value;
+
+  if (!token) return { error: "Not authenticated", status: 401 };
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY) as JwtPayload;
+    if (!decoded || !decoded.professorId)
+      return { error: "Invalid session", status: 401 }; // ✅ Ensure `decoded` exists
+    return { decoded };
+  } catch (error) {
+    if (error instanceof TokenExpiredError) {
+      return { error: "Session expired", status: 401 };
+    }
+    return { error: "Invalid session", status: 401 };
+  }
+}
+
+// ✅ GET: Fetch all classes for the logged-in professor or all classes for admins
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const professorId = searchParams.get("professorId");
-    const includeStudents = searchParams.get("includeStudents") === "true";
-    const includeLectures = searchParams.get("includeLectures") === "true";
+    const auth = await authenticateRequest();
+    if (auth.error)
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+    const { decoded } = auth;
+
+    // ✅ Ensure decoded exists and extract professorId and isAdmin
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "❌ Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    const professorId = decoded.professorId; // ✅ Get `professorId` from token
 
     if (!professorId) {
       return NextResponse.json(
-        { error: "❌ Professor ID is required!" },
+        { error: "❌ Professor ID not found in session!" },
         { status: 400 }
       );
     }
 
-    // ✅ Fetch classes with optional students and lectures
+    const { searchParams } = new URL(req.url);
+    const includeStudents = searchParams.get("includeStudents") === "true";
+
+    // ✅ Fetch classes based on condition
     const classes = await prisma.class.findMany({
-      where: { professorId },
       include: {
-        students: includeStudents ? true : false, // ✅ Conditionally include students
-        lectures: includeLectures ? true : false, // ✅ Conditionally include lectures
+        students: includeStudents, // ✅ Conditionally include students
       },
     });
 
-    return NextResponse.json(classes, { status: 200 });
+    return NextResponse.json(classes || [], { status: 200 });
   } catch (error) {
     console.error("❌ Error fetching classes:", error);
     return NextResponse.json(
@@ -38,10 +74,25 @@ export async function GET(req: Request) {
   }
 }
 
+// ✅ POST: Create a new class (Only Admins)
 export async function POST(req: Request) {
   try {
-    debugger;
-    const { name, professorId } = await req.json();
+    const auth = await authenticateRequest();
+    if (auth.error)
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+    const { decoded } = auth;
+
+    // ✅ Ensure decoded exists and extract professorId and isAdmin
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "❌ Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    const professorId = decoded.professorId; // ✅ Get `professorId` from token
+    const isAdmin = decoded.isAdmin; // ✅ Get `isAdmin` from token
 
     if (!professorId) {
       return NextResponse.json(
@@ -50,20 +101,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Verify professor existence before creating a class
-    const professorExists = await prisma.professor.findUnique({
-      where: { id: professorId },
-    });
-
-    if (!professorExists) {
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: "❌ Profesor nuk ekziston!" },
-        { status: 404 }
+        { error: "❌ Vetëm administratorët mund të krijojnë klasa!" },
+        { status: 403 }
       );
     }
 
+    const { name } = await req.json();
+
+    // ✅ Check if class name already exists (Use `findFirst()`)
+    const existingClass = await prisma.class.findFirst({
+      where: { name },
+    });
+
+    if (existingClass) {
+      return NextResponse.json(
+        { error: "❌ Emri i klasës ekziston tashmë!" },
+        { status: 409 }
+      ); // 409 = Conflict
+    }
+
+    // ✅ Create new class
     const newClass = await prisma.class.create({
-      data: { name, professorId },
+      data: { name },
     });
 
     return NextResponse.json(newClass, { status: 201 });
@@ -74,6 +135,6 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect(); // ✅ Close Prisma connection properly
+    await prisma.$disconnect();
   }
 }

@@ -9,16 +9,20 @@ const SECRET_KEY = process.env.SECRET_KEY || "fallback_secret_key";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { identifier, password } = await req.json(); // 🔹 Accepts username OR email as identifier
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: "Missing email or password" },
+        { error: "Missing username/email or password" },
         { status: 400 }
       );
     }
 
-    const professor = await prisma.professor.findUnique({ where: { email } });
+    const professor = await prisma.professor.findFirst({
+      where: {
+        OR: [{ email: identifier }, { username: identifier }], // 🔹 Search by email OR username
+      },
+    });
 
     if (!professor) {
       return NextResponse.json(
@@ -38,7 +42,9 @@ export async function POST(req: Request) {
     const token = jwt.sign(
       {
         professorId: professor.id,
-        name: professor.name,
+        firstName: professor.firstName,
+        lastName: professor.lastName,
+        isAdmin: professor.isAdmin,
       },
       SECRET_KEY,
       {
@@ -51,11 +57,16 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60, // 1 orë
+      maxAge: 60 * 60, // 1 hour
     });
 
     return new NextResponse(
-      JSON.stringify({ professorId: professor.id, name: professor.name }),
+      JSON.stringify({
+        professorId: professor.id,
+        firstName: professor.firstName,
+        lastName: professor.lastName,
+        isAdmin: professor.isAdmin,
+      }),
       {
         status: 200,
         headers: { "Set-Cookie": cookie },

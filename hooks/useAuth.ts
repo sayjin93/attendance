@@ -4,17 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function useAuth() {
-  //#region constants
   const router = useRouter();
-  //#endregion
 
-  //#region states
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [professorId, setProfessorId] = useState<number | null>(null);
-  const [professorName, setProfessorName] = useState<string | null>(null);
-  //#endregion
+  const [professorId, setProfessorId] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [lastName, setLastName] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  //#region useEffect
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -25,8 +22,10 @@ export function useAuth() {
         if (res.ok) {
           const data = await res.json();
           setIsAuthenticated(true);
-          setProfessorId(data.professorId); // ✅ Save professor ID
-          setProfessorName(data.name); // ✅ Save professor name
+          setProfessorId(data.professorId);
+          setFirstName(data.firstName);
+          setLastName(data.lastName);
+          setIsAdmin(data.isAdmin);
         } else {
           setIsAuthenticated(false);
         }
@@ -40,10 +39,9 @@ export function useAuth() {
 
   useEffect(() => {
     if (isAuthenticated === false) {
-      router.push("/login");
+      setTimeout(() => router.push("/login"), 0); // ✅ Prevents redirect loop
     }
   }, [isAuthenticated, router]);
-  //#endregion
 
-  return { isAuthenticated, professorId, professorName }; // ✅ Return all values
+  return { isAuthenticated, professorId, firstName, lastName, isAdmin };
 }

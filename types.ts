@@ -1,3 +1,14 @@
+export interface Professor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+  isAdmin: boolean;
+  classes?: Class[];
+}
+
 export interface Class {
   id: string;
   name: string;

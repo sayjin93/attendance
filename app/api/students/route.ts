@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     // ✅ Ensure professor owns the class before adding a student
     const classExists = await prisma.class.findFirst({
-      where: { id: classId, professorId },
+      where: { id: classId },
     });
 
     if (!classExists) {

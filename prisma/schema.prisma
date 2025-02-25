@@ -15,44 +15,45 @@ datasource db {
 }
 
 model Professor {
-  id       String  @id @default(uuid())
-  name     String
-  email    String  @unique
-  password String
-  classes  Class[]
+  id        Int     @id @default(autoincrement())
+  firstName String
+  lastName  String
+  username  String  @unique
+  email     String  @unique
+  password  String
+  isAdmin   Boolean @default(false)
 }
 
 model Class {
-  id          String    @id @default(uuid())
-  name        String
-  professorId String
-  professor   Professor @relation(fields: [professorId], references: [id])
-  students    Student[]
-  lectures    Lecture[]
+  id   Int    @id @default(autoincrement())
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students Student[]
 }
 
 model Student {
-  id         String       @id @default(uuid())
+  id         Int          @id @default(autoincrement())
   firstName  String
-  lasttName  String      
-  classId    String
+  lastName   String
+  classId    Int
   class      Class        @relation(fields: [classId], references: [id])
   attendance Attendance[]
 }
 
 model Lecture {
-  id         String       @id @default(uuid())
+  id         Int          @id @default(autoincrement())
   date       DateTime
-  classId    String
-  class      Class        @relation(fields: [classId], references: [id])
   attendance Attendance[]
 }
 
 model Attendance {
-  id        String  @id @default(uuid())
-  studentId String
+  id        Int     @id @default(autoincrement())
+  studentId Int
   student   Student @relation(fields: [studentId], references: [id])
-  lectureId String
+  lectureId Int
   lecture   Lecture @relation(fields: [lectureId], references: [id])
   status    String // PRESENT, ABSENT, PARTICIPATED
 }
