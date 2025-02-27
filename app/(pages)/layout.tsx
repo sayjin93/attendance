@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 //components
 import Header from "@/components/Header";
-
+import Skeleton from "@/components/Skeleton";
 
 function classNames(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
@@ -32,10 +32,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   //#region constants
   const pathname = usePathname();
-  const { isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
 
   const navigation = navigationItems
-    .filter(item => isAdmin || !item.adminOnly) // ✅ Only show admin items if `isAdmin` is true
+    .filter(item => isAdmin || !item.adminOnly) // Only show admin items if `isAdmin` is true
     .map(item => ({
       ...item,
       current: pathname === item.href,
@@ -90,25 +90,33 @@ export default function RootLayout({
                 <ul role="list" className="flex flex-1 flex-col gap-y-7">
                   <li>
                     <ul role="list" className="-mx-2 space-y-1">
-                      {navigation.map((item) => (
-                        <li key={item.name}>
-                          <a
-                            href={item.href}
-                            className={classNames(
-                              item.current
-                                ? "bg-gray-800 text-white"
-                                : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                              "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-                            )}
-                          >
-                            <item.icon
-                              aria-hidden="true"
-                              className="size-6 shrink-0"
-                            />
-                            {item.name}
-                          </a>
-                        </li>
-                      ))}
+                      {!isAuthenticated ? (
+                        <Skeleton
+                          times={6}
+                          rootCls="bg-gray-800"
+                          innerCls="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800"
+                        />
+                      ) : (
+                        navigation.map((item) => (
+                          <li key={item.name}>
+                            <a
+                              href={item.href}
+                              className={classNames(
+                                item.current
+                                  ? "bg-gray-800 text-white"
+                                  : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                                "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+                              )}
+                            >
+                              <item.icon
+                                aria-hidden="true"
+                                className="size-6 shrink-0"
+                              />
+                              {item.name}
+                            </a>
+                          </li>
+                        ))
+                      )}
                     </ul>
                   </li>
                   <li className="-mx-6 mt-auto">
@@ -159,25 +167,33 @@ export default function RootLayout({
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
               <li>
                 <ul role="list" className="-mx-2 space-y-1">
-                  {navigation.map((item) => (
-                    <li key={item.name}>
-                      <a
-                        href={item.href}
-                        className={classNames(
-                          item.current
-                            ? "bg-gray-800 text-white"
-                            : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                          "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-                        )}
-                      >
-                        <item.icon
-                          aria-hidden="true"
-                          className="size-6 shrink-0"
-                        />
-                        {item.name}
-                      </a>
-                    </li>
-                  ))}
+                  {!isAuthenticated ? (
+                    <Skeleton
+                      times={6}
+                      rootCls="bg-gray-800"
+                      innerCls="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800"
+                    />
+                  ) : (
+                    navigation.map((item) => (
+                      <li key={item.name}>
+                        <a
+                          href={item.href}
+                          className={classNames(
+                            item.current
+                              ? "bg-gray-800 text-white"
+                              : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                            "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+                          )}
+                        >
+                          <item.icon
+                            aria-hidden="true"
+                            className="size-6 shrink-0"
+                          />
+                          {item.name}
+                        </a>
+                      </li>
+                    ))
+                  )}
                 </ul>
               </li>
               <li className="-mx-6 mt-auto">
