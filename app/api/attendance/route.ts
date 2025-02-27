@@ -41,7 +41,8 @@ export async function GET(req: Request) {
       );
       return {
         id: student.id,
-        name: student.name,
+        firstName: student.firstName,
+        lastName: student.lastName,
         status: attendance ? attendance.status : "PRESENT", // Default status
       };
     });

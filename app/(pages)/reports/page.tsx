@@ -99,7 +99,7 @@ export default function ReportsPage() {
 
         autoTable(doc, {
             head: [["Studenti", "Prezencë", "Mungesë", "Aktivizim"]],
-            body: students.map((s: StudentReport) => [s.name, s.presence, s.absence, s.participation]),
+            body: students.map((s: StudentReport) => [s.firstName + " " + s.lastName, s.presence, s.absence, s.participation]),
         });
 
         doc.save(`Raporti_${selectedClass}.pdf`);
@@ -183,7 +183,7 @@ export default function ReportsPage() {
                             <tbody>
                                 {students.map((student: StudentReport) => (
                                     <tr key={student.id} className="border-b">
-                                        <td className="p-3">{student.name}</td>
+                                        <td className="p-3">{student.firstName + " " + student.lastName}</td>
                                         <td className="p-3 text-center">{student.presence}</td>
                                         <td className="p-3 text-center">{student.absence}</td>
                                         <td className="p-3 text-center">{student.participation}</td>
@@ -216,7 +216,7 @@ export default function ReportsPage() {
                         <div className="flex flex-1">
                             <Bar
                                 data={{
-                                    labels: students.map((s) => s.name),
+                                    labels: students.map((s) => s.firstName + " " + s.lastName),
                                     datasets: [
                                         { label: "Prezencë", data: students.map((s) => s.presence), backgroundColor: "#81c784" },
                                         { label: "Mungesë", data: students.map((s) => s.absence), backgroundColor: "#e57373" },

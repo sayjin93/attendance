@@ -272,7 +272,7 @@ export default function AttendancePage() {
                                 {students.map((student) => (
                                     <tr key={student.id} className="even:bg-gray-50">
                                         <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6">
-                                            {student.name}
+                                            {student.firstName + " " + student.lastName}
                                         </td>
                                         <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 text-center">
                                             <select

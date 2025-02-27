@@ -28,7 +28,8 @@ export async function GET(req: Request) {
       where: { classId, class: { professorId } },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         attendance: {
           select: {
             status: true,
@@ -39,13 +40,20 @@ export async function GET(req: Request) {
 
     // ✅ Format the data into proper presence/absence/participation counts
     const formattedReports = reports.map((student) => {
-      const presence = student.attendance.filter((a) => a.status === "PRESENT").length;
-      const absence = student.attendance.filter((a) => a.status === "ABSENT").length;
-      const participation = student.attendance.filter((a) => a.status === "PARTICIPATED").length;
+      const presence = student.attendance.filter(
+        (a) => a.status === "PRESENT"
+      ).length;
+      const absence = student.attendance.filter(
+        (a) => a.status === "ABSENT"
+      ).length;
+      const participation = student.attendance.filter(
+        (a) => a.status === "PARTICIPATED"
+      ).length;
 
       return {
         id: student.id,
-        name: student.name,
+        firstName: student.firstName,
+        lastName: student.lastName,
         presence,
         absence,
         participation,
