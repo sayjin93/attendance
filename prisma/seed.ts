@@ -13,6 +13,31 @@ async function main() {
   });
   console.log("✅ Programs seeded successfully!");
 
+  // Insert Classes
+  const classes = [
+    {
+      name: "INF201",
+      programId: 1,
+    },
+    {
+      name: "INF202",
+      programId: 1,
+    },
+    {
+      name: "INF",
+      programId: 2,
+    },
+    {
+      name: "IE",
+      programId: 2,
+    },
+  ];
+  await prisma.class.createMany({
+    data: classes,
+    skipDuplicates: true, // ✅ Prevents errors if they already exist
+  });
+  console.log("✅ Classes seeded successfully!");
+
   // Insert Proffesors
   const professors = [
     {
