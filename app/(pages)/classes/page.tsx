@@ -18,10 +18,10 @@ import Alert from "@/components/Alert";
 import AddClassForm from "@/components/AddClassForm";
 
 async function fetchClasses(professorId: string) {
-  if (!professorId) return [];
+  if (!professorId) return { classes: [], programs: [] };
 
   const res = await fetch(`/api/classes?professorId=${professorId}`);
-  return res.json();
+  return res.json(); // Now returns `{ classes, programs }`
 }
 
 export default function ClassesPage() {
@@ -34,11 +34,7 @@ export default function ClassesPage() {
   //#endregion
 
   //#region useQuery
-  const {
-    data,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["classes", professorId],
     queryFn: () => fetchClasses(professorIdString),
     enabled: !!professorId && isAdmin, // ✅ Fetch only if professorId exists
@@ -55,26 +51,33 @@ export default function ClassesPage() {
     return null;
   }
 
+  const { classes = [], programs = [] } = data || {}; // ✅ Extract classes & programs
+
+  console.log(data)
+
   return (
     <div className="flex flex-col gap-4">
       {/* Forma për shtimin e klasave */}
       <Card title="Shto klasë">
-        <AddClassForm professorId={professorIdString} isAdmin={isAdmin} />
+        <AddClassForm professorId={professorIdString} isAdmin={isAdmin} programs={programs} />
       </Card>
 
       {/* Lista e klasave */}
       <Card title="Lista e klasave">
-        {data?.length === 0 ? (
+        {classes?.length === 0 ? (
           <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {data?.map((classItem: Class) => (
+            {classes?.map((classItem: Class) => (
               <div
                 key={classItem.id}
                 className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
               >
                 <div className="p-4 text-center">
                   <h2 className="text-xl font-semibold">{classItem.name}</h2>
+                  <p className="text-gray-600 text-sm">
+                    {classItem.program?.name || "No Program"}
+                  </p>
                 </div>
               </div>
             ))}

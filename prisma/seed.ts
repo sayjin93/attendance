@@ -6,6 +6,14 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding the database...");
 
+  // Insert Programs (Bachelor & Master)
+  await prisma.program.createMany({
+    data: [{ name: "Bachelor" }, { name: "Master" }],
+    skipDuplicates: true, // ✅ Prevents errors if they already exist
+  });
+  console.log("✅ Programs seeded successfully!");
+
+  // Insert Proffesors
   const professors = [
     {
       firstName: "Admin",
@@ -32,12 +40,10 @@ async function main() {
       isAdmin: false,
     },
   ];
-
   await prisma.professor.createMany({
     data: professors,
     skipDuplicates: true, // ✅ This prevents errors if a professor already exists
   });
-
   console.log("✅ Professors seeded successfully!");
 }
 

@@ -1,5 +1,5 @@
 export interface Professor {
-  id: string;
+  id: number;
   firstName: string;
   lastName: string;
   username: string;
@@ -9,33 +9,61 @@ export interface Professor {
   classes?: Class[];
 }
 
-export interface Class {
-  id: string;
+export interface Program {
+  id: number;
   name: string;
+  classes?: Class[];
 }
 
-export interface Lecture {
-  id: string;
-  date: string;
-  class?: { name?: string };
+export interface Class {
+  id: number;
+  name: string;
+  programId: number;
+  program?: Program;
+  students?: Student[];
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 export interface Student {
-  id: string;
+  id: number;
   firstName: string;
-  lastName?: string;
-  class?: { name: string };
+  lastName: string;
+  classId: number;
+  class?: Class;
+  attendance?: Attendance[];
+}
+
+export interface Lecture {
+  id: number;
+  date: string | Date;
+  attendance?: Attendance[];
+}
+
+export interface Attendance {
+  id: number;
+  studentId: number;
+  student?: Student;
+  lectureId: number;
+  lecture?: Lecture;
+  status: AttendanceStatus;
+}
+
+export enum AttendanceStatus {
+  PRESENT = "PRESENT",
+  ABSENT = "ABSENT",
+  PARTICIPATED = "PARTICIPATED",
 }
 
 export interface AttendanceRecord {
-  id: string;
+  id: number;
   firstName: string;
   lastName: string;
-  status: "PRESENT" | "ABSENT" | "PARTICIPATED";
+  status: AttendanceStatus;
 }
 
 export interface StudentReport {
-  id: string;
+  id: number;
   firstName: string;
   lastName: string;
   presence: number;

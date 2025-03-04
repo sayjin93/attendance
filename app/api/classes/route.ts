@@ -35,19 +35,18 @@ export async function GET(req: Request) {
 
     const { decoded } = auth;
 
-    // ✅ Ensure decoded exists and extract professorId and isAdmin
     if (!decoded) {
       return NextResponse.json(
-        { error: "❌ Invalid session or not authenticated!" },
+        { error: "Invalid session or not authenticated!" },
         { status: 401 }
       );
     }
 
-    const professorId = decoded.professorId; // ✅ Get `professorId` from token
+    const professorId = decoded.professorId;
 
     if (!professorId) {
       return NextResponse.json(
-        { error: "❌ Professor ID not found in session!" },
+        { error: "Professor ID not found in session!" },
         { status: 400 }
       );
     }
@@ -55,18 +54,22 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const includeStudents = searchParams.get("includeStudents") === "true";
 
-    // ✅ Fetch classes based on condition
+    // ✅ Fetch classes AND include Program data
     const classes = await prisma.class.findMany({
       include: {
-        students: includeStudents, // ✅ Conditionally include students
+        students: includeStudents,
+        program: true, // ✅ Include program data
       },
     });
 
-    return NextResponse.json(classes || [], { status: 200 });
+    // ✅ Fetch all programs separately
+    const programs = await prisma.program.findMany();
+
+    return NextResponse.json({ classes, programs }, { status: 200 });
   } catch (error) {
-    console.error("❌ Error fetching classes:", error);
+    console.error("Error fetching classes:", error);
     return NextResponse.json(
-      { error: "⚠️ Failed to fetch classes" },
+      { error: "Failed to fetch classes" },
       { status: 500 }
     );
   } finally {
@@ -83,55 +86,78 @@ export async function POST(req: Request) {
 
     const { decoded } = auth;
 
-    // ✅ Ensure decoded exists and extract professorId and isAdmin
+    // ✅ Ensure user is authenticated
     if (!decoded) {
       return NextResponse.json(
-        { error: "❌ Invalid session or not authenticated!" },
+        { error: "Invalid session or not authenticated!" },
         { status: 401 }
       );
     }
 
-    const professorId = decoded.professorId; // ✅ Get `professorId` from token
-    const isAdmin = decoded.isAdmin; // ✅ Get `isAdmin` from token
+    const professorId = decoded.professorId;
+    const isAdmin = decoded.isAdmin;
 
     if (!professorId) {
       return NextResponse.json(
-        { error: "❌ Profesori nuk është i identifikuar!" },
+        { error: "Profesori nuk është i identifikuar!" },
         { status: 400 }
       );
     }
 
     if (!isAdmin) {
       return NextResponse.json(
-        { error: "❌ Vetëm administratorët mund të krijojnë klasa!" },
+        { error: "Vetëm administratorët mund të krijojnë klasa!" },
         { status: 403 }
       );
     }
 
-    const { name } = await req.json();
+    const { name, programId } = await req.json();
 
-    // ✅ Check if class name already exists (Use `findFirst()`)
+    // ✅ Validate required fields
+    if (!name || !programId) {
+      return NextResponse.json(
+        { error: "Emri i klasës dhe Program ID janë të detyrueshëm!" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Check if the provided program exists
+    const existingProgram = await prisma.program.findUnique({
+      where: { id: programId },
+    });
+
+    if (!existingProgram) {
+      return NextResponse.json(
+        { error: "Programi nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    // ✅ Check if class name already exists in the selected program
     const existingClass = await prisma.class.findFirst({
-      where: { name },
+      where: { name, programId },
     });
 
     if (existingClass) {
       return NextResponse.json(
-        { error: "❌ Emri i klasës ekziston tashmë!" },
+        { error: "Një klasë me këtë emër ekziston tashmë në këtë program!" },
         { status: 409 }
-      ); // 409 = Conflict
+      );
     }
 
-    // ✅ Create new class
+    // ✅ Create the new class under the selected program
     const newClass = await prisma.class.create({
-      data: { name },
+      data: {
+        name,
+        programId,
+      },
     });
 
     return NextResponse.json(newClass, { status: 201 });
   } catch (error) {
-    console.error("❌ Error creating class:", error);
+    console.error("Error creating class:", error);
     return NextResponse.json(
-      { error: "⚠️ Dështoi krijimi i klasës" },
+      { error: "Dështoi krijimi i klasës" },
       { status: 500 }
     );
   } finally {

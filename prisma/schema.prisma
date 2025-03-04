@@ -24,14 +24,20 @@ model Professor {
   isAdmin   Boolean @default(false)
 }
 
+model Program {
+  id      Int     @id @default(autoincrement())
+  name    String  @unique // Bachelor, Master
+  classes Class[]
+}
+
 model Class {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  students Student[]
+  id        Int       @id @default(autoincrement())
+  name      String
+  programId Int
+  program   Program   @relation(fields: [programId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  students  Student[]
 }
 
 model Student {

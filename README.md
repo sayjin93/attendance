@@ -1,34 +1,42 @@
 ## Getting Started
 
-To create a hashed password:
+### To create a hashed password:
 
 ```bash
 node
-
 const bcrypt = require("bcryptjs");
-
 bcrypt.hash("supersecurepassword", 10).then(console.log);
 ```
-<br />
 
-Params should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+<br>
+<hr />
+<br>
+
+### Params should be awaited before using its properties.
+Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
 
 ```bash
 npx @next/codemod@canary next-async-request-api .
 ```
 
-<br />
+<br>
+<hr />
+<br>
 
-Regenerate prisma schema
+### Prisma
+
+#### Generate Prisma Client using the default schema.prisma path:
 
 ```bash
 npx prisma generate
-
 ```
-<br />
 
+#### Shtyji ndryshimet në bazën e të dhënave:
 
-Rikrijo databazen
+```bash
+npx prisma db push
+```
+#### Rikrijo databazen
 
 ```bash
 npx prisma migrate dev --name init
