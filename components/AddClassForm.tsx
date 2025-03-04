@@ -8,12 +8,11 @@ import { useNotify } from "@/contexts/NotifyContext";
 import { Program } from "@/types";
 
 interface AddClassFormProps {
-  professorId: string;
   isAdmin: boolean;
   programs: Program[];
 }
 
-export default function AddClassForm({ professorId, isAdmin, programs }: AddClassFormProps) {
+export default function AddClassForm({ isAdmin, programs }: AddClassFormProps) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
@@ -34,7 +33,7 @@ export default function AddClassForm({ professorId, isAdmin, programs }: AddClas
 
       const res = await fetch("/api/classes", {
         method: "POST",
-        body: JSON.stringify({ name, programId, professorId }),
+        body: JSON.stringify({ name, programId }),
         headers: { "Content-Type": "application/json" },
       });
 

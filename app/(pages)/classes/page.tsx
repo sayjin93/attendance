@@ -17,10 +17,8 @@ import Card from "@/components/Card";
 import Alert from "@/components/Alert";
 import AddClassForm from "@/components/AddClassForm";
 
-async function fetchClasses(professorId: string) {
-  if (!professorId) return { classes: [], programs: [] };
-
-  const res = await fetch(`/api/classes?professorId=${professorId}`);
+async function fetchClasses() {
+  const res = await fetch('/api/classes');
   return res.json(); // Now returns `{ classes, programs }`
 }
 
@@ -28,16 +26,14 @@ export default function ClassesPage() {
   //#region constants
   const router = useRouter();
   const { showMessage } = useNotify();
-  const { isAuthenticated, professorId, isAdmin } = useAuth();
-
-  const professorIdString = professorId ? professorId.toString() : "";
+  const { isAuthenticated, isAdmin } = useAuth();
   //#endregion
 
   //#region useQuery
   const { data, isLoading, error } = useQuery({
-    queryKey: ["classes", professorId],
-    queryFn: () => fetchClasses(professorIdString),
-    enabled: !!professorId && isAdmin, // ✅ Fetch only if professorId exists
+    queryKey: ["classes"],
+    queryFn: () => fetchClasses(),
+    enabled: isAdmin, // ✅ Fetch only if professorId exists
   });
   //#endregion
 
@@ -53,13 +49,11 @@ export default function ClassesPage() {
 
   const { classes = [], programs = [] } = data || {}; // ✅ Extract classes & programs
 
-  console.log(data)
-
   return (
     <div className="flex flex-col gap-4">
       {/* Forma për shtimin e klasave */}
       <Card title="Shto klasë">
-        <AddClassForm professorId={professorIdString} isAdmin={isAdmin} programs={programs} />
+        <AddClassForm isAdmin={isAdmin} programs={programs} />
       </Card>
 
       {/* Lista e klasave */}

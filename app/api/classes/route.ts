@@ -42,15 +42,6 @@ export async function GET(req: Request) {
       );
     }
 
-    const professorId = decoded.professorId;
-
-    if (!professorId) {
-      return NextResponse.json(
-        { error: "Professor ID not found in session!" },
-        { status: 400 }
-      );
-    }
-
     const { searchParams } = new URL(req.url);
     const includeStudents = searchParams.get("includeStudents") === "true";
 
@@ -94,15 +85,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const professorId = decoded.professorId;
     const isAdmin = decoded.isAdmin;
-
-    if (!professorId) {
-      return NextResponse.json(
-        { error: "Profesori nuk është i identifikuar!" },
-        { status: 400 }
-      );
-    }
 
     if (!isAdmin) {
       return NextResponse.json(
