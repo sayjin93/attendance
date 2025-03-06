@@ -1,33 +1,11 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { cookies } from "next/headers";
-import jwt, { JwtPayload, TokenExpiredError } from "jsonwebtoken";
+import { authenticateRequest } from "@/app/(pages)/utils/checkAuth";
 
 const prisma = new PrismaClient();
-const SECRET_KEY = process.env.SECRET_KEY || "fallback_secret_key";
-
-// ✅ Helper function to authenticate user
-async function authenticateRequest() {
-  const cookieStore = await cookies(); // ✅ Get cookies
-  const token = cookieStore.get("session")?.value;
-
-  if (!token) return { error: "Not authenticated", status: 401 };
-
-  try {
-    const decoded = jwt.verify(token, SECRET_KEY) as JwtPayload;
-    if (!decoded || !decoded.professorId)
-      return { error: "Invalid session", status: 401 }; // ✅ Ensure `decoded` exists
-    return { decoded };
-  } catch (error) {
-    if (error instanceof TokenExpiredError) {
-      return { error: "Session expired", status: 401 };
-    }
-    return { error: "Invalid session", status: 401 };
-  }
-}
 
 // ✅ GET: Fetch all classes for the logged-in professor or all classes for admins
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const auth = await authenticateRequest();
     if (auth.error)
@@ -42,13 +20,9 @@ export async function GET(req: Request) {
       );
     }
 
-    const { searchParams } = new URL(req.url);
-    const includeStudents = searchParams.get("includeStudents") === "true";
-
     // ✅ Fetch classes AND include Program data
     const classes = await prisma.class.findMany({
       include: {
-        students: includeStudents,
         program: true, // ✅ Include program data
       },
     });

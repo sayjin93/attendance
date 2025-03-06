@@ -7,6 +7,7 @@ import { Class } from "@/types";
 
 //hooks
 import { useAuth } from "@/hooks/useAuth";
+import { fetchClasses } from "@/hooks/fetchFunctions";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -16,11 +17,6 @@ import Loader from "@/components/Loader";
 import Card from "@/components/Card";
 import Alert from "@/components/Alert";
 import AddClassForm from "@/components/AddClassForm";
-
-async function fetchClasses() {
-  const res = await fetch('/api/classes');
-  return res.json(); // Now returns `{ classes, programs }`
-}
 
 export default function ClassesPage() {
   //#region constants
@@ -33,7 +29,7 @@ export default function ClassesPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["classes"],
     queryFn: () => fetchClasses(),
-    enabled: isAdmin, // ✅ Fetch only if professorId exists
+    enabled: isAdmin,
   });
   //#endregion
 

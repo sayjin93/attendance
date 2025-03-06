@@ -6,10 +6,8 @@ import { useNotify } from "@/contexts/NotifyContext";
 
 export default function AddStudentForm({
   classId,
-  professorId,
 }: {
-  classId: string;
-  professorId: string;
+  classId: number;
 }) {
   //#region constants
   const { showMessage } = useNotify();
@@ -31,7 +29,7 @@ export default function AddStudentForm({
 
       const res = await fetch("/api/students", {
         method: "POST",
-        body: JSON.stringify({ firstName, lastName, classId, professorId }),
+        body: JSON.stringify({ firstName, lastName, classId }),
         headers: { "Content-Type": "application/json" },
       });
 
@@ -40,7 +38,7 @@ export default function AddStudentForm({
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["classes", professorId] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
       showMessage("Studenti u krijua me sukses!", "success");
       setFirstName("");
       setLastName("");

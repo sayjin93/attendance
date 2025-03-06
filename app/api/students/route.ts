@@ -1,8 +1,50 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { authenticateRequest } from "@/app/(pages)/utils/checkAuth";
 
 const prisma = new PrismaClient();
 
+// ✅ GET: Fetch students for a specific class
+export async function GET(req: Request) {
+  try {
+    debugger;
+    const auth = await authenticateRequest();
+    if (auth.error)
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+    const { decoded } = auth;
+
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+    
+    const { searchParams } = new URL(req.url);
+    const classId = searchParams.get("classId");
+
+    if (!classId) {
+      return NextResponse.json(
+        { error: "classId is required!" },
+        { status: 400 }
+      );
+    }
+
+    const students = await prisma.student.findMany({
+      where: { classId: Number(classId) },
+    });
+
+    return NextResponse.json(students, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching students:", error);
+
+    return NextResponse.json(
+      { error: "Failed to fetch students!" },
+      { status: 500 }
+    );
+  }
+}
 export async function POST(req: Request) {
   try {
     const { firstName, lastName, classId, professorId } = await req.json();

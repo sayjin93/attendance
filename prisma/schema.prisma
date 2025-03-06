@@ -35,8 +35,6 @@ model Class {
   name      String
   programId Int
   program   Program   @relation(fields: [programId], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
   students  Student[]
 }
 
