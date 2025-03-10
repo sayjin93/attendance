@@ -15,14 +15,20 @@ export interface Program {
   classes?: Class[];
 }
 
+export interface Subject {
+  id: number;
+  code: string;
+  name: string;
+  programId: number;
+  program?: Program;
+}
+
 export interface Class {
   id: number;
   name: string;
   programId: number;
   program?: Program;
   students?: Student[];
-  createdAt: string | Date;
-  updatedAt: string | Date;
 }
 
 export interface Student {

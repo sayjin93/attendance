@@ -25,9 +25,18 @@ model Professor {
 }
 
 model Program {
-  id      Int     @id @default(autoincrement())
-  name    String  @unique // Bachelor, Master
+  id      Int       @id @default(autoincrement())
+  name    String    @unique // Bachelor, Master
   classes Class[]
+  subject Subject[]
+}
+
+model Subject {
+  id        Int     @id @default(autoincrement())
+  code      String  @unique // Shembull: CIS280
+  name      String // Shembull: Web Development
+  programId Int
+  program   Program @relation(fields: [programId], references: [id])
 }
 
 model Class {
