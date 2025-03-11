@@ -10,9 +10,9 @@ import {
 
 const navigationItems = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
-  { name: "Klasat", href: "/classes", icon: UsersIcon, adminOnly: true },
-  { name: "Studentët", href: "/students", icon: FolderIcon, adminOnly: true },
-  { name: "Kursi", href: "/subjects", icon: BookOpenIcon, adminOnly: true },
+  { name: "Klasat", href: "/classes", icon: FolderIcon, adminOnly: true },
+  { name: "Studentët", href: "/students", icon: UsersIcon, adminOnly: true },
+  { name: "Kurset", href: "/subjects", icon: BookOpenIcon, adminOnly: true },
   { name: "Leksionet", href: "/lectures", icon: CalendarIcon },
   { name: "Listëprezenca", href: "/attendance", icon: DocumentDuplicateIcon },
   { name: "Raporte", href: "/reports", icon: ChartPieIcon },
