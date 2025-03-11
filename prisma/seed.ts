@@ -46,6 +46,13 @@ async function main() {
   });
   console.log("✅ Programs seeded successfully!");
 
+  // Insert TeachingType (Lecture & Seminar)
+  await prisma.teachingType.createMany({
+    data: [{ name: "Lecture" }, { name: "Seminar" }],
+    skipDuplicates: true, // ✅ Prevents errors if they already exist
+  });
+  console.log("✅ TeachingType seeded successfully!");
+
   // Insert Classes
   const classes = [
     {

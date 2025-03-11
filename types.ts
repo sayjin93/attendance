@@ -7,6 +7,7 @@ export interface Professor {
   password: string;
   isAdmin: boolean;
   classes?: Class[];
+  teachingAssignments?: TeachingAssignment[];
 }
 
 export interface Program {
@@ -21,6 +22,7 @@ export interface Subject {
   name: string;
   programId: number;
   program?: Program;
+  teachingAssignments?: TeachingAssignment[];
 }
 
 export interface Class {
@@ -75,4 +77,19 @@ export interface StudentReport {
   presence: number;
   absence: number;
   participation: number;
+}
+
+// ✅ New TeachingAssignment Type
+export interface TeachingAssignment {
+  id: number;
+  professorId: number;
+  professor?: Professor;
+  subjectId: number;
+  subject?: Subject;
+  type: TeachingType;
+}
+
+export interface TeachingType {
+  id: number;
+  name: string;
 }
