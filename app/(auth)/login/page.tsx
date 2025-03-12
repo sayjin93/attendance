@@ -1,5 +1,5 @@
 "use client";
-import { useState, MouseEvent } from "react";
+import { FormEvent, useState } from 'react'
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -28,8 +28,8 @@ export default function LoginPage() {
   //#endregion
 
   //#region functions
-  const handleLogin = async (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
     if (!identifier || !password) {
       showMessage("Please enter your username/email and password.", "warning");
@@ -41,9 +41,8 @@ export default function LoginPage() {
 
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ identifier, password }),
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        body: JSON.stringify({ identifier, password }),
       });
 
       if (res.ok) {
@@ -81,7 +80,7 @@ export default function LoginPage() {
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
         <div className="bg-white px-6 py-12 shadow-sm sm:rounded-lg sm:px-12">
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="identifier"
@@ -128,7 +127,6 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={posting}
-                onClick={handleLogin}
                 className="cursor-pointer flex w-full justify-center rounded-md bg-indigo-600 disabled:bg-gray-300 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 {posting ? "Please wait" : "🔐 Sign in"}
