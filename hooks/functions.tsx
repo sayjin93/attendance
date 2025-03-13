@@ -16,3 +16,6 @@ export const formatDate = (dateString: string): string => {
     return `${month}/${day}/${year}`;
 }
 
+export const classNames = (...classes: (string | false | null | undefined)[]): string => {
+    return classes.filter(Boolean).join(" ");
+}

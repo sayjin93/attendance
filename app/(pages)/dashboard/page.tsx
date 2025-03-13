@@ -1,24 +1,20 @@
-"use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
-//hooks
-import { useAuth } from "@/hooks/useAuth";
+import { redirect } from "next/navigation";
 
 //components
 import Loader from "@/components/Loader";
+import { getAuthHeaders } from "../utils/authUtils";
 
-export default function Dashboard() {
+export default async function Dashboard() {
   //#region constants
-  const router = useRouter();
-  const { isAuthenticated, firstName, lastName, isAdmin } = useAuth();
+  const { professorId, firstName, lastName, isAdmin } = await getAuthHeaders();
 
   const fullName = firstName + " " + lastName;
   //#endregion
 
-  if (isAuthenticated === null) return <Loader />;
-  if (!isAuthenticated) return router.push("/login");
+  if (professorId === null) return <Loader />;
+  if (!professorId) return redirect("/login");
 
   return (
     <div className="lg:pt-16 flex flex-col items-center justify-center">

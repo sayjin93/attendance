@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 // ✅ GET: Fetch students for a specific class
 export async function GET(req: Request) {
   try {
-    debugger;
     const auth = await authenticateRequest();
     if (auth.error)
       return NextResponse.json({ error: auth.error }, { status: auth.status });
@@ -20,7 +19,7 @@ export async function GET(req: Request) {
         { status: 401 }
       );
     }
-    
+
     const { searchParams } = new URL(req.url);
     const classId = searchParams.get("classId");
 

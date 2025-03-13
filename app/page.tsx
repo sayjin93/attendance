@@ -1,21 +1,14 @@
-"use client";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+export default async function Home() {
+  debugger;
+  const headerList = await headers();
+  const professorId = headerList.get("X-Professor-Id");
 
-import { useAuth } from "@/hooks/useAuth";
-
-export default function Home() {
-  const router = useRouter();
-  const { isAuthenticated } = useAuth();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login"); // 🚀 Redirect to login if not authenticated
-    } else {
-      router.push("/dashboard"); // 🚀 Redirect to dashboard if authenticated
-    }
-  }, [isAuthenticated, router]); // ✅ Runs when `isAuthenticated` or `router` changes
-
-  return null; // ✅ Prevents rendering unnecessary content
+  if (!professorId) {
+    redirect("/login"); // 🚀 Redirect to login if not authenticated
+  } else {
+    redirect("/dashboard"); // 🚀 Redirect to dashboard if authenticated
+  }
 }

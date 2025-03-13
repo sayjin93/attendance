@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 import { serialize } from "cookie";
 
 const prisma = new PrismaClient();
@@ -39,25 +39,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = jwt.sign(
-      {
-        professorId: professor.id,
-        firstName: professor.firstName,
-        lastName: professor.lastName,
-        isAdmin: professor.isAdmin,
-      },
-      SECRET_KEY,
-      {
-        expiresIn: "1h",
-      }
-    );
+    const token = await new SignJWT({
+      professorId: professor.id,
+      firstName: professor.firstName,
+      lastName: professor.lastName,
+      isAdmin: professor.isAdmin,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(new TextEncoder().encode(SECRET_KEY));
 
     const cookie = serialize("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60, // 1 hour
+      // maxAge: 60 * 60, // 1 hour
     });
 
     return new NextResponse(

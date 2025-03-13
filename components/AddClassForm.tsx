@@ -8,7 +8,7 @@ import { useNotify } from "@/contexts/NotifyContext";
 import { Program } from "@/types";
 
 interface AddClassFormProps {
-  isAdmin: boolean;
+  isAdmin: string;
   programs: Program[];
 }
 
@@ -26,7 +26,7 @@ export default function AddClassForm({ isAdmin, programs }: AddClassFormProps) {
   //#region mutations
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!isAdmin) {
+      if (isAdmin === "false") {
         showMessage("Nuk jeni i kyçur si admin!", "error");
         return null;
       }
