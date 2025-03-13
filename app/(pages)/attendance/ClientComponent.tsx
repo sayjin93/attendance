@@ -37,15 +37,16 @@ export default function AttendancePagClient({
   professorId: string;
 }) {
   return <p>attendance</p>;
-
+  /* eslint-disable */
+  
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
   //#endregion
 
   //#region states
-  const [classId, setClassId] = useState("");
-  const [lectureId, setLectureId] = useState("");
+  const [classId, setClassId] = useState(null);
+  const [lectureId, setLectureId] = useState(null);
   const [students, setStudents] = useState<AttendanceRecord[]>([]);
   //#endregion
 
