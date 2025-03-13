@@ -36,9 +36,9 @@ export default function AttendancePagClient({
 }: {
   professorId: string;
 }) {
+  // @ts-nocheck
   return <p>attendance</p>;
-  /* eslint-disable */
-  
+
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
