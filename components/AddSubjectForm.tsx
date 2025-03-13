@@ -8,11 +8,14 @@ import { useNotify } from "@/contexts/NotifyContext";
 import { Program } from "@/types";
 
 interface AddSubjectFormProps {
-  isAdmin: boolean;
+  isAdmin: string;
   programs: Program[];
 }
 
-export default function AddSubjectForm({ isAdmin, programs }: AddSubjectFormProps) {
+export default function AddSubjectForm({
+  isAdmin,
+  programs,
+}: AddSubjectFormProps) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
@@ -27,7 +30,7 @@ export default function AddSubjectForm({ isAdmin, programs }: AddSubjectFormProp
   //#region mutations
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!isAdmin) {
+      if (isAdmin === "false") {
         showMessage("Nuk jeni i kyçur si admin!", "error");
         return null;
       }
@@ -84,7 +87,9 @@ export default function AddSubjectForm({ isAdmin, programs }: AddSubjectFormProp
         onChange={(e) => setProgramId(Number(e.target.value))}
         className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
       >
-        <option value={0} disabled>Zgjidh programin</option>
+        <option value={0} disabled>
+          Zgjidh programin
+        </option>
         {programs.map((program) => (
           <option key={program.id} value={program.id}>
             {program.name}

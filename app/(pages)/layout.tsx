@@ -1,4 +1,4 @@
-import { getAuthHeaders } from "./utils/authUtils";
+import { getAuthHeaders } from "./utils/getAuthHeaders";
 import ClientLayout from "./ClientLayout";
 
 export default async function RootLayout({

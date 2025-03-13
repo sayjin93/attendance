@@ -1,11 +1,12 @@
 "use client";
+
 import { useQuery } from "@tanstack/react-query";
 
 //types
-import { Class } from "@/types";
+import { TeachingAssignment } from "@/types";
 
 //hooks
-import { fetchClasses } from "@/hooks/fetchFunctions";
+import { fetchAssignments } from "@/hooks/fetchFunctions";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -14,51 +15,59 @@ import { useNotify } from "@/contexts/NotifyContext";
 import Loader from "@/components/Loader";
 import Card from "@/components/Card";
 import Alert from "@/components/Alert";
-import AddClassForm from "@/components/AddClassForm";
+import AddAssignmentForm from "@/components/AddAssignmentForm";
 
-export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
+export default function AssignmentsPageClient({
+  isAdmin,
+}: {
+  isAdmin: string;
+}) {
   //#region constants
   const { showMessage } = useNotify();
   //#endregion
 
   //#region useQuery
   const { data, isLoading, error } = useQuery({
-    queryKey: ["classes"],
-    queryFn: () => fetchClasses(),
+    queryKey: ["assignments"],
+    queryFn: () => fetchAssignments(),
     enabled: isAdmin === "true",
   });
   //#endregion
 
   if (isLoading) return <Loader />;
   if (error) {
-    showMessage("Error loading classes.", "error");
+    showMessage("Error loading assignments.", "error");
     return null;
   }
 
-  const { classes = [], programs = [] } = data || {};
+  console.log("data", data);
+  const { assignments = [] } = data || {}; // ✅ Extract assignments
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Forma për shtimin e klasave */}
-      <Card title="Shto klasë">
-        <AddClassForm isAdmin={isAdmin} programs={programs} />
+      {/* Forma për caktimin e lëndëve për profesorët */}
+      <Card title="Cakto Profesor në Lëndë">
+        <AddAssignmentForm isAdmin={isAdmin} />
       </Card>
 
-      {/* Lista e klasave */}
-      <Card title="Lista e klasave">
-        {classes?.length === 0 ? (
-          <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
+      {/* Lista e Assignments */}
+      <Card title="Lista e Assignments">
+        {assignments?.length === 0 ? (
+          <Alert title="Nuk keni ende assignments. Caktoni një profesor më sipër!" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {classes?.map((classItem: Class) => (
+            {assignments?.map((assignment: TeachingAssignment) => (
               <div
-                key={classItem.id}
+                key={assignment.id}
                 className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
               >
                 <div className="p-4 text-center">
-                  <h2 className="text-xl font-semibold">{classItem.name}</h2>
+                  <h2 className="text-xl font-semibold">
+                    {assignment.professor?.firstName}{" "}
+                    {assignment.professor?.lastName}
+                  </h2>
                   <p className="text-gray-600 text-sm">
-                    {classItem.program?.name || "No Program"}
+                    {assignment.subject?.name} - {assignment.type?.name}
                   </p>
                 </div>
               </div>

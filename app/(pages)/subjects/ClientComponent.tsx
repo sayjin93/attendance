@@ -2,10 +2,10 @@
 import { useQuery } from "@tanstack/react-query";
 
 //types
-import { Class } from "@/types";
+import { Subject } from "@/types";
 
 //hooks
-import { fetchClasses } from "@/hooks/fetchFunctions";
+import { fetchSubjects } from "@/hooks/fetchFunctions";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -14,51 +14,53 @@ import { useNotify } from "@/contexts/NotifyContext";
 import Loader from "@/components/Loader";
 import Card from "@/components/Card";
 import Alert from "@/components/Alert";
-import AddClassForm from "@/components/AddClassForm";
+import AddSubjectForm from "@/components/AddSubjectForm";
 
-export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
+export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
   const { showMessage } = useNotify();
   //#endregion
 
   //#region useQuery
   const { data, isLoading, error } = useQuery({
-    queryKey: ["classes"],
-    queryFn: () => fetchClasses(),
+    queryKey: ["subjects"],
+    queryFn: () => fetchSubjects(),
     enabled: isAdmin === "true",
   });
   //#endregion
 
   if (isLoading) return <Loader />;
   if (error) {
-    showMessage("Error loading classes.", "error");
+    showMessage("Error loading subjects.", "error");
     return null;
   }
 
-  const { classes = [], programs = [] } = data || {};
+  const { subjects = [], programs = [] } = data || {}; // ✅ Extract subjects & programs
 
   return (
     <div className="flex flex-col gap-4">
       {/* Forma për shtimin e klasave */}
       <Card title="Shto klasë">
-        <AddClassForm isAdmin={isAdmin} programs={programs} />
+        <AddSubjectForm isAdmin={isAdmin} programs={programs} />
       </Card>
 
-      {/* Lista e klasave */}
-      <Card title="Lista e klasave">
-        {classes?.length === 0 ? (
+      {/* Lista e Kurseve */}
+      <Card title="Lista e kurseve">
+        {subjects?.length === 0 ? (
           <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {classes?.map((classItem: Class) => (
+            {subjects?.map((subjectItem: Subject) => (
               <div
-                key={classItem.id}
+                key={subjectItem.id}
                 className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
               >
                 <div className="p-4 text-center">
-                  <h2 className="text-xl font-semibold">{classItem.name}</h2>
+                  <h2 className="text-xl font-semibold">
+                    {subjectItem.name} [{subjectItem.code}]
+                  </h2>
                   <p className="text-gray-600 text-sm">
-                    {classItem.program?.name || "No Program"}
+                    {subjectItem.program?.name || "No Program"}
                   </p>
                 </div>
               </div>

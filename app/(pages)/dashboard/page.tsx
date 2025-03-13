@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 //components
 import Loader from "@/components/Loader";
-import { getAuthHeaders } from "../utils/authUtils";
+import { getAuthHeaders } from "../utils/getAuthHeaders";
 
 export default async function Dashboard() {
   //#region constants

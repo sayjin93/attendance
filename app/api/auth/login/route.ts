@@ -3,9 +3,9 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { serialize } from "cookie";
+import { SECRET_KEY } from "@/constants";
 
 const prisma = new PrismaClient();
-const SECRET_KEY = process.env.SECRET_KEY || "fallback_secret_key";
 
 export async function POST(req: Request) {
   try {
@@ -18,12 +18,12 @@ export async function POST(req: Request) {
       );
     }
 
+    // Find user by username or email
     const professor = await prisma.professor.findFirst({
       where: {
         OR: [{ email: identifier }, { username: identifier }], // 🔹 Search by email OR username
       },
     });
-
     if (!professor) {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // Compare password
     const isValidPassword = await bcrypt.compare(password, professor.password);
     if (!isValidPassword) {
       return NextResponse.json(
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // Create JWT
     const token = await new SignJWT({
       professorId: professor.id,
       firstName: professor.firstName,
@@ -50,14 +52,16 @@ export async function POST(req: Request) {
       .setExpirationTime("1h")
       .sign(new TextEncoder().encode(SECRET_KEY));
 
+    // Create cookie with the token
     const cookie = serialize("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      // maxAge: 60 * 60, // 1 hour
+      maxAge: 60 * 60, // 1h to match the token expiresIn so cookie will removed automatically
     });
 
+    // Return response with cookie
     return new NextResponse(
       JSON.stringify({
         professorId: professor.id,
