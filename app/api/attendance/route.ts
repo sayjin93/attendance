@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     // ✅ Fetch students of the selected class
     const students = await prisma.student.findMany({
       where: {
-        classId
+        classId: classId ? parseInt(classId, 10) : undefined
       },
       select: { id: true, name: true },
     });
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     // ✅ Fetch attendance records for the selected lecture
     const attendanceRecords = await prisma.attendance.findMany({
       where: {
-        lectureId
+        lectureId: lectureId ? parseInt(lectureId, 10) : undefined
       },
       select: { studentId: true, status: true },
     });
