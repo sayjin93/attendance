@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { Attendance, Student } from "@/types";
 
 const prisma = new PrismaClient();
 
@@ -21,7 +22,7 @@ export async function GET(req: Request) {
     // ✅ Fetch students of the selected class
     const students = await prisma.student.findMany({
       where: {
-        classId: classId ?? undefined, // ✅ Ensure classId is not null
+        classId
       },
       select: { id: true, name: true },
     });
@@ -29,15 +30,15 @@ export async function GET(req: Request) {
     // ✅ Fetch attendance records for the selected lecture
     const attendanceRecords = await prisma.attendance.findMany({
       where: {
-        lectureId: lectureId ?? undefined, // ✅ Ensure lectureId is not null
+        lectureId
       },
       select: { studentId: true, status: true },
     });
 
     // ✅ Merge attendance status with students list
-    const studentsWithAttendance = students.map((student) => {
+    const studentsWithAttendance = students.map((student: Student) => {
       const attendance = attendanceRecords.find(
-        (att) => att.studentId === student.id
+        (att: Attendance) => att.studentId === student.id
       );
       return {
         id: student.id,
