@@ -59,7 +59,7 @@ export async function GET() {
       });
     } else {
       assignments = await prisma.teachingAssignment.findMany({
-        where: { professorId: decoded.id },
+        where: { professorId: parseInt(decoded.id as string, 10) },
         include: {
           subject: true,
           type: true,

@@ -39,15 +39,23 @@ export default function AssignmentsPageClient({
     showMessage("Error loading assignments.", "error");
     return null;
   }
-
-  console.log("data", data);
-  const { assignments = [] } = data || {}; // ✅ Extract assignments
+  const {
+    assignments = [],
+    professors = [],
+    subjects = [],
+    teachingTypes = [],
+  } = data || {}; // ✅ Extract assignments
 
   return (
     <div className="flex flex-col gap-4">
       {/* Forma për caktimin e lëndëve për profesorët */}
       <Card title="Cakto Profesor në Lëndë">
-        <AddAssignmentForm isAdmin={isAdmin} />
+        <AddAssignmentForm
+          isAdmin={isAdmin}
+          professors={professors}
+          subjects={subjects}
+          teachingTypes={teachingTypes}
+        />
       </Card>
 
       {/* Lista e Assignments */}

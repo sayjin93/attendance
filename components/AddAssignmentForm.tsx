@@ -1,16 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-//fetch function
-import { fetchAssignments } from "@/hooks/fetchFunctions";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
 import { Professor, Subject, TeachingType } from "@/types";
 
-export default function AddAssignmentForm({ isAdmin }: { isAdmin: string }) {
+export default function AddAssignmentForm({
+  isAdmin,
+  professors,
+  subjects,
+  teachingTypes,
+}: {
+  isAdmin: string;
+  professors: Professor[];
+  subjects: Subject[];
+  teachingTypes: TeachingType[];
+}) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
@@ -20,29 +27,6 @@ export default function AddAssignmentForm({ isAdmin }: { isAdmin: string }) {
   const [professorId, setProfessorId] = useState<number>(0);
   const [subjectId, setSubjectId] = useState<number>(0);
   const [typeId, setTypeId] = useState<number>(0);
-  const [professors, setProfessors] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [teachingTypes, setTeachingTypes] = useState([]);
-  //#endregion
-
-  //#region Fetch Data
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const { professors, subjects, teachingTypes } =
-          await fetchAssignments();
-
-        setProfessors(professors);
-        setSubjects(subjects);
-        setTeachingTypes(teachingTypes);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        showMessage("Gabim gjatë ngarkimit të të dhënave!", "error");
-      }
-    }
-
-    loadData();
-  }, [showMessage]);
   //#endregion
 
   //#region mutations
