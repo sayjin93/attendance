@@ -8,8 +8,9 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const auth = await authenticateRequest();
-    if (auth.error)
+    if ('error' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
 
     const { decoded } = auth;
 
@@ -85,8 +86,9 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const auth = await authenticateRequest();
-    if (auth.error)
+    if ('error' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
 
     const { decoded } = auth;
 
