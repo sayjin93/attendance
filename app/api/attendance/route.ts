@@ -24,7 +24,7 @@ export async function GET(req: Request) {
       where: {
         classId: classId ? parseInt(classId, 10) : undefined
       },
-      select: { id: true, name: true },
+      select: { id: true, firstName: true, lastName: true },
     });
 
     // ✅ Fetch attendance records for the selected lecture
