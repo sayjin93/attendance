@@ -10,14 +10,12 @@ export async function fetchClassesByProfessor(professorId: string) {
   const res = await fetch(`/api/classes?professorId=${professorId}`);
   return res.json();
 }
-export async function fetchClassesIncludeLectures(professorId: string) {
-  if (!professorId) return [];
+export async function fetchClassesWithSubjects(professorId: string) {
+  const res = await fetch(`/api/lectures?professorId=${professorId}`);
 
-  const res = await fetch(
-    `/api/classes?professorId=${professorId}&includeLectures=true`
-  );
   return res.json();
 }
+
 export async function fetchClassesIncludesLecturesAndStudents(
   professorId: string
 ) {

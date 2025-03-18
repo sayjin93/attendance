@@ -65,7 +65,7 @@ export default function AddAssignmentForm({
   //#endregion
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {/* Dropdown për zgjedhjen e profesorëve */}
       <select
         value={professorId}

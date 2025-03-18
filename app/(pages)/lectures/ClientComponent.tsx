@@ -12,10 +12,10 @@ import { ChevronUpDownIcon } from "@heroicons/react/16/solid";
 import { CheckIcon } from "@heroicons/react/20/solid";
 
 //types
-import { Class, Lecture } from "@/types";
+import { Class, Lecture, Subject } from "@/types";
 
 //hooks
-import { fetchClassesIncludeLectures } from "@/hooks/fetchFunctions";
+import { fetchClassesWithSubjects } from "@/hooks/fetchFunctions";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -39,28 +39,31 @@ export default function LecturesPageClient({
   //#endregion
 
   //#region states
-  const [classId, setClassId] = useState(null);
+  const [classId, setClassId] = useState<number | null>(null);
+  const [subjectId, setSubjectId] = useState<number | null>(null);
   const [date, setDate] = useState(today);
   //#endregion
 
   //#region useQuery
   const { data, isLoading, error } = useQuery({
-    queryKey: ["classes", professorId],
-    queryFn: () => fetchClassesIncludeLectures(professorId),
+    queryKey: ["classes-subjects", professorId],
+    queryFn: () => fetchClassesWithSubjects(professorId),
     enabled: !!professorId,
   });
   //#endregion
 
+  console.log("data", data);
+
   //#region mutations
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!classId) {
-        showMessage("Nuk jeni i kyçur si profesor!", "error");
-        return null;
+      if (!classId || !subjectId || !date) {
+        showMessage("Ju lutemi plotësoni të gjitha fushat!", "error");
+        return;
       }
       const res = await fetch("/api/lectures", {
         method: "POST",
-        body: JSON.stringify({ date, classId, professorId }),
+        body: JSON.stringify({ date, classId, subjectId, professorId }),
         headers: { "Content-Type": "application/json" },
       });
 
@@ -69,9 +72,7 @@ export default function LecturesPageClient({
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["classes", professorId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["classes-subjects", professorId] });
       showMessage("Leksioni u krijua me sukses!", "success");
     },
     onError: () => {
@@ -86,54 +87,93 @@ export default function LecturesPageClient({
     return null;
   }
 
-  const { classes = [] } = data || {};
-  const selectedClass = classes?.find((cls: Class) => cls.id === classId);
+  const selectedClass = data?.find((cls: Class) => cls.id === classId);
+  const subjects = selectedClass?.subjects || [];
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Class Selector */}
-      <Listbox value={classId} onChange={setClassId}>
-        <div className="relative mt-2">
-          <ListboxButton className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-            <span className="col-start-1 row-start-1 truncate pr-6">
-              {classes?.length === 0
-                ? "Nuk ka klasa aktive"
-                : !classId
-                ? "Zgjidh një klasë"
-                : selectedClass?.name}
-            </span>
-            <ChevronUpDownIcon
-              aria-hidden="true"
-              className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-            />
-          </ListboxButton>
+      <Card title="Filtrimi">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-          <ListboxOptions
-            transition
-            className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
-          >
-            {classes?.map((cls: Class) => (
-              <ListboxOption
-                key={cls.id}
-                value={cls.id}
-                className="group relative cursor-default py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+          {/* Class Selector */}
+          <Listbox value={classId} onChange={setClassId}>
+            <div className="relative mt-2">
+              <ListboxButton className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                <span className="col-start-1 row-start-1 truncate pr-6">
+                  {data?.length === 0
+                    ? "Nuk ka klasa aktive"
+                    : !classId
+                      ? "Zgjidh një klasë"
+                      : selectedClass?.name}
+                </span>
+                <ChevronUpDownIcon
+                  aria-hidden="true"
+                  className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                />
+              </ListboxButton>
+
+              <ListboxOptions
+                transition
+                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
               >
-                <span className="block truncate font-normal group-data-selected:font-semibold">
-                  {cls.name}
-                </span>
+                {data?.map((cls: Class) => (
+                  <ListboxOption
+                    key={cls.id}
+                    value={cls.id}
+                    className="group relative cursor-default py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                  >
+                    <span className="block truncate font-normal group-data-selected:font-semibold">
+                      {cls.name}
+                    </span>
 
-                <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
-                  <CheckIcon aria-hidden="true" className="size-5" />
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                      <CheckIcon aria-hidden="true" className="size-5" />
+                    </span>
+                  </ListboxOption>
+                ))}
+              </ListboxOptions>
+            </div>
+          </Listbox>
+
+          {/* Subject Selector */}
+          <Listbox value={subjectId} onChange={setSubjectId}>
+            <div className="relative mt-2">
+              <ListboxButton className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                <span className="col-start-1 row-start-1 truncate pr-6">
+                  {subjectId ? subjects.find((sub: Subject) => sub.id === subjectId)?.name : "Zgjidh lëndën"}
                 </span>
-              </ListboxOption>
-            ))}
-          </ListboxOptions>
+                <ChevronUpDownIcon
+                  aria-hidden="true"
+                  className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                />          </ListboxButton>
+
+              <ListboxOptions
+                transition
+                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+              >
+                {subjects.map((sub: Subject) => (
+                  <ListboxOption
+                    key={sub.id}
+                    value={sub.id}
+                    className="group relative cursor-default py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden">
+                    <span className="block truncate font-normal group-data-selected:font-semibold">
+                      {sub.name}
+                    </span>
+
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                      <CheckIcon aria-hidden="true" className="size-5" />
+                    </span>
+                  </ListboxOption>
+                ))}
+              </ListboxOptions>
+            </div>
+          </Listbox>
         </div>
-      </Listbox>
+      </Card>
 
       {/* Add Lecture Form */}
       <Card title="Shto Leksion">
-        {classes?.length === 0 ? (
+        {data?.length === 0 ? (
           <Alert title="Nuk ka klasa aktive. Shtoni një klasë në menuë Klasat." />
         ) : !classId ? (
           <Alert title="Zgjidh një klasë për të shtuar leksion" />
@@ -148,7 +188,7 @@ export default function LecturesPageClient({
             <button
               onClick={() => mutation.mutate()}
               className="cursor-pointer items-center rounded-md bg-indigo-600 disabled:bg-gray-300 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-              disabled={!date || !classId}
+              disabled={!date || !classId || !subjectId}
             >
               Shto Leksion
             </button>
@@ -157,6 +197,7 @@ export default function LecturesPageClient({
       </Card>
 
       {/* Lectures List */}
+
       <Card title="Lista e Leksioneve">
         {!classId ? (
           <Alert title="Zgjidh një klasë për të parë leksionet" />
@@ -182,6 +223,7 @@ export default function LecturesPageClient({
           </div>
         )}
       </Card>
+
     </div>
   );
 }
