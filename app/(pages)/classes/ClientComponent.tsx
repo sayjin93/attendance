@@ -22,7 +22,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#endregion
 
   //#region useQuery
-  const { data, isLoading, error } = useQuery({
+  const { data: classes = [], isLoading, error } = useQuery<Class[]>({
     queryKey: ["classes"],
     queryFn: () => fetchClasses(),
     enabled: isAdmin === "true",
@@ -35,7 +35,14 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
     return null;
   }
 
-  const { classes = [], programs = [] } = data || {};
+  // Filter programs from classes
+  const programs = Array.from(
+    new Map(
+      classes
+        .filter(c => c.program) // Filter out undefined
+        .map(c => [c.program!.id, c.program!]) // Non-null assertion
+    ).values()
+  );
 
   return (
     <div className="flex flex-col gap-4">

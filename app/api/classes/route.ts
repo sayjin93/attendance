@@ -4,11 +4,13 @@ import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
 
 const prisma = new PrismaClient();
 
-// ✅ GET: Fetch all classes for the logged-in professor or all classes for admins
+// GET: Fetch all classes for the logged-in professor or all classes for admins
 export async function GET() {
   try {
     const auth = await authenticateRequest();
-    if ('error' in auth) {
+
+    // Check auth
+    if ("error" in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
@@ -21,17 +23,14 @@ export async function GET() {
       );
     }
 
-    // ✅ Fetch classes AND include Program data
+    // Fetch classes AND include Program data
     const classes = await prisma.class.findMany({
       include: {
-        program: true, // ✅ Include program data
+        program: true, // Include program data
       },
     });
 
-    // ✅ Fetch all programs separately
-    const programs = await prisma.program.findMany();
-
-    return NextResponse.json({ classes, programs }, { status: 200 });
+    return NextResponse.json(classes, { status: 200 });
   } catch (error) {
     console.error("Error fetching classes:", error);
     return NextResponse.json(
@@ -43,17 +42,19 @@ export async function GET() {
   }
 }
 
-// ✅ POST: Create a new class (Only Admins)
+// POST: Create a new class (Only Admins)
 export async function POST(req: Request) {
   try {
     const auth = await authenticateRequest();
-    if ('error' in auth) {
+
+    // Check auth
+    if ("error" in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { decoded } = auth;
 
-    // ✅ Ensure user is authenticated
+    // Ensure user is authenticated
     if (!decoded) {
       return NextResponse.json(
         { error: "Invalid session or not authenticated!" },
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
 
     const { name, programId } = await req.json();
 
-    // ✅ Validate required fields
+    // Validate required fields
     if (!name || !programId) {
       return NextResponse.json(
         { error: "Emri i klasës dhe Program ID janë të detyrueshëm!" },
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Check if the provided program exists
+    // Check if the provided program exists
     const existingProgram = await prisma.program.findUnique({
       where: { id: programId },
     });
@@ -92,7 +93,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Check if class name already exists in the selected program
+    // Check if class name already exists in the selected program
     const existingClass = await prisma.class.findFirst({
       where: { name, programId },
     });
@@ -104,7 +105,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Create the new class under the selected program
+    // Create the new class under the selected program
     const newClass = await prisma.class.create({
       data: {
         name,

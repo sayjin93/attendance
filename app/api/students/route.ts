@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 export async function GET(req: Request) {
   try {
     const auth = await authenticateRequest();
-    if ('error' in auth) {
+    if ("error" in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
@@ -43,10 +43,13 @@ export async function GET(req: Request) {
       { error: "Failed to fetch students!" },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 export async function POST(req: Request) {
   try {
+    debugger;
     const { firstName, lastName, classId, professorId } = await req.json();
 
     if (!professorId || !classId || !firstName || !lastName) {
