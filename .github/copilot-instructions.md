@@ -1,4 +1,4 @@
-# Attendance Management System
+# Copilot Instructions - Attendance Management System
 
 ## Architecture Overview
 

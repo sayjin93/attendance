@@ -24,14 +24,6 @@ async function main() {
       password: await bcrypt.hash("germany6", 10),
       isAdmin: false,
     },
-    {
-      firstName: "Malvina",
-      lastName: "Niklekaj",
-      username: "malvinanik",
-      email: "malvina.niklekaj@uet.edu.al",
-      password: await bcrypt.hash("priam", 10),
-      isAdmin: false,
-    },
   ];
   await prisma.professor.createMany({
     data: professors,

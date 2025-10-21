@@ -93,3 +93,25 @@ export async function fetchReports(
 
   return res.json();
 }
+
+export async function updateClass(id: number, name: string, programId: number) {
+  const res = await fetch("/api/classes", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id, name, programId }),
+  });
+  return res.json();
+}
+
+export async function deleteClass(id: number) {
+  const res = await fetch("/api/classes", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}

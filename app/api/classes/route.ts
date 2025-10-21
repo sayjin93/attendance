@@ -124,3 +124,185 @@ export async function POST(req: Request) {
     await prisma.$disconnect();
   }
 }
+
+// PUT: Update a class (Only Admins)
+export async function PUT(req: Request) {
+  try {
+    const auth = await authenticateRequest();
+
+    // Check auth
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { decoded } = auth;
+
+    // Ensure user is authenticated
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    const isAdmin = decoded.isAdmin;
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: "Vetëm administratorët mund të modifikojnë klasa!" },
+        { status: 403 }
+      );
+    }
+
+    const { id, name, programId } = await req.json();
+
+    // Validate required fields
+    if (!id || !name || !programId) {
+      return NextResponse.json(
+        { error: "ID, emri i klasës dhe Program ID janë të detyrueshëm!" },
+        { status: 400 }
+      );
+    }
+
+    // Check if the class exists
+    const existingClass = await prisma.class.findUnique({
+      where: { id },
+    });
+
+    if (!existingClass) {
+      return NextResponse.json(
+        { error: "Klasa nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    // Check if the provided program exists
+    const existingProgram = await prisma.program.findUnique({
+      where: { id: programId },
+    });
+
+    if (!existingProgram) {
+      return NextResponse.json(
+        { error: "Programi nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    // Check if another class with the same name already exists in the selected program
+    const duplicateClass = await prisma.class.findFirst({
+      where: { 
+        name, 
+        programId,
+        NOT: { id } // Exclude current class from check
+      },
+    });
+
+    if (duplicateClass) {
+      return NextResponse.json(
+        { error: "Një klasë me këtë emër ekziston tashmë në këtë program!" },
+        { status: 409 }
+      );
+    }
+
+    // Update the class
+    const updatedClass = await prisma.class.update({
+      where: { id },
+      data: {
+        name,
+        programId,
+      },
+      include: {
+        program: true,
+      },
+    });
+
+    return NextResponse.json(updatedClass, { status: 200 });
+  } catch (error) {
+    console.error("Error updating class:", error);
+    return NextResponse.json(
+      { error: "Dështoi modifikimi i klasës" },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// DELETE: Delete a class (Only Admins)
+export async function DELETE(req: Request) {
+  try {
+    const auth = await authenticateRequest();
+
+    // Check auth
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { decoded } = auth;
+
+    // Ensure user is authenticated
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    const isAdmin = decoded.isAdmin;
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: "Vetëm administratorët mund të fshijnë klasa!" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await req.json();
+
+    // Validate required fields
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID e klasës është e detyrueshme!" },
+        { status: 400 }
+      );
+    }
+
+    // Check if the class exists
+    const existingClass = await prisma.class.findUnique({
+      where: { id },
+      include: {
+        students: true,
+      },
+    });
+
+    if (!existingClass) {
+      return NextResponse.json(
+        { error: "Klasa nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    // Check if class has students
+    if (existingClass.students && existingClass.students.length > 0) {
+      return NextResponse.json(
+        { error: "Nuk mund të fshihet klasa sepse ka studentë të regjistruar!" },
+        { status: 400 }
+      );
+    }
+
+    // Delete the class
+    await prisma.class.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Klasa u fshi me sukses!" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting class:", error);
+    return NextResponse.json(
+      { error: "Dështoi fshirja e klasës" },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}
