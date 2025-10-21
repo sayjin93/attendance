@@ -59,7 +59,7 @@ export default function AssignmentsPageClient({
       </Card>
 
       {/* Lista e Assignments */}
-      <Card title="Lista e Assignments">
+      <Card title="Lista e Caktimeve">
         {assignments?.length === 0 ? (
           <Alert title="Nuk keni ende assignments. Caktoni një profesor më sipër!" />
         ) : (
