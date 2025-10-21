@@ -159,3 +159,30 @@ export async function deleteSubject(id: number) {
   });
   return res.json();
 }
+
+export async function fetchProfessors(search?: string) {
+  let url = "/api/professors";
+  if (search && search.trim()) {
+    url += `?search=${encodeURIComponent(search.trim())}`;
+  }
+  const res = await fetch(url);
+  return res.json();
+}
+
+export async function updateProfessor(id: number, firstName: string, lastName: string, email: string, username: string, password?: string) {
+  const res = await fetch("/api/professors", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id, firstName, lastName, email, username, password }),
+  });
+  return res.json();
+}
+
+export async function deleteProfessor(id: number) {
+  const res = await fetch(`/api/professors?id=${id}`, {
+    method: "DELETE",
+  });
+  return res.json();
+}
