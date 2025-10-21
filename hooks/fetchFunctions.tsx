@@ -75,7 +75,6 @@ export async function fetchAttendance(
     throw new Error("Failed to fetch attendance");
   }
   const data = await res.json();
-  console.log("Fetched attendance data:", data); // Debugging log
   return data;
 }
 export async function updateAttendance(data: {
@@ -90,6 +89,23 @@ export async function updateAttendance(data: {
   });
   if (!res.ok) {
     throw new Error("Failed to update attendance");
+  }
+  return res.json();
+}
+
+// New batch update function
+export async function updateAttendanceBatch(attendanceList: Array<{
+  studentId: number;
+  lectureId: string;
+  status: "PRESENT" | "ABSENT" | "PARTICIPATED";
+}>) {
+  const res = await fetch("/api/attendance", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(attendanceList),
+  });
+  if (!res.ok) {
+    throw new Error("Failed to update attendance batch");
   }
   return res.json();
 }

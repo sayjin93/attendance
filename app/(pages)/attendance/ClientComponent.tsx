@@ -20,7 +20,7 @@ import { formatDate } from "@/hooks/functions";
 import {
   fetchAttendance,
   fetchClassesIncludesLecturesAndStudents,
-  updateAttendance,
+  updateAttendanceBatch,
 } from "@/hooks/fetchFunctions";
 
 // contexts
@@ -113,16 +113,14 @@ export default function AttendancePageClient({
   //#region mutations
   const mutation = useMutation({
     mutationFn: async (studentsData: AttendanceRecord[]) => {
-      const results = await Promise.all(
-        studentsData.map((student) =>
-          updateAttendance({
-            studentId: student.id,
-            lectureId: lectureId?.toString() || "",
-            status: student.status as "PRESENT" | "ABSENT" | "PARTICIPATED",
-          })
-        )
-      );
-      return results;
+      // Use batch update - single API call for all students
+      const attendanceUpdates = studentsData.map((student) => ({
+        studentId: student.id,
+        lectureId: lectureId?.toString() || "",
+        status: student.status as "PRESENT" | "ABSENT" | "PARTICIPATED",
+      }));
+      
+      return await updateAttendanceBatch(attendanceUpdates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
