@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import {
   Listbox,
@@ -15,7 +15,7 @@ import { CheckIcon } from "@heroicons/react/20/solid";
 import { Class, Program, Student } from "@/types";
 
 //hooks
-import { fetchClasses, fetchStudents } from "@/hooks/fetchFunctions";
+import { fetchClasses, fetchStudents, deleteStudent } from "@/hooks/fetchFunctions";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -25,15 +25,20 @@ import Loader from "@/components/Loader";
 import Alert from "@/components/Alert";
 import Card from "@/components/Card";
 import AddStudentForm from "@/components/AddStudentForm";
+import EditStudentForm from "@/components/EditStudentForm";
+import Modal from "@/components/Modal";
 
 export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
   const { showMessage } = useNotify();
+  const queryClient = useQueryClient();
   //#endregion
 
   //#region states
   const [classId, setClassId] = useState<number>(0);
   const [programId, setProgramId] = useState<number>(0);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
   //#endregion
 
   //#region useQuery
@@ -56,6 +61,32 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
     queryFn: () => fetchStudents(classId),
     enabled: classId > 0, // Prevent fetch when classId is null
   });
+  //#endregion
+
+  //#region mutations
+  const deleteStudentMutation = useMutation({
+    mutationFn: (id: number) => deleteStudent(id),
+    onSuccess: (data) => {
+      if (data.error) {
+        showMessage(data.error, "error");
+      } else {
+        showMessage("Studenti u fshi me sukses!", "success");
+        queryClient.invalidateQueries({ queryKey: ["students", classId] });
+        setDeletingStudent(null);
+      }
+    },
+    onError: () => {
+      showMessage("Dështoi fshirja e studentit!", "error");
+    },
+  });
+  //#endregion
+
+  //#region functions
+  const handleDeleteStudent = () => {
+    if (deletingStudent) {
+      deleteStudentMutation.mutate(deletingStudent.id);
+    }
+  };
   //#endregion
 
   if (classesLoading) return <Loader />;
@@ -212,19 +243,93 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
             {studentsData?.map((student: Student) => (
               <div
                 key={student.id}
-                className="flex justify-center align-middle relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
+                className="relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
               >
                 <div className="p-4 text-center">
                   <h2 className="text-xl font-semibold">
                     {student.firstName + " " + student.lastName}
                   </h2>
-                  {/* <p className="text-gray-500">{student.lastName}</p> */}
+                  
+                  {isAdmin === "true" && (
+                    <div className="flex justify-center gap-2 mt-3">
+                      <button
+                        onClick={() => setEditingStudent(student)}
+                        className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        title="Modifiko studentin"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setDeletingStudent(student)}
+                        className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        title="Fshi studentin"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
       </Card>
+
+      {/* Edit Student Modal */}
+      <Modal
+        isOpen={editingStudent !== null}
+        onClose={() => setEditingStudent(null)}
+        title="Modifiko studentin"
+        maxWidth="max-w-lg"
+      >
+        {editingStudent && (
+          <EditStudentForm
+            student={editingStudent}
+            classes={classes}
+            onClose={() => setEditingStudent(null)}
+          />
+        )}
+      </Modal>
+
+      {/* Delete Student Modal */}
+      <Modal
+        isOpen={deletingStudent !== null}
+        onClose={() => setDeletingStudent(null)}
+        title="Fshi studentin"
+        maxWidth="max-w-md"
+      >
+        {deletingStudent && (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              A jeni të sigurt që doni të fshini studentin <strong>{deletingStudent.firstName} {deletingStudent.lastName}</strong>?
+            </p>
+            <p className="text-sm text-red-600">
+              Ky veprim nuk mund të kthehet prapa. Studenti do të fshihet përgjithmonë.
+            </p>
+            
+            <div className="flex justify-end gap-2 pt-4">
+              <button
+                onClick={() => setDeletingStudent(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                disabled={deleteStudentMutation.isPending}
+              >
+                Anulo
+              </button>
+              <button
+                onClick={handleDeleteStudent}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                disabled={deleteStudentMutation.isPending}
+              >
+                {deleteStudentMutation.isPending ? <Loader /> : "Fshi studentin"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
