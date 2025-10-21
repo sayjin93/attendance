@@ -52,8 +52,6 @@ export default function LecturesPageClient({
   });
   //#endregion
 
-  console.log("data", data);
-
   //#region mutations
   const mutation = useMutation({
     mutationFn: async () => {

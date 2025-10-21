@@ -40,7 +40,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   return (
     <div className="flex flex-col gap-4">
       {/* Forma për shtimin e klasave */}
-      <Card title="Shto klasë">
+      <Card title="Shto kurs">
         <AddSubjectForm isAdmin={isAdmin} programs={programs} />
       </Card>
 

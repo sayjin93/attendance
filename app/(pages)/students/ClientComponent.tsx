@@ -38,10 +38,10 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
 
   //#region useQuery
   const {
-    data: classesData,
+    data: classes = [],
     isLoading: classesLoading,
     error: classesError,
-  } = useQuery({
+  } = useQuery<Class[]>({
     queryKey: ["classes"],
     queryFn: () => fetchClasses(),
     enabled: isAdmin === "true",
@@ -64,13 +64,21 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
     return null;
   }
 
-  const { classes = [], programs = [] } = classesData || {};
+  // Extract programs from classes data and sort alphabetically
+  const programs = Array.from(
+    new Map(
+      classes
+        .filter(c => c.program) // Filter out undefined
+        .map(c => [c.program!.id, c.program!]) // Non-null assertion
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
+  
   const selectedProgramm = programs?.find(
     (prog: Program) => prog.id === programId
   );
   const filteredClasses = classes?.filter(
     (cls: Class) => cls.programId === programId
-  );
+  ).sort((a, b) => a.name.localeCompare(b.name));
   const selectedClass = filteredClasses?.find(
     (cls: Class) => cls.id === classId
   );
