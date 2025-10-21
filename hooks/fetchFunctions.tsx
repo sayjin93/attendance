@@ -137,3 +137,25 @@ export async function deleteStudent(id: number) {
   });
   return res.json();
 }
+
+export async function updateSubject(id: number, code: string, name: string, programId: number) {
+  const res = await fetch("/api/subjects", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id, code, name, programId }),
+  });
+  return res.json();
+}
+
+export async function deleteSubject(id: number) {
+  const res = await fetch("/api/subjects", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}

@@ -124,3 +124,188 @@ export async function POST(req: Request) {
     await prisma.$disconnect();
   }
 }
+
+// PUT: Update a subject (Only Admins)
+export async function PUT(req: Request) {
+  try {
+    const auth = await authenticateRequest();
+
+    // Check auth
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { decoded } = auth;
+
+    // Ensure user is authenticated
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    const isAdmin = decoded.isAdmin;
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: "Vetëm administratorët mund të modifikojnë lëndët!" },
+        { status: 403 }
+      );
+    }
+
+    const { id, code, name, programId } = await req.json();
+
+    // Validate required fields
+    if (!id || !name || !programId) {
+      return NextResponse.json(
+        { error: "ID, emri i lëndës dhe Program ID janë të detyrueshëm!" },
+        { status: 400 }
+      );
+    }
+
+    // Check if the subject exists
+    const existingSubject = await prisma.subject.findUnique({
+      where: { id },
+    });
+
+    if (!existingSubject) {
+      return NextResponse.json(
+        { error: "Lënda nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    // Check if the provided program exists
+    const existingProgram = await prisma.program.findUnique({
+      where: { id: programId },
+    });
+
+    if (!existingProgram) {
+      return NextResponse.json(
+        { error: "Programi nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    // Check if another subject with the same name already exists in the selected program
+    const duplicateSubject = await prisma.subject.findFirst({
+      where: { 
+        name, 
+        programId,
+        NOT: { id } // Exclude current subject from check
+      },
+    });
+
+    if (duplicateSubject) {
+      return NextResponse.json(
+        { error: "Një lëndë me këtë emër ekziston tashmë në këtë program!" },
+        { status: 409 }
+      );
+    }
+
+    // Update the subject
+    const updatedSubject = await prisma.subject.update({
+      where: { id },
+      data: {
+        code,
+        name,
+        programId,
+      },
+      include: {
+        program: true,
+      },
+    });
+
+    return NextResponse.json(updatedSubject, { status: 200 });
+  } catch (error) {
+    console.error("Error updating subject:", error);
+    return NextResponse.json(
+      { error: "Dështoi modifikimi i lëndës" },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// DELETE: Delete a subject (Only Admins)
+export async function DELETE(req: Request) {
+  try {
+    const auth = await authenticateRequest();
+
+    // Check auth
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { decoded } = auth;
+
+    // Ensure user is authenticated
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    const isAdmin = decoded.isAdmin;
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: "Vetëm administratorët mund të fshijnë lëndët!" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await req.json();
+
+    // Validate required fields
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID e lëndës është e detyrueshme!" },
+        { status: 400 }
+      );
+    }
+
+    // Check if the subject exists
+    const existingSubject = await prisma.subject.findUnique({
+      where: { id },
+      include: {
+        teachingAssignments: true,
+        Lecture: true,
+      },
+    });
+
+    if (!existingSubject) {
+      return NextResponse.json(
+        { error: "Lënda nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    // Check if subject has teaching assignments or lectures
+    if ((existingSubject.teachingAssignments && existingSubject.teachingAssignments.length > 0) ||
+        (existingSubject.Lecture && existingSubject.Lecture.length > 0)) {
+      return NextResponse.json(
+        { error: "Nuk mund të fshihet lënda sepse ka caktime mësimore ose leksione!" },
+        { status: 400 }
+      );
+    }
+
+    // Delete the subject
+    await prisma.subject.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Lënda u fshi me sukses!" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    return NextResponse.json(
+      { error: "Dështoi fshirja e lëndës" },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}

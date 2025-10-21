@@ -211,9 +211,19 @@ async function main() {
   // Insert Subjects
   const subjects = [
     {
+      code: "CIS242/B",
+      name: "Teori e bazave të të dhënave",
+      programId: 1,
+    },
+    {
       code: "CIS280",
       name: "Web Development",
       programId: 1,
+    },
+    {
+      code: "CIS518",
+      name: "Projektim dhe analizë e bazave të të dhënave",
+      programId: 2,
     },
     {
       code: "CIS555",
@@ -225,6 +235,7 @@ async function main() {
     data: subjects,
     skipDuplicates: true, // ✅ Prevents errors if they already exist
   });
+  console.log("✅ Subjects seeded successfully!");
 }
 
 main()

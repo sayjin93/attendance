@@ -7,10 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "clean-install": "npx rimraf node_modules package-lock.json && npm install"
-  },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "clean-install": "npx rimraf node_modules package-lock.json && npm install",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -43,6 +41,7 @@
     "tailwindcss": "^4.1.15",
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }
