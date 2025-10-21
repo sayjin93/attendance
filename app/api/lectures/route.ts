@@ -4,7 +4,7 @@ import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const auth = await authenticateRequest();
     if ("error" in auth) {
