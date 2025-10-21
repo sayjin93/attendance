@@ -44,13 +44,17 @@ model Subject {
 }
 
 model TeachingAssignment {
-  id          Int       @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   professorId Int
-  professor   Professor @relation(fields: [professorId], references: [id])
+  professor   Professor    @relation(fields: [professorId], references: [id])
   subjectId   Int
-  subject     Subject   @relation(fields: [subjectId], references: [id])
+  subject     Subject      @relation(fields: [subjectId], references: [id])
+  classId     Int
+  class       Class        @relation(fields: [classId], references: [id])
   typeId      Int
-  type TeachingType @relation(fields: [typeId], references: [id])
+  type        TeachingType @relation(fields: [typeId], references: [id])
+
+  @@unique([professorId, subjectId, classId]) // Prevent duplicate assignments for same professor-subject-class combination
 }
 
 model TeachingType {
@@ -60,12 +64,13 @@ model TeachingType {
 }
 
 model Class {
-  id        Int       @id @default(autoincrement())
-  name      String
-  programId Int
-  program   Program   @relation(fields: [programId], references: [id])
-  students  Student[]
-  Lecture   Lecture[]
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  programId           Int
+  program             Program              @relation(fields: [programId], references: [id])
+  students            Student[]
+  lectures            Lecture[]
+  teachingAssignments TeachingAssignment[]
 }
 
 model Student {

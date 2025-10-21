@@ -86,7 +86,10 @@ export interface TeachingAssignment {
   professor?: Professor;
   subjectId: number;
   subject?: Subject;
-  type: TeachingType;
+  classId: number;
+  class?: Class;
+  typeId: number;
+  type?: TeachingType;
 }
 
 export interface TeachingType {

@@ -31,11 +31,51 @@ export async function GET() {
       },
     });
 
-    // ✅ Fetch all subjects
+    // ✅ Fetch all programs
+    const programs = await prisma.program.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    // ✅ Fetch all subjects with program info
     const subjects = await prisma.subject.findMany({
       select: {
         id: true,
         name: true,
+        code: true,
+        programId: true,
+        program: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    // ✅ Fetch all classes with program info
+    const classes = await prisma.class.findMany({
+      select: {
+        id: true,
+        name: true,
+        programId: true,
+        program: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
       },
     });
 
@@ -52,23 +92,95 @@ export async function GET() {
     if (decoded.isAdmin) {
       assignments = await prisma.teachingAssignment.findMany({
         include: {
-          professor: true,
-          subject: true,
-          type: true,
+          professor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          subject: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              program: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          class: {
+            select: {
+              id: true,
+              name: true,
+              program: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          type: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
+        orderBy: [
+          { subject: { name: 'asc' } },
+          { class: { name: 'asc' } },
+        ],
       });
     } else {
       assignments = await prisma.teachingAssignment.findMany({
-        where: { professorId: parseInt(decoded.id as string, 10) },
+        where: { professorId: parseInt(decoded.professorId as string, 10) },
         include: {
-          subject: true,
-          type: true,
+          subject: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              program: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          class: {
+            select: {
+              id: true,
+              name: true,
+              program: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          type: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
+        orderBy: [
+          { subject: { name: 'asc' } },
+          { class: { name: 'asc' } },
+        ],
       });
     }
 
     return NextResponse.json(
-      { assignments, professors, subjects, teachingTypes },
+      { assignments, professors, subjects, classes, programs, teachingTypes },
       { status: 200 }
     );
   } catch (error) {
@@ -99,12 +211,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const { professorId, subjectId, typeId } = await req.json();
+    const { professorId, subjectId, classId, typeId } = await req.json();
 
     // ✅ Validate required fields
-    if (!professorId || !subjectId || !typeId) {
+    if (!professorId || !subjectId || !classId || !typeId) {
       return NextResponse.json(
-        { error: "Professor ID, Subject ID dhe Type ID janë të detyrueshëm!" },
+        { error: "Professor ID, Subject ID, Class ID dhe Type ID janë të detyrueshëm!" },
         { status: 400 }
       );
     }
@@ -145,14 +257,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Check if assignment already exists
+    // ✅ Check if class exists
+    const existingClass = await prisma.class.findUnique({
+      where: { id: classId },
+    });
+
+    if (!existingClass) {
+      return NextResponse.json(
+        { error: "Klasa nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    // ✅ Check if assignment already exists for same professor, subject, and class
     const existingAssignment = await prisma.teachingAssignment.findFirst({
-      where: { professorId, subjectId, typeId },
+      where: { 
+        professorId, 
+        subjectId, 
+        classId 
+      },
     });
 
     if (existingAssignment) {
       return NextResponse.json(
-        { error: "Ky profesor është tashmë i caktuar për këtë lëndë me këtë lloj mësimi!" },
+        { error: "Ky profesor është tashmë i caktuar për këtë lëndë në këtë klasë!" },
         { status: 409 }
       );
     }
@@ -160,9 +288,38 @@ export async function POST(req: Request) {
     // ✅ Create new teaching assignment
     const newAssignment = await prisma.teachingAssignment.create({
       data: {
-        professor: { connect: { id: professorId } },
-        subject: { connect: { id: subjectId } },
-        type: { connect: { id: typeId } },
+        professorId,
+        subjectId,
+        classId,
+        typeId,
+      },
+      include: {
+        professor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        subject: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+        class: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        type: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 

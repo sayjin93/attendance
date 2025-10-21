@@ -43,6 +43,24 @@ export async function fetchAssignments() {
   return res.json();
 }
 
+export async function updateAssignment(id: number, professorId: number, subjectId: number, classId: number, typeId: number) {
+  const res = await fetch("/api/assignments", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id, professorId, subjectId, classId, typeId }),
+  });
+  return res.json();
+}
+
+export async function deleteAssignment(id: number) {
+  const res = await fetch(`/api/assignments?id=${id}`, {
+    method: "DELETE",
+  });
+  return res.json();
+}
+
 export async function fetchAttendance(
   professorId: string,
   classId: string,

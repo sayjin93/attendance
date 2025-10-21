@@ -7,5 +7,5 @@ export default async function LecturesPage() {
 
   if (!professorId) return redirect("/login");
 
-  return <LecturesPageClient professorId={professorId} />;
+  return <LecturesPageClient />;
 }

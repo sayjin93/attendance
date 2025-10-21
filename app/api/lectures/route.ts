@@ -1,96 +1,77 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
 
 const prisma = new PrismaClient();
 
-// ✅ GET - Merr të gjitha klasat dhe lëndët për një profesor ose për të gjithë nëse është admin
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const professorId = searchParams.get("professorId");
+    const auth = await authenticateRequest();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
 
-    if (!professorId) {
+    const { decoded } = auth;
+    if (!decoded) {
       return NextResponse.json(
-        { error: "❌ Professor ID është i nevojshëm!" },
-        { status: 400 }
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
       );
     }
 
-    // ✅ Kontrollo nëse profesori është admin
-    const professor = await prisma.professor.findUnique({
-      where: { id: Number(professorId) },
-      select: { isAdmin: true },
-    });
+    const professorId = Number(decoded.professorId);
+    const isAdmin = decoded.isAdmin;
 
-    if (!professor) {
-      return NextResponse.json(
-        { error: "❌ Profesori nuk u gjet!" },
-        { status: 404 }
-      );
-    }
-
-    let classes;
-
-    if (professor.isAdmin) {
-      // ✅ Nëse është admin, merr të gjitha klasat dhe lëndët për secilën klasë
-      classes = await prisma.class.findMany({
+    let assignments;
+    if (isAdmin) {
+      assignments = await prisma.teachingAssignment.findMany({
         include: {
-          program: {
-            include: {
-              subject: {
-                // ✅ Saktësimi i emrit të saktë nga Prisma
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
+          professor: { select: { id: true, firstName: true, lastName: true } },
+          subject: { select: { id: true, name: true, code: true } },
+          class: { select: { id: true, name: true } },
+          type: { select: { id: true, name: true } },
         },
+        orderBy: [{ subject: { name: 'asc' } }, { class: { name: 'asc' } }],
       });
     } else {
-      // ✅ Nëse nuk është admin, merr vetëm klasat ku profesori jep mësim
-      classes = await prisma.class.findMany({
-        where: {
-          program: {
-            subject: {
-              some: {
-                teachingAssignments: {
-                  some: { professorId: Number(professorId) },
-                },
-              },
-            },
-          },
-        },
+      assignments = await prisma.teachingAssignment.findMany({
+        where: { professorId },
         include: {
-          program: {
-            include: {
-              subject: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
+          subject: { select: { id: true, name: true, code: true } },
+          class: { select: { id: true, name: true } },
+          type: { select: { id: true, name: true } },
         },
+        orderBy: [{ subject: { name: 'asc' } }, { class: { name: 'asc' } }],
       });
     }
 
-    // ✅ Kthejmë të dhënat në formatin e duhur
-    const formattedClasses = classes.map((cls) => ({
-      id: cls.id,
-      name: cls.name,
-      subjects: cls.program?.subject || [], // ✅ Marrim lëndët e programit të klasës
-    }));
+    let lectures;
+    if (isAdmin) {
+      lectures = await prisma.lecture.findMany({
+        include: {
+          professor: { select: { id: true, firstName: true, lastName: true } },
+          subject: { select: { id: true, name: true, code: true } },
+          class: { select: { id: true, name: true } },
+          attendance: { select: { id: true, status: true } },
+        },
+        orderBy: [{ date: 'desc' }],
+      });
+    } else {
+      lectures = await prisma.lecture.findMany({
+        where: { professorId },
+        include: {
+          subject: { select: { id: true, name: true, code: true } },
+          class: { select: { id: true, name: true } },
+          attendance: { select: { id: true, status: true } },
+        },
+        orderBy: [{ date: 'desc' }],
+      });
+    }
 
-    return NextResponse.json(formattedClasses, { status: 200 });
+    return NextResponse.json({ assignments, lectures, isAdmin, professorId }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching classes and subjects:", error);
-    return NextResponse.json(
-      { error: "❌ Dështoi marrja e klasave dhe lëndëve." },
-      { status: 500 }
-    );
+    console.error("Error fetching lectures:", error);
+    return NextResponse.json({ error: "Failed to fetch lectures!" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
@@ -98,62 +79,209 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { date, classId, subjectId, professorId } = await req.json();
+    const auth = await authenticateRequest();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
 
-    if (!professorId || !classId || !subjectId || !date) {
+    const { decoded } = auth;
+    if (!decoded) {
       return NextResponse.json(
-        { error: "All fields are required!" },
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    const { assignmentId, date } = await req.json();
+
+    if (!assignmentId || !date) {
+      return NextResponse.json(
+        { error: "Assignment ID dhe data janë të detyrueshme!" },
         { status: 400 }
       );
     }
 
-    // ✅ Verifikojmë nëse profesori ka të drejtë të japë këtë lëndë në këtë klasë
-    const teachingAssignment = await prisma.teachingAssignment.findFirst({
+    const professorId = Number(decoded.professorId);
+
+    const assignment = await prisma.teachingAssignment.findFirst({
       where: {
-        professorId,
-        subjectId,
-        subject: {
-          program: {
-            classes: { some: { id: classId } },
-          },
-        },
+        id: assignmentId,
+        ...(decoded.isAdmin ? {} : { professorId }),
       },
     });
 
-    if (!teachingAssignment) {
+    if (!assignment) {
       return NextResponse.json(
-        { error: "You are not assigned to this subject in this class!" },
-        { status: 403 }
+        { error: "Caktimi nuk u gjet ose nuk ju përket!" },
+        { status: 404 }
       );
     }
 
-    // ✅ Kontrollojmë nëse ekziston një leksion për këtë klasë, lëndë dhe datë
     const existingLecture = await prisma.lecture.findFirst({
-      where: { date: new Date(date), classId, subjectId },
+      where: {
+        date: new Date(date),
+        classId: assignment.classId,
+        subjectId: assignment.subjectId,
+      },
     });
 
     if (existingLecture) {
       return NextResponse.json(
-        {
-          error:
-            "A lecture already exists for this class and subject on this date!",
-        },
+        { error: "Ekziston tashmë një leksion për këtë datë, klasë dhe lëndë!" },
         { status: 409 }
       );
     }
 
-    // ✅ Krijojmë leksionin
     const newLecture = await prisma.lecture.create({
-      data: { date: new Date(date), classId, subjectId, professorId },
+      data: {
+        date: new Date(date),
+        professorId: decoded.isAdmin ? assignment.professorId : professorId,
+        classId: assignment.classId,
+        subjectId: assignment.subjectId,
+      },
+      include: {
+        professor: { select: { id: true, firstName: true, lastName: true } },
+        subject: { select: { id: true, name: true, code: true } },
+        class: { select: { id: true, name: true } },
+      },
     });
 
     return NextResponse.json(newLecture, { status: 201 });
   } catch (error) {
     console.error("Error creating lecture:", error);
+    return NextResponse.json({ error: "Dështoi krijimi i leksionit!" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const auth = await authenticateRequest();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { decoded } = auth;
+    if (!decoded || !decoded.isAdmin) {
+      return NextResponse.json(
+        { error: "Vetëm administratorët mund të modifikojnë leksionet!" },
+        { status: 403 }
+      );
+    }
+
+    const { id, assignmentId, date } = await req.json();
+
+    if (!id || !assignmentId || !date) {
+      return NextResponse.json(
+        { error: "ID, assignment ID dhe data janë të detyrueshme!" },
+        { status: 400 }
+      );
+    }
+
+    const existingLecture = await prisma.lecture.findUnique({
+      where: { id },
+    });
+
+    if (!existingLecture) {
+      return NextResponse.json(
+        { error: "Leksioni nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    const assignment = await prisma.teachingAssignment.findUnique({
+      where: { id: assignmentId },
+    });
+
+    if (!assignment) {
+      return NextResponse.json(
+        { error: "Caktimi nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    const updatedLecture = await prisma.lecture.update({
+      where: { id },
+      data: {
+        date: new Date(date),
+        professorId: assignment.professorId,
+        classId: assignment.classId,
+        subjectId: assignment.subjectId,
+      },
+      include: {
+        professor: { select: { id: true, firstName: true, lastName: true } },
+        subject: { select: { id: true, name: true, code: true } },
+        class: { select: { id: true, name: true } },
+      },
+    });
+
+    return NextResponse.json(updatedLecture, { status: 200 });
+  } catch (error) {
+    console.error("Error updating lecture:", error);
+    return NextResponse.json({ error: "Dështoi përditësimi i leksionit!" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const auth = await authenticateRequest();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { decoded } = auth;
+    if (!decoded || !decoded.isAdmin) {
+      return NextResponse.json(
+        { error: "Vetëm administratorët mund të fshijnë leksionet!" },
+        { status: 403 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID e leksionit është e detyrueshme!" },
+        { status: 400 }
+      );
+    }
+
+    const lectureId = parseInt(id);
+
+    const existingLecture = await prisma.lecture.findUnique({
+      where: { id: lectureId },
+      include: { attendance: true },
+    });
+
+    if (!existingLecture) {
+      return NextResponse.json(
+        { error: "Leksioni nuk ekziston!" },
+        { status: 404 }
+      );
+    }
+
+    if (existingLecture.attendance.length > 0) {
+      return NextResponse.json(
+        { error: "Nuk mund të fshihet një leksion që ka regjistra prezence!" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.lecture.delete({
+      where: { id: lectureId },
+    });
+
     return NextResponse.json(
-      { error: "⚠️ Failed to create lecture" },
-      { status: 500 }
+      { message: "Leksioni u fshi me sukses!" },
+      { status: 200 }
     );
+  } catch (error) {
+    console.error("Error deleting lecture:", error);
+    return NextResponse.json({ error: "Dështoi fshirja e leksionit!" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
