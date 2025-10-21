@@ -110,7 +110,63 @@ export async function updateAttendanceBatch(attendanceList: Array<{
   return res.json();
 }
 
+// Reports functions
+export async function fetchPrograms() {
+  const res = await fetch("/api/reports");
+  if (!res.ok) {
+    throw new Error("Failed to fetch programs");
+  }
+  return res.json();
+}
+
+export async function fetchClassesForReports(programId: number) {
+  const res = await fetch(`/api/reports?programId=${programId}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch classes");
+  }
+  return res.json();
+}
+
+export async function fetchSubjectsForReports(programId: number, classId: number) {
+  const res = await fetch(`/api/reports?programId=${programId}&classId=${classId}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch subjects");
+  }
+  return res.json();
+}
+
 export async function fetchReports(
+  programId: number,
+  classId: number,
+  subjectId: number
+) {
+  const res = await fetch(`/api/reports?programId=${programId}&classId=${classId}&subjectId=${subjectId}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch reports");
+  }
+  return res.json();
+}
+
+export async function fetchReportData(
+  professorId: string,
+  programId?: string,
+  classId?: string,
+  subjectId?: string
+) {
+  const params = new URLSearchParams({ professorId });
+  
+  if (programId) params.append('programId', programId);
+  if (classId) params.append('classId', classId);
+  if (subjectId) params.append('subjectId', subjectId);
+  
+  const res = await fetch(`/api/reports?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch report data");
+  }
+  return res.json();
+}
+
+export async function fetchReportsOld(
   classId: string,
   professorId: string | null
 ): Promise<StudentReport[]> {

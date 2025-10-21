@@ -1,9 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 "use client";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 
 import {
   Listbox,
@@ -11,188 +6,330 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/react";
-import { ChevronUpDownIcon } from "@heroicons/react/16/solid";
-import { CheckIcon } from "@heroicons/react/20/solid";
-
-//chart.js
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
-Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-//jspdf
-import { jsPDF } from "jspdf";
+import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { useQuery } from "@tanstack/react-query";
+import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useState } from "react";
+import Alert from "../../../components/Alert";
+import Card from "../../../components/Card";
+import Loader from "../../../components/Loader";
+import { useNotify } from "../../../contexts/NotifyContext";
+import { fetchReportData } from "../../../hooks/fetchFunctions";
 
-//types
-import { Class, StudentReport } from "@/types";
+// New interfaces for the reports module
+interface Program {
+  id: string;
+  name: string;
+}
 
-// contexts
-import { useNotify } from "@/contexts/NotifyContext";
+interface Class {
+  id: string;
+  name: string;
+  programId: string;
+}
 
-//components
-import Loader from "@/components/Loader";
-import Alert from "@/components/Alert";
-import Card from "@/components/Card";
-import { fetchClassesByProfessor, fetchReports } from "@/hooks/fetchFunctions";
+interface Subject {
+  id: string;
+  name: string;
+}
+
+interface StudentReport {
+  id: string;
+  firstName: string;
+  lastName: string;
+  totalLectures: number;
+  attendedLectures: number;
+  attendancePercentage: number;
+  passedLectures: boolean;
+  totalSeminars: number;
+  attendedSeminars: number;
+  seminarPercentage: number;
+  passedSeminars: boolean;
+  overallPassed: boolean;
+}
+
+interface ReportData {
+  students: StudentReport[];
+  summary: {
+    totalStudents: number;
+    passedStudents: number;
+    failedStudents: number;
+    averageAttendance: number;
+  };
+  metadata: {
+    program: string;
+    class: string;
+    subject: string;
+  };
+  programs: Program[];
+  classes: Class[];
+  subjects: Subject[];
+}
 
 export default function ReportsPageClient({
   professorId,
 }: {
   professorId: string;
 }) {
-  return <p>reports</p>;
-  //#region constants
   const { showMessage } = useNotify();
-  //#endregion
 
   //#region states
-  const [classId, setClassId] = useState("");
+  const [selectedProgramId, setSelectedProgramId] = useState("");
+  const [selectedClassId, setSelectedClassId] = useState("");
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
   //#endregion
 
   //#region useQuery
+  // Fetch programs initially
   const {
-    data: classes,
-    isLoading: loadingClasses,
-    error: errorClasses,
-  } = useQuery({
-    queryKey: ["classes", professorId],
-    queryFn: () => fetchClassesByProfessor(professorId),
+    data: reportData,
+    isLoading: loadingReports,
+    error: errorReports,
+  } = useQuery<ReportData>({
+    queryKey: ["reports", professorId, selectedProgramId, selectedClassId, selectedSubjectId],
+    queryFn: () => fetchReportData(professorId, selectedProgramId, selectedClassId, selectedSubjectId),
     enabled: !!professorId,
-  });
-
-  const {
-    data: students = [],
-    isLoading: loadingStudents,
-    error: errorStudents,
-  } = useQuery<StudentReport[]>({
-    queryKey: ["reports", classId, professorId],
-    queryFn: () => fetchReports(classId, professorId),
-    enabled: !!classId && !!professorId,
   });
   //#endregion
 
   //#region functions
   const downloadPDF = () => {
-    const doc = new jsPDF();
-    doc.text(`Raporti i Studentëve - ${selectedClass}`, 20, 10);
+    if (!reportData?.students || !reportData?.metadata) return;
 
+    const doc = new jsPDF();
+    const { program, class: className, subject } = reportData.metadata;
+    
+    // Title
+    doc.setFontSize(16);
+    doc.text(`Raporti i Prezencës`, 20, 20);
+    
+    // Metadata
+    doc.setFontSize(12);
+    doc.text(`Program: ${program || 'Të gjitha'}`, 20, 35);
+    doc.text(`Klasa: ${className || 'Të gjitha'}`, 20, 45);
+    doc.text(`Lënda: ${subject || 'Të gjitha'}`, 20, 55);
+
+    // Summary
+    if (reportData.summary) {
+      doc.text(`Total Studentë: ${reportData.summary.totalStudents}`, 20, 70);
+      doc.text(`Studentë të Kaluar: ${reportData.summary.passedStudents}`, 20, 80);
+      doc.text(`Studentë të Rrëzuar: ${reportData.summary.failedStudents}`, 20, 90);
+      doc.text(`Prezencë Mesatare: ${reportData.summary.averageAttendance.toFixed(1)}%`, 20, 100);
+    }
+
+    // Table
     autoTable(doc, {
-      head: [["Studenti", "Prezencë", "Mungesë", "Aktivizim"]],
-      body: students.map((s: StudentReport) => [
-        s.firstName + " " + s.lastName,
-        s.presence,
-        s.absence,
-        s.participation,
+      startY: 110,
+      head: [["Studenti", "Leksione (%)", "Kaloi Leksionet", "Seminare (%)", "Kaloi Seminaret", "Statusi Përgjithshëm"]],
+      body: reportData.students.map((s: StudentReport) => [
+        `${s.firstName} ${s.lastName}`,
+        `${s.attendancePercentage.toFixed(1)}%`,
+        s.passedLectures ? "Po" : "Jo",
+        `${s.seminarPercentage.toFixed(1)}%`,
+        s.passedSeminars ? "Po" : "Jo",
+        s.overallPassed ? "KALOI" : "RRËZOI"
       ]),
     });
 
-    doc.save(`Raporti_${selectedClass}.pdf`);
+    const fileName = `Raporti_${program || 'TeGjitha'}_${className || 'TeGjitha'}_${subject || 'TeGjitha'}.pdf`;
+    doc.save(fileName);
+  };
+
+  const resetSelections = (fromLevel: 'program' | 'class') => {
+    if (fromLevel === 'program') {
+      setSelectedClassId("");
+      setSelectedSubjectId("");
+    } else if (fromLevel === 'class') {
+      setSelectedSubjectId("");
+    }
   };
   //#endregion
 
-  if (loadingClasses) return <Loader />;
-  if (errorClasses) {
-    showMessage("Error loading classes.", "error");
-    return null;
+  if (loadingReports) return <Loader />;
+  if (errorReports) {
+    showMessage("Gabim gjatë ngarkimit të raporteve.", "error");
+    return <Alert type="error" title="Ka ndodhur një gabim gjatë ngarkimit të raporteve." />;
   }
 
-  const selectedClass = classes?.find((cls: Class) => cls.id === classId);
+  const programs = reportData?.programs || [];
+  const classes = reportData?.classes || [];
+  const subjects = reportData?.subjects || [];
+  const students = reportData?.students || [];
+
+  const selectedProgram = programs.find(p => p.id === selectedProgramId);
+  const selectedClass = classes.find(c => c.id === selectedClassId);
+  const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
 
   return (
     <div className="h-full flex flex-col gap-4">
-      {/* Class Selector */}
-      <Listbox value={classId} onChange={setClassId}>
-        <div className="relative mt-2">
-          <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-            <span className="col-start-1 row-start-1 truncate pr-6">
-              {classes?.length === 0
-                ? "Nuk ka klasa aktive"
-                : !classId
-                ? "Zgjidh klasën"
-                : selectedClass?.name}
-            </span>
-            <ChevronUpDownIcon
-              aria-hidden="true"
-              className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-            />
-          </ListboxButton>
+      {/* Program Selector */}
+      <Card title="Zgjidh programin">
+        <Listbox value={selectedProgramId} onChange={(value) => {
+          setSelectedProgramId(value);
+          resetSelections('program');
+        }}>
+          <div className="relative mt-2">
+            <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+              <span className="col-start-1 row-start-1 truncate pr-6">
+                {programs?.length === 0
+                  ? "Nuk ka programe"
+                  : !selectedProgramId
+                  ? "Zgjidh programin"
+                  : selectedProgram?.name}
+              </span>
+              <ChevronUpDownIcon
+                aria-hidden="true"
+                className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+              />
+            </ListboxButton>
 
-          <ListboxOptions
-            transition
-            className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
-          >
-            {classes?.map((cls: Class) => (
-              <ListboxOption
-                key={cls.id}
-                value={cls.id}
-                className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
-              >
-                <span className="block truncate font-normal group-data-selected:font-semibold">
-                  {cls.name}
-                </span>
+            <ListboxOptions
+              transition
+              className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+            >
+              {programs?.map((program: Program) => (
+                <ListboxOption
+                  key={program.id}
+                  value={program.id}
+                  className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                >
+                  <span className="block truncate font-normal group-data-selected:font-semibold">
+                    {program.name}
+                  </span>
 
-                <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
-                  <CheckIcon aria-hidden="true" className="size-5" />
-                </span>
-              </ListboxOption>
-            ))}
-          </ListboxOptions>
-        </div>
-      </Listbox>
-
-      {/* Student Report Table */}
-      <Card title="Tabela e studentëve">
-        {!classId ? (
-          <Alert title="Zgjidh një klasë për të parë raportet" />
-        ) : loadingStudents ? (
-          <Loader />
-        ) : errorStudents ? (
-          <Alert type="error" title="Ka ndodhur një gabim me raportet." />
-        ) : students.length === 0 ? (
-          <Alert title="Nuk ka të listëprezenca të ruajtura për këtë klasë." />
-        ) : (
-          <div className="flex flex-1 flex-col gap-6">
-            <table className="w-full bg-white shadow-md rounded-lg">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="p-3 text-left">👤 Student</th>
-                  <th className="p-3 text-center">✅ Prezencë</th>
-                  <th className="p-3 text-center">❌ Mungesë</th>
-                  <th className="p-3 text-center">🙋 Aktivizim</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student: StudentReport) => (
-                  <tr key={student.id} className="border-b">
-                    <td className="p-3">
-                      {student.firstName + " " + student.lastName}
-                    </td>
-                    <td className="p-3 text-center">{student.presence}</td>
-                    <td className="p-3 text-center">{student.absence}</td>
-                    <td className="p-3 text-center">{student.participation}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Download Report Button */}
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                    <CheckIcon aria-hidden="true" className="size-5" />
+                  </span>
+                </ListboxOption>
+              ))}
+            </ListboxOptions>
           </div>
-        )}
+        </Listbox>
       </Card>
 
-      {/* Attendance Analysis Chart */}
-      {classId && students && (
-        <Card title="Analiza e prezencës">
-          <div className="flex flex-col gap-4" style={{ height: "500px" }}>
-            <div className="flex justify-end gap-4">
+      {/* Class Selector - Only show if program is selected */}
+      {selectedProgramId && (
+        <Card title="Zgjidh klasën">
+          <Listbox value={selectedClassId} onChange={(value) => {
+            setSelectedClassId(value);
+            resetSelections('class');
+          }}>
+            <div className="relative mt-2">
+              <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                <span className="col-start-1 row-start-1 truncate pr-6">
+                  {classes?.length === 0
+                    ? "Nuk ka klasa për këtë program"
+                    : !selectedClassId
+                    ? "Zgjidh klasën"
+                    : selectedClass?.name}
+                </span>
+                <ChevronUpDownIcon
+                  aria-hidden="true"
+                  className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                />
+              </ListboxButton>
+
+              <ListboxOptions
+                transition
+                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+              >
+                {classes?.map((cls: Class) => (
+                  <ListboxOption
+                    key={cls.id}
+                    value={cls.id}
+                    className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                  >
+                    <span className="block truncate font-normal group-data-selected:font-semibold">
+                      {cls.name}
+                    </span>
+
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                      <CheckIcon aria-hidden="true" className="size-5" />
+                    </span>
+                  </ListboxOption>
+                ))}
+              </ListboxOptions>
+            </div>
+          </Listbox>
+        </Card>
+      )}
+
+      {/* Subject Selector - Only show if class is selected */}
+      {selectedClassId && (
+        <Card title="Zgjidh lëndën">
+          <Listbox value={selectedSubjectId} onChange={setSelectedSubjectId}>
+            <div className="relative mt-2">
+              <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                <span className="col-start-1 row-start-1 truncate pr-6">
+                  {subjects?.length === 0
+                    ? "Nuk ka lëndë për këtë klasë"
+                    : !selectedSubjectId
+                    ? "Zgjidh lëndën"
+                    : selectedSubject?.name}
+                </span>
+                <ChevronUpDownIcon
+                  aria-hidden="true"
+                  className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                />
+              </ListboxButton>
+
+              <ListboxOptions
+                transition
+                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+              >
+                {subjects?.map((subject: Subject) => (
+                  <ListboxOption
+                    key={subject.id}
+                    value={subject.id}
+                    className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                  >
+                    <span className="block truncate font-normal group-data-selected:font-semibold">
+                      {subject.name}
+                    </span>
+
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                      <CheckIcon aria-hidden="true" className="size-5" />
+                    </span>
+                  </ListboxOption>
+                ))}
+              </ListboxOptions>
+            </div>
+          </Listbox>
+        </Card>
+      )}
+
+      {/* Summary Statistics */}
+      {reportData?.summary && (
+        <Card title="Përmbledhja">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-blue-50 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-blue-600">{reportData.summary.totalStudents}</div>
+              <div className="text-sm text-gray-600">Total Studentë</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-green-600">{reportData.summary.passedStudents}</div>
+              <div className="text-sm text-gray-600">Kaluan</div>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-red-600">{reportData.summary.failedStudents}</div>
+              <div className="text-sm text-gray-600">Rrëzuan</div>
+            </div>
+            <div className="bg-yellow-50 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-yellow-600">{reportData.summary.averageAttendance.toFixed(1)}%</div>
+              <div className="text-sm text-gray-600">Prezencë Mesatare</div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Student Report Table */}
+      <Card title="Raporti i studentëve">
+        {students.length === 0 ? (
+          <Alert title="Zgjidh programin, klasën dhe lëndën për të parë raportin e studentëve." />
+        ) : (
+          <div className="flex flex-1 flex-col gap-6">
+            <div className="flex justify-end">
               <button
                 onClick={downloadPDF}
                 className="cursor-pointer inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -214,47 +351,84 @@ export default function ReportsPageClient({
                 Shkarko raportin në PDF
               </button>
             </div>
-            <div className="flex flex-1">
-              <Bar
-                data={{
-                  labels: students.map((s) => s.firstName + " " + s.lastName),
-                  datasets: [
-                    {
-                      label: "Prezencë",
-                      data: students.map((s) => s.presence),
-                      backgroundColor: "#81c784",
-                    },
-                    {
-                      label: "Mungesë",
-                      data: students.map((s) => s.absence),
-                      backgroundColor: "#e57373",
-                    },
-                    {
-                      label: "Aktivizim ",
-                      data: students.map((s) => s.participation),
-                      backgroundColor: "#ffcc80",
-                    },
-                  ],
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                    x: {
-                      type: "category",
-                      title: { display: true, text: "Studentët" },
-                    },
-                    y: {
-                      beginAtZero: true,
-                      title: { display: true, text: "Numri" },
-                    },
-                  },
-                }}
-              />
+
+            <div className="overflow-x-auto">
+              <table className="w-full bg-white shadow-md rounded-lg">
+                <thead className="bg-gray-200">
+                  <tr>
+                    <th className="p-3 text-left">👤 Student</th>
+                    <th className="p-3 text-center">📚 Leksione</th>
+                    <th className="p-3 text-center">✅ Kaloi Leksionet</th>
+                    <th className="p-3 text-center">🎓 Seminare</th>
+                    <th className="p-3 text-center">✅ Kaloi Seminaret</th>
+                    <th className="p-3 text-center">🏆 Statusi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.map((student: StudentReport) => (
+                    <tr key={student.id} className="border-b hover:bg-gray-50">
+                      <td className="p-3 font-medium">
+                        {student.firstName} {student.lastName}
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-1 rounded text-sm ${
+                          student.attendancePercentage >= 50 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {student.attendancePercentage.toFixed(1)}%
+                        </span>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {student.attendedLectures}/{student.totalLectures}
+                        </div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-1 rounded text-sm font-medium ${
+                          student.passedLectures 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {student.passedLectures ? 'PO' : 'JO'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-1 rounded text-sm ${
+                          student.seminarPercentage >= 50 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {student.seminarPercentage.toFixed(1)}%
+                        </span>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {student.attendedSeminars}/{student.totalSeminars}
+                        </div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-1 rounded text-sm font-medium ${
+                          student.passedSeminars 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {student.passedSeminars ? 'PO' : 'JO'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                          student.overallPassed 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {student.overallPassed ? 'KALOI' : 'RRËZOI'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
     </div>
   );
 }

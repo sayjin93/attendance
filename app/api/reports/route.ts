@@ -1,70 +1,44 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url);
-    const professorId = searchParams.get("professorId");
-    const classId = searchParams.get("classId");
+    const auth = await authenticateRequest();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
 
-    if (!professorId) {
+    const { decoded } = auth;
+    if (!decoded) {
       return NextResponse.json(
-        { error: "❌ Professor ID is required!" },
-        { status: 400 }
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
       );
     }
 
-    if (!classId) {
-      return NextResponse.json(
-        { error: "❌ Class ID is required!" },
-        { status: 400 }
-      );
-    }
-
-    // ✅ Fetch student reports for the given professor and class
-    const reports = await prisma.student.findMany({
-      where: { classId, class: { professorId } },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        attendance: {
-          select: {
-            status: true,
-          },
-        },
-      },
+    const programs = await prisma.program.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" }
     });
 
-    // ✅ Format the data into proper presence/absence/participation counts
-    const formattedReports = reports.map((student) => {
-      const presence = student.attendance.filter(
-        (a) => a.status === "PRESENT"
-      ).length;
-      const absence = student.attendance.filter(
-        (a) => a.status === "ABSENT"
-      ).length;
-      const participation = student.attendance.filter(
-        (a) => a.status === "PARTICIPATED"
-      ).length;
-
-      return {
-        id: student.id,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        presence,
-        absence,
-        participation,
-      };
-    });
-
-    return NextResponse.json(formattedReports, { status: 200 });
+    const response = {
+      programs: programs.map(p => ({ id: p.id.toString(), name: p.name })),
+      classes: [],
+      subjects: [],
+      students: [],
+      summary: { totalStudents: 0, passedStudents: 0, failedStudents: 0, averageAttendance: 0 },
+      metadata: { program: "", class: "", subject: "" }
+    };
+    
+    return NextResponse.json(response);
+    
   } catch (error) {
-    console.error("❌ Error fetching reports:", error);
+    console.error("Error in reports API:", error);
     return NextResponse.json(
-      { error: "⚠️ Failed to fetch reports" },
+      { error: "Failed to fetch reports data" },
       { status: 500 }
     );
   }
