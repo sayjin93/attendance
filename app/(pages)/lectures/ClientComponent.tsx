@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/16/solid";
+import { PlusIcon, PencilIcon, TrashIcon, ClipboardDocumentCheckIcon } from "@heroicons/react/16/solid";
 
 //components
 import Loader from "@/components/Loader";
@@ -275,6 +275,13 @@ export default function LecturesPageClient() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end gap-2">
+                        <a
+                          href={`/attendance?classId=${lecture.class.id}&lectureId=${lecture.id}`}
+                          className="text-blue-600 hover:text-blue-900 p-1"
+                          title="Menaxho Prezencën"
+                        >
+                          <ClipboardDocumentCheckIcon className="w-4 h-4" />
+                        </a>
                         {isAdmin && (
                           <>
                             <button

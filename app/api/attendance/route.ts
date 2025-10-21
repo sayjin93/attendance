@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { Attendance, Student } from "@/types";
 
 const prisma = new PrismaClient();
 
@@ -36,9 +35,9 @@ export async function GET(req: Request) {
     });
 
     // ✅ Merge attendance status with students list
-    const studentsWithAttendance = students.map((student: Student) => {
+    const studentsWithAttendance = students.map((student) => {
       const attendance = attendanceRecords.find(
-        (att: Attendance) => att.studentId === student.id
+        (att) => att.studentId === student.id
       );
       return {
         id: student.id,
@@ -72,8 +71,11 @@ export async function PUT(req: Request) {
       );
     }
 
+    const lectureIdInt = parseInt(lectureId, 10);
+    const studentIdInt = parseInt(studentId, 10);
+
     const existingAttendance = await prisma.attendance.findFirst({
-      where: { studentId, lectureId },
+      where: { studentId: studentIdInt, lectureId: lectureIdInt },
     });
 
     if (existingAttendance) {
@@ -87,7 +89,7 @@ export async function PUT(req: Request) {
       );
     } else {
       await prisma.attendance.create({
-        data: { studentId, lectureId, status },
+        data: { studentId: studentIdInt, lectureId: lectureIdInt, status },
       });
       return NextResponse.json(
         { message: "✅ Prezenca u regjistrua me sukses!" },

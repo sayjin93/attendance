@@ -5,7 +5,7 @@ import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
 const prisma = new PrismaClient();
 
 // GET: Fetch all classes for the logged-in professor or all classes for admins
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const auth = await authenticateRequest();
 
@@ -23,12 +23,55 @@ export async function GET() {
       );
     }
 
-    // Fetch classes AND include Program data
-    const classes = await prisma.class.findMany({
-      include: {
-        program: true, // Include program data
-      },
-    });
+    // Parse query parameters
+    const { searchParams } = new URL(req.url);
+    const professorId = searchParams.get("professorId");
+    const includeLectures = searchParams.get("includeLectures") === "true";
+    const includeStudents = searchParams.get("includeStudents") === "true";
+
+    // Build include options
+    const includeOptions = {
+      program: true,
+      ...(includeStudents && { students: true }),
+      ...(includeLectures && {
+        lectures: {
+          where: professorId && !decoded.isAdmin ? {
+            professorId: parseInt(professorId, 10)
+          } : {},
+          include: {
+            professor: true,
+            subject: true,
+            attendance: true,
+          },
+          orderBy: {
+            date: 'desc' as const
+          }
+        }
+      }),
+    };
+
+    let classes;
+
+    if (professorId && !decoded.isAdmin) {
+      const professorIdInt = parseInt(professorId, 10);
+      
+      // For non-admin professors, get only classes they are assigned to
+      classes = await prisma.class.findMany({
+        where: {
+          teachingAssignments: {
+            some: {
+              professorId: professorIdInt
+            }
+          }
+        },
+        include: includeOptions,
+      });
+    } else {
+      // For admins, get all classes
+      classes = await prisma.class.findMany({
+        include: includeOptions,
+      });
+    }
 
     return NextResponse.json(classes, { status: 200 });
   } catch (error) {
