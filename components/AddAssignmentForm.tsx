@@ -93,26 +93,11 @@ export default function AddAssignmentForm({
   //#endregion
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <h3 className="text-lg font-medium text-gray-900">Cakto Profesor në Lëndë për Klasë</h3>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-        {/* Dropdown për zgjedhjen e programit */}
-        <select
-          value={programId}
-          onChange={(e) => setProgramId(Number(e.target.value))}
-          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-        >
-          <option value={0} disabled>
-            Zgjidh Programin
-          </option>
-          {programs.map((program: Program) => (
-            <option key={program.id} value={program.id}>
-              {program.name}
-            </option>
-          ))}
-        </select>
-
+      {/* Rreshti i parë: Profesor, Program, Lëndë */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Dropdown për zgjedhjen e profesorëve */}
         <select
           value={professorId}
@@ -125,6 +110,22 @@ export default function AddAssignmentForm({
           {professors.map((prof: Professor) => (
             <option key={prof.id} value={prof.id}>
               {prof.firstName} {prof.lastName}
+            </option>
+          ))}
+        </select>
+
+        {/* Dropdown për zgjedhjen e programit */}
+        <select
+          value={programId}
+          onChange={(e) => setProgramId(Number(e.target.value))}
+          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+        >
+          <option value={0} disabled>
+            Zgjidh Programin
+          </option>
+          {programs.map((program: Program) => (
+            <option key={program.id} value={program.id}>
+              {program.name}
             </option>
           ))}
         </select>
@@ -145,7 +146,10 @@ export default function AddAssignmentForm({
             </option>
           ))}
         </select>
+      </div>
 
+      {/* Rreshti i dytë: Klasa, Tipi, Butoni */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
         {/* Dropdown për zgjedhjen e klasës */}
         <select
           value={classId}
@@ -178,14 +182,12 @@ export default function AddAssignmentForm({
             </option>
           ))}
         </select>
-      </div>
 
-      {/* Submit Button */}
-      <div className="flex justify-end">
+        {/* Submit Button */}
         <button
           onClick={() => mutation.mutate()}
           disabled={programId === 0 || professorId === 0 || subjectId === 0 || classId === 0 || typeId === 0}
-          className="cursor-pointer items-center rounded-md bg-indigo-600 disabled:bg-gray-300 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:cursor-not-allowed"
+          className="cursor-pointer items-center rounded-md bg-indigo-600 disabled:bg-gray-300 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:cursor-not-allowed w-full md:w-auto"
         >
           {mutation.isPending ? "Duke caktuar..." : "Cakto Profesorin"}
         </button>

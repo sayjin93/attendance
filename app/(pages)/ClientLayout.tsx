@@ -256,7 +256,7 @@ export default function ClientLayout({
         </a>
       </div>
 
-      <main className="p-4 sm:p-6 lg:px-8 lg:pl-80 flex flex-col [height:calc(100%-64px)] lg:h-full">
+      <main className="p-4 sm:p-6 lg:px-8 lg:pl-80 flex flex-col h-[calc(100%-64px)] lg:h-full">
         <Header
           name={navigation.find((item) => item.current)?.name || "Dashboard"}
         />
