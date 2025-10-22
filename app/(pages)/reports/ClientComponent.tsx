@@ -184,9 +184,6 @@ export default function ReportsPageClient({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Program Selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Zgjidh programin
-            </label>
             <Listbox value={selectedProgramId} onChange={(value) => {
               setSelectedProgramId(value);
               resetSelections('program');
@@ -232,9 +229,6 @@ export default function ReportsPageClient({
 
           {/* Class Selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Zgjidh klasën
-            </label>
             <Listbox 
               value={selectedClassId} 
               onChange={(value) => {
@@ -294,9 +288,6 @@ export default function ReportsPageClient({
 
           {/* Subject Selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Zgjidh lëndën
-            </label>
             <Listbox 
               value={selectedSubjectId} 
               onChange={setSelectedSubjectId}

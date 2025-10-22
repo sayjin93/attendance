@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
 import {
-  Label,
   Listbox,
   ListboxButton,
   ListboxOption,
@@ -100,7 +99,7 @@ export default function AttendancePageClient({
   useEffect(() => {
     const urlClassId = searchParams.get("classId");
     const urlLectureId = searchParams.get("lectureId");
-    
+
     if (urlClassId && !classId) {
       setClassId(parseInt(urlClassId, 10));
     }
@@ -114,13 +113,13 @@ export default function AttendancePageClient({
     if (classes && classes.length > 0) {
       const urlClassId = searchParams.get("classId");
       const urlLectureId = searchParams.get("lectureId");
-      
+
       if (urlClassId) {
         const parsedClassId = parseInt(urlClassId, 10);
         const classExists = classes.find(c => c.id === parsedClassId);
         if (classExists && classId !== parsedClassId) {
           setClassId(parsedClassId);
-          
+
           if (urlLectureId) {
             const parsedLectureId = parseInt(urlLectureId, 10);
             const lectureExists = classExists.lectures?.find(l => l.id === parsedLectureId);
@@ -144,7 +143,7 @@ export default function AttendancePageClient({
         lectureId: lectureId?.toString() || "",
         status: student.status as "PRESENT" | "ABSENT" | "PARTICIPATED",
       }));
-      
+
       return await updateAttendanceBatch(attendanceUpdates);
     },
     onSuccess: () => {
@@ -179,23 +178,12 @@ export default function AttendancePageClient({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Lista e Prezencës</h1>
-        <p className="text-gray-600 mt-1">
-          Regjistroni prezencën e studentëve për leksionet tuaja
-        </p>
-      </div>
-
       {/* Class and Lecture Selectors */}
       <Card title="Zgjidhni Klasën dhe Leksionin">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Class Selector */}
           <div>
             <Listbox value={classId} onChange={setClassId}>
-              <Label className="block text-sm font-medium text-gray-700 mb-2">
-                Klasa
-              </Label>
               <div className="relative">
                 <ListboxButton className="relative w-full cursor-pointer rounded-md bg-white py-2 pl-3 pr-10 text-left shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                   <span className="block truncate">
@@ -214,8 +202,7 @@ export default function AttendancePageClient({
                       key={cls.id}
                       value={cls.id}
                       className={({ active }) =>
-                        `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                          active ? "bg-blue-100 text-blue-900" : "text-gray-900"
+                        `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? "bg-blue-100 text-blue-900" : "text-gray-900"
                         }`
                       }
                     >
@@ -245,23 +232,19 @@ export default function AttendancePageClient({
               value={lectureId}
               onChange={setLectureId}
             >
-              <Label className="block text-sm font-medium text-gray-700 mb-2">
-                Leksioni
-              </Label>
               <div className="relative">
-                <ListboxButton className={`relative w-full cursor-pointer rounded-md py-2 pl-3 pr-10 text-left shadow-sm border sm:text-sm ${
-                  classId
+                <ListboxButton className={`relative w-full cursor-pointer rounded-md py-2 pl-3 pr-10 text-left shadow-sm border sm:text-sm ${classId
                     ? "bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     : "bg-gray-100 border-gray-200 cursor-not-allowed"
-                }`}>
+                  }`}>
                   <span className={`block truncate ${!classId ? "text-gray-400" : ""}`}>
                     {!classId
                       ? "Zgjidhni një klasë fillimisht"
                       : !selectedClass?.lectures?.length
-                      ? "Nuk ka leksione për këtë klasë"
-                      : !lectureId
-                      ? "Zgjidhni një leksion"
-                      : selectedLecture?.date ? formatDate(selectedLecture.date.toString()) : "Zgjedhni një leksion"}
+                        ? "Nuk ka leksione për këtë klasë"
+                        : !lectureId
+                          ? "Zgjidhni një leksion"
+                          : selectedLecture?.date ? formatDate(selectedLecture.date.toString()) : "Zgjedhni një leksion"}
                   </span>
                   <span className="absolute inset-y-0 right-0 flex items-center pr-2">
                     <ChevronUpDownIcon className={`h-5 w-5 ${!classId ? "text-gray-300" : "text-gray-400"}`} aria-hidden="true" />
@@ -275,8 +258,7 @@ export default function AttendancePageClient({
                         key={lecture.id}
                         value={lecture.id}
                         className={({ active }) =>
-                          `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                            active ? "bg-blue-100 text-blue-900" : "text-gray-900"
+                          `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? "bg-blue-100 text-blue-900" : "text-gray-900"
                           }`
                         }
                       >
