@@ -10,7 +10,7 @@ const Header = ({ name = 'Dashboard' }) => {
     const Icon = currentNavItem ? currentNavItem.icon : HomeIcon;
 
     return (
-        <div className="border-b border-gray-200 pb-5 mb-5 flex items-center space-x-2">
+        <div className="hidden lg:flex border-b border-gray-200 pb-5 mb-5 items-center space-x-2">
             <Icon className="w-6 h-6 text-gray-600" />
             <h3 className="text-base font-semibold text-gray-900">{name}</h3>
         </div>
