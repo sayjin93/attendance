@@ -60,7 +60,6 @@ export default function AttendancePageClient({
     queryKey: ["classes", professorId],
     queryFn: async () => {
       const result = await fetchClassesIncludesLecturesAndStudents(professorId);
-      console.log("Classes data for attendance:", result);
       return result;
     },
     enabled: !!professorId,
@@ -234,8 +233,8 @@ export default function AttendancePageClient({
             >
               <div className="relative">
                 <ListboxButton className={`relative w-full cursor-pointer rounded-md py-2 pl-3 pr-10 text-left shadow-sm border sm:text-sm ${classId
-                    ? "bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    : "bg-gray-100 border-gray-200 cursor-not-allowed"
+                  ? "bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  : "bg-gray-100 border-gray-200 cursor-not-allowed"
                   }`}>
                   <span className={`block truncate ${!classId ? "text-gray-400" : ""}`}>
                     {!classId
@@ -367,8 +366,8 @@ export default function AttendancePageClient({
               {/* Students Grid/Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {students.map((student) => (
-                  <div 
-                    key={student.id} 
+                  <div
+                    key={student.id}
                     className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-200 hover:border-indigo-300"
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -397,7 +396,7 @@ export default function AttendancePageClient({
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="block text-xs font-medium text-gray-700 mb-2">
                         Statusi i Prezencës
@@ -405,11 +404,10 @@ export default function AttendancePageClient({
                       <div className="grid grid-cols-3 gap-2">
                         <button
                           onClick={() => handleStatusChange(student.id, AttendanceStatus.PRESENT)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
-                            student.status === AttendanceStatus.PRESENT
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status === AttendanceStatus.PRESENT
                               ? 'border-green-500 bg-green-50 shadow-sm'
                               : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
-                          }`}
+                            }`}
                         >
                           <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.PRESENT ? 'text-green-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -418,14 +416,13 @@ export default function AttendancePageClient({
                             Prezente
                           </span>
                         </button>
-                        
+
                         <button
                           onClick={() => handleStatusChange(student.id, AttendanceStatus.ABSENT)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
-                            student.status === AttendanceStatus.ABSENT
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status === AttendanceStatus.ABSENT
                               ? 'border-red-500 bg-red-50 shadow-sm'
                               : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
-                          }`}
+                            }`}
                         >
                           <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.ABSENT ? 'text-red-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -434,14 +431,13 @@ export default function AttendancePageClient({
                             Mungesë
                           </span>
                         </button>
-                        
+
                         <button
                           onClick={() => handleStatusChange(student.id, AttendanceStatus.PARTICIPATED)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
-                            student.status === AttendanceStatus.PARTICIPATED
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status === AttendanceStatus.PARTICIPATED
                               ? 'border-blue-500 bg-blue-50 shadow-sm'
                               : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                          }`}
+                            }`}
                         >
                           <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.PARTICIPATED ? 'text-blue-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />

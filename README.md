@@ -1,117 +1,510 @@
-# Attendance Management System
+# 📚 Attendance Management System
 
-## Architecture Overview
+A modern, full-stack attendance management system built for educational institutions with role-based access control, real-time data synchronization, and comprehensive reporting capabilities.
 
-This is a **Next.js 15 + Prisma + MySQL** attendance management system for educational institutions with role-based access (Admin/Professor). The app uses **App Router** with grouped routes and a hybrid SSR/Client pattern.
+## 🌟 Features
 
-### Key Architectural Patterns
+### For Administrators
+- **Complete CRUD Operations**: Manage classes, students, professors, subjects, and teaching assignments
+- **Program Management**: Handle multiple academic programs (Bachelor, Master)
+- **Subject & Course Management**: Create and assign subjects with unique codes
+- **Teaching Assignments**: Assign professors to specific subjects, classes, and teaching types (Lecture/Seminar)
+- **User Management**: Create and manage professor accounts with admin privileges
+- **Comprehensive Reports**: Generate detailed attendance reports with PDF export
 
-- **Grouped Routes**: `(auth)` for login, `(pages)` for protected pages
-- **Hybrid SSR Pattern**: Server layouts fetch auth headers, client components handle interactions
-- **Authentication Flow**: JWT tokens stored in HTTP-only cookies, middleware validates all protected routes
-- **Database**: MySQL with Prisma ORM, complex relationships between Professor/Class/Student/Subject entities
+### For Professors
+- **Lecture Management**: Create and manage lectures for assigned subjects
+- **Attendance Tracking**: Mark student attendance with three statuses:
+  - ✅ **PRESENT** - Student attended the lecture
+  - ❌ **ABSENT** - Student was absent
+  - 🎯 **PARTICIPATED** - Student actively participated
+- **Real-time Dashboard**: View statistics and upcoming lectures
+- **Student Reports**: Access attendance data for assigned classes
 
-## Development Workflow
+### General Features
+- 🔐 **Secure Authentication**: JWT-based authentication with HTTP-only cookies
+- 🎨 **Modern UI**: Clean, responsive interface with Albanian language support
+- 📊 **Data Visualization**: Interactive charts using Chart.js
+- 🔄 **Real-time Updates**: TanStack Query for optimistic UI updates
+- 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
 
-### Essential Commands
+## 🏗️ Architecture
+
+### Tech Stack
+
+**Frontend**
+- [Next.js 16](https://nextjs.org/) - React framework with App Router
+- [React 19](https://react.dev/) - UI library
+- [TypeScript 5](https://www.typescriptlang.org/) - Type safety
+- [Tailwind CSS 4](https://tailwindcss.com/) - Utility-first CSS
+- [TanStack Query 5](https://tanstack.com/query) - Server state management
+- [Headless UI 2](https://headlessui.com/) - Accessible UI components
+- [Chart.js 4](https://www.chartjs.org/) - Data visualization
+- [Heroicons 2](https://heroicons.com/) - Icon library
+- [Framer Motion 12](https://www.framer.com/motion/) - Animations
+
+**Backend**
+- [Prisma ORM 6](https://www.prisma.io/) - Database toolkit
+- [MySQL](https://www.mysql.com/) - Relational database
+- [jose](https://github.com/panva/jose) - JWT implementation
+- [bcryptjs](https://github.com/dcodeIO/bcrypt.js) - Password hashing
+
+**Development Tools**
+- [Turbopack](https://turbo.build/pack) - Fast bundler
+- [ESLint 9](https://eslint.org/) - Code linting
+- [tsx](https://github.com/esbuild-kit/tsx) - TypeScript execution
+
+### Architecture Patterns
+
+#### Hybrid SSR/Client Pattern
+The application uses a hybrid rendering approach:
+- **Server Components**: Fetch authentication data and initial page data
+- **Client Components**: Handle user interactions and client-side state
+- **Data Flow**: Server → Client Component props → TanStack Query hooks
+
+```typescript
+// Server Layout (app/(pages)/layout.tsx)
+export default async function RootLayout({ children }) {
+  const { professorId, isAdmin } = await getAuthHeaders();
+  return <ClientLayout professorId={professorId} isAdmin={isAdmin}>{children}</ClientLayout>;
+}
+
+// Client Component
+export default function PageClient({ professorId }: { professorId: string }) {
+  const { data } = useQuery({ queryKey: ["data", professorId], queryFn: fetchData });
+}
+```
+
+#### Authentication Flow
+1. **Login**: User credentials → `/api/auth/login` → JWT stored in HTTP-only cookie
+2. **Middleware**: `proxy.ts` validates JWT, injects auth headers (`X-Professor-Id`, `X-Is-Admin`)
+3. **Server Auth**: `getAuthHeaders()` extracts auth from headers in Server Components
+4. **API Auth**: `authenticateRequest()` validates JWT in API routes
+5. **Protected Routes**: All `/(pages)/*` and `/api/*` routes require authentication
+
+#### Database Schema
+
+```prisma
+Professor ↔ TeachingAssignment ↔ Subject
+    ↓              ↓                  ↓
+  Lecture    →    Class         ←  Program
+    ↓              ↓
+Attendance  ←   Student
+```
+
+**Key Models**:
+- **Professor**: User accounts with admin flag
+- **Program**: Academic programs (Bachelor/Master)
+- **Subject**: Courses with unique codes
+- **Class**: Student groups linked to programs
+- **Student**: Enrolled students
+- **TeachingAssignment**: Maps professors to subjects, classes, and teaching types
+- **Lecture**: Individual lecture sessions
+- **Attendance**: Student attendance records
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ and npm/yarn
+- MySQL database server
+- Git
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/sayjin93/attendance.git
+   cd attendance
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
+   Create a `.env` file in the root directory:
+   ```env
+   DATABASE_URL="mysql://username:password@localhost:3306/attendance"
+   SHADOW_DATABASE_URL="mysql://username:password@localhost:3306/attendance_shadow"
+   SECRET_KEY="your-secure-secret-key-here"
+   ```
+
+4. **Set up the database**
+   ```bash
+   # Push schema to database
+   npx prisma db push
+   
+   # Generate Prisma Client
+   npx prisma generate
+   
+   # Seed initial data (optional)
+   npm run db:seed
+   ```
+
+5. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open the application**
+   Navigate to [http://localhost:9900](http://localhost:9900)
+
+### Default Admin Credentials (After Seeding)
+After running the seed script, use these credentials to log in:
+- **Username**: Set in `prisma/seed.ts`
+- **Password**: Set in `prisma/seed.ts`
+
+⚠️ **Important**: Change the default admin credentials after first login!
+
+## 📁 Project Structure
+
+```
+attendance/
+├── app/
+│   ├── (auth)/              # Authentication pages
+│   │   └── login/           # Login page
+│   ├── (pages)/             # Protected pages (requires auth)
+│   │   ├── dashboard/       # Dashboard with statistics
+│   │   ├── classes/         # Class management (Admin)
+│   │   ├── students/        # Student management (Admin)
+│   │   ├── professors/      # Professor management (Admin)
+│   │   ├── subjects/        # Subject management (Admin)
+│   │   ├── assignments/     # Teaching assignments (Admin)
+│   │   ├── lectures/        # Lecture management
+│   │   ├── attendance/      # Attendance tracking
+│   │   ├── reports/         # Reports and analytics
+│   │   └── utils/           # Server utilities
+│   ├── api/                 # API routes
+│   │   ├── auth/            # Authentication endpoints
+│   │   ├── classes/         # Class CRUD
+│   │   ├── students/        # Student CRUD
+│   │   ├── professors/      # Professor CRUD
+│   │   ├── subjects/        # Subject CRUD
+│   │   ├── assignments/     # Assignment CRUD
+│   │   ├── lectures/        # Lecture CRUD
+│   │   ├── attendance/      # Attendance CRUD
+│   │   └── reports/         # Report generation
+│   ├── globals.css          # Global styles
+│   └── layout.tsx           # Root layout
+├── components/              # Reusable React components
+│   ├── Add*Form.tsx         # Create entity forms
+│   ├── Edit*Form.tsx        # Update entity forms
+│   ├── Header.tsx           # Navigation header
+│   ├── Modal.tsx            # Modal dialog
+│   ├── Card.tsx             # Card component
+│   ├── Alert.tsx            # Alert notifications
+│   └── Loader.tsx           # Loading spinner
+├── constants/               # Application constants
+│   ├── index.ts             # Secret key config
+│   └── navigation.ts        # Navigation menu items
+├── contexts/                # React contexts
+│   ├── NotifyContext.tsx    # Notification system
+│   └── TanstackProvider.tsx # Query client provider
+├── hooks/                   # Custom React hooks
+│   ├── fetchFunctions.tsx   # API fetch functions
+│   ├── functions.tsx        # Utility functions
+│   └── useAuth.ts           # Authentication hook
+├── prisma/                  # Database configuration
+│   ├── schema.prisma        # Prisma schema
+│   ├── seed.ts              # Database seeder
+│   └── migrations/          # Database migrations
+├── public/                  # Static assets
+├── proxy.ts                 # Authentication middleware
+├── types.ts                 # TypeScript type definitions
+└── package.json             # Dependencies
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DATABASE_URL` | MySQL connection string | Yes |
+| `SHADOW_DATABASE_URL` | Shadow database for migrations | Yes |
+| `SECRET_KEY` | JWT signing secret | Yes |
+
+### Application Settings
+
+- **Port**: 9900 (configured in package.json)
+- **Session Duration**: 1 hour (JWT expiry)
+- **Password Hash Rounds**: 10 (bcrypt)
+
+## 🛠️ Development
+
+### Available Scripts
+
 ```bash
-# Development (runs on port 9900 with Turbopack)
+# Development server with Turbopack
 npm run dev
 
-# Database operations
-npx prisma db push          # Push schema changes
-npx prisma generate         # Generate client
-npx prisma migrate dev --name init  # Create migration
+# Build for production
+npm run build
 
-# Password hashing (for seeding)
-node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('password', 10).then(console.log);"
+# Start production server
+npm start
+
+# Lint code
+npm run lint
+
+# Clean install dependencies
+npm run clean-install
+
+# Seed database
+npm run db:seed
 ```
 
-## Critical Patterns
+### Database Operations
 
-### 1. Authentication Architecture
-- **Middleware** (`middleware.ts`): Validates JWT, injects headers (`X-Professor-Id`, `X-Is-Admin`)
-- **Server Auth Utility** (`app/(pages)/utils/getAuthHeaders.ts`): Extracts auth from headers
-- **API Auth** (`app/(pages)/utils/authenticateRequest.tsx`): Validates requests in API routes
-- **Route Pattern**: All `/api/*` and `/(pages)/*` routes require authentication
+```bash
+# Push schema changes (no migration file)
+npx prisma db push
 
-### 2. Data Fetching Pattern
-```typescript
-// Custom hooks in /hooks/fetchFunctions.tsx
-export async function fetchClasses() {
-  const res = await fetch("/api/classes");
-  return res.json();
+# Generate Prisma Client after schema changes
+npx prisma generate
+
+# Open Prisma Studio (database GUI)
+npx prisma studio
+
+# Create a new migration
+npx prisma migrate dev --name migration_name
+
+# Reset database (⚠️ Development only!)
+npx prisma migrate reset
+```
+
+### Adding a New Feature
+
+1. **Update Database Schema** (if needed)
+   - Edit `prisma/schema.prisma`
+   - Run `npx prisma db push`
+   - Run `npx prisma generate`
+   - Add TypeScript types to `types.ts`
+
+2. **Create API Endpoints**
+   - Create route file in `app/api/[feature]/route.ts`
+   - Implement authentication with `authenticateRequest()`
+   - Add role-based access control
+
+3. **Create UI Components**
+   - Add page in `app/(pages)/[feature]/page.tsx` (Server Component)
+   - Add client component in `app/(pages)/[feature]/ClientComponent.tsx`
+   - Create forms in `components/Add[Feature]Form.tsx` and `components/Edit[Feature]Form.tsx`
+
+4. **Add Navigation**
+   - Update `constants/navigation.ts` with new menu item
+   - Set `adminOnly: true` if admin-restricted
+
+## 📝 API Documentation
+
+### Authentication
+
+#### POST `/api/auth/login`
+Login with username and password.
+
+**Request Body**:
+```json
+{
+  "username": "string",
+  "password": "string"
 }
-
-// TanStack Query in components
-const { data: classes = [], isLoading } = useQuery<Class[]>({
-  queryKey: ["classes"],
-  queryFn: () => fetchClasses(),
-});
 ```
 
-### 3. Component Structure
-- **Page Components**: Server components in `page.tsx` that pass props to client components
-- **Client Components**: Named `ClientComponent.tsx`, handle all interactions
-- **Form Pattern**: Dedicated form components like `AddClassForm.tsx` with validation
-
-### 4. API Route Patterns
-```typescript
-// Standard API structure
-export async function GET() {
-  const auth = await authenticateRequest();
-  if ("error" in auth) return NextResponse.json({...});
-  
-  // Role-based logic
-  const { decoded } = auth;
-  if (!decoded.isAdmin) { /* filter by professorId */ }
+**Response**:
+```json
+{
+  "professorId": 1,
+  "firstName": "John",
+  "lastName": "Doe",
+  "isAdmin": true
 }
 ```
 
-### 5. Database Relationships
-```prisma
-// Core entities: Professor -> TeachingAssignment <- Subject
-//                Class -> Student -> Attendance <- Lecture
-// Key: Use includes for related data, professorId filtering for non-admins
+#### POST `/api/auth/logout`
+Logout and clear session cookie.
+
+### Professors (Admin Only)
+
+#### GET `/api/professors`
+Get all professors.
+
+#### POST `/api/professors`
+Create a new professor.
+
+#### PUT `/api/professors/[id]`
+Update professor details.
+
+#### DELETE `/api/professors/[id]`
+Delete a professor.
+
+### Classes (Admin Only)
+
+#### GET `/api/classes`
+Get all classes with program and student details.
+
+#### POST `/api/classes`
+Create a new class.
+
+### Students (Admin Only)
+
+#### GET `/api/students`
+Get all students with class details.
+
+#### POST `/api/students`
+Create a new student.
+
+### Subjects (Admin Only)
+
+#### GET `/api/subjects`
+Get all subjects with program details.
+
+#### POST `/api/subjects`
+Create a new subject.
+
+### Teaching Assignments (Admin Only)
+
+#### GET `/api/assignments`
+Get all teaching assignments.
+
+#### POST `/api/assignments`
+Create a teaching assignment.
+
+### Lectures
+
+#### GET `/api/lectures`
+Get lectures (filtered by professor if not admin).
+
+#### POST `/api/lectures`
+Create a new lecture.
+
+### Attendance
+
+#### GET `/api/attendance`
+Get attendance records.
+
+#### POST `/api/attendance`
+Mark attendance for students.
+
+### Reports
+
+#### POST `/api/reports`
+Generate attendance report.
+
+## 🌐 Internationalization
+
+The application uses Albanian language labels for the UI:
+
+- **Klasat** - Classes
+- **Studentët** - Students
+- **Profesorët** - Professors
+- **Kurset** - Subjects/Courses
+- **Caktime** - Assignments
+- **Leksionet** - Lectures
+- **Listëprezenca** - Attendance
+- **Raporte** - Reports
+
+## 🔐 Security Features
+
+- **Password Hashing**: bcrypt with 10 salt rounds
+- **JWT Authentication**: Secure token-based auth
+- **HTTP-only Cookies**: Prevents XSS attacks
+- **Role-based Access Control**: Admin and Professor roles
+- **Protected Routes**: Middleware validates all protected routes
+- **SQL Injection Prevention**: Prisma ORM parameterized queries
+
+## 🧪 Testing
+
+Currently, the project does not include automated tests. Contributions are welcome!
+
+## 📊 Database ERD
+
+```
+┌─────────────┐       ┌──────────────────────┐       ┌─────────┐
+│  Professor  │──────▶│ TeachingAssignment   │◀──────│ Subject │
+│             │       │                      │       │         │
+│ id          │       │ professorId          │       │ id      │
+│ firstName   │       │ subjectId            │       │ code    │
+│ lastName    │       │ classId              │       │ name    │
+│ username    │       │ typeId               │       │ program │
+│ email       │       └──────────────────────┘       └─────────┘
+│ password    │                │                          │
+│ isAdmin     │                │                          │
+└─────────────┘                │                          │
+       │                       │                          │
+       │                       ▼                          │
+       │                  ┌────────┐                      │
+       │                  │ Class  │◀─────────────────────┘
+       │                  │        │
+       │                  │ id     │
+       │                  │ name   │
+       │                  │ program│
+       │                  └────────┘
+       │                       │
+       │                       │
+       ▼                       ▼
+  ┌─────────┐            ┌─────────┐
+  │ Lecture │            │ Student │
+  │         │            │         │
+  │ id      │            │ id      │
+  │ date    │            │ name    │
+  │ class   │            │ class   │
+  │ subject │            └─────────┘
+  │ type    │                 │
+  └─────────┘                 │
+       │                      │
+       └──────────┬───────────┘
+                  ▼
+            ┌────────────┐
+            │ Attendance │
+            │            │
+            │ id         │
+            │ studentId  │
+            │ lectureId  │
+            │ status     │
+            └────────────┘
 ```
 
-### 6. Role-Based Access
-- **Admin**: Full CRUD on all entities (classes, students, subjects, assignments)
-- **Professor**: Read lectures/attendance, limited to assigned subjects
-- **Navigation**: `adminOnly: true` flag in `constants/navigation.ts`
+## 🤝 Contributing
 
-## Project Conventions
+Contributions are welcome! Please follow these steps:
 
-### File Organization
-- **Types**: Single `types.ts` file with all interfaces
-- **Constants**: Split between `/constants/index.ts` (secrets) and `/constants/navigation.ts`
-- **Contexts**: TanStack Query + Custom notification context
-- **Styling**: Tailwind + custom components (Card, Alert, Loader)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Naming Conventions
-- **Albanian UI**: Navigation and labels in Albanian ("Klasat", "Studentët", "Leksionet")
-- **Database**: English field names, camelCase
-- **Components**: PascalCase, descriptive names (AddStudentForm, ClientComponent)
+### Code Style Guidelines
 
-### Error Handling
-- **API**: Consistent error objects with status codes
-- **Client**: `useNotify()` context for user messages
-- **Auth**: Automatic redirects via middleware
+- Use TypeScript for type safety
+- Follow the existing project structure
+- Use Prisma for database operations
+- Implement proper error handling
+- Add comments for complex logic
+- Use meaningful variable names
 
-## Integration Points
+## 📄 License
 
-### External Dependencies
-- **@tanstack/react-query**: All data fetching
-- **jose**: JWT token handling
-- **bcryptjs**: Password hashing
-- **@heroicons/react**: UI icons
-- **jspdf + jspdf-autotable**: Report generation
+This project is private and proprietary. All rights reserved.
 
-### Key Files to Reference
-- `prisma/schema.prisma`: Complete data model
-- `middleware.ts`: Auth validation logic
-- `app/(pages)/utils/`: Auth utilities
-- `hooks/fetchFunctions.tsx`: Data fetching patterns
-- `constants/navigation.ts`: Route definitions and permissions
+## 👨‍💻 Author
 
-When working with this codebase, always verify authentication patterns and respect role-based access controls.
+**sayjin93**
+- GitHub: [@sayjin93](https://github.com/sayjin93)
+
+## 🙏 Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- Database managed with [Prisma](https://www.prisma.io/)
+- UI components from [Headless UI](https://headlessui.com/)
+- Icons from [Heroicons](https://heroicons.com/)
+- Styling with [Tailwind CSS](https://tailwindcss.com/)
+
+## 📞 Support
+
+For support, please open an issue in the GitHub repository or contact the development team.
+
+---
+
+**Built with ❤️ for educational institutions**
