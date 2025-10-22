@@ -200,7 +200,7 @@ export default function LecturesPageClient() {
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-yellow-600">
-              {lectures.reduce((total, lecture) => total + lecture.attendance.length, 0)}
+              {lectures.filter(lecture => lecture.attendance.length > 0).length}
             </div>
             <div className="text-sm text-gray-600">Regjistra Prezence</div>
           </div>
