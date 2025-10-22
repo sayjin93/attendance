@@ -316,84 +316,169 @@ export default function AttendancePageClient({
           ) : (
             <div className="space-y-4">
               {/* Statistics */}
-              <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {students.filter(s => s.status === AttendanceStatus.PRESENT).length}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-linear-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-3xl font-bold text-green-700">
+                        {students.filter(s => s.status === AttendanceStatus.PRESENT).length}
+                      </div>
+                      <div className="text-sm font-medium text-green-600 mt-1">Prezente</div>
+                    </div>
+                    <div className="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">Prezente</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">
-                    {students.filter(s => s.status === AttendanceStatus.ABSENT).length}
+                <div className="bg-linear-to-br from-red-50 to-red-100 p-6 rounded-xl border border-red-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-3xl font-bold text-red-700">
+                        {students.filter(s => s.status === AttendanceStatus.ABSENT).length}
+                      </div>
+                      <div className="text-sm font-medium text-red-600 mt-1">Mungesë</div>
+                    </div>
+                    <div className="w-12 h-12 bg-red-200 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">Mungesë</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {students.filter(s => s.status === AttendanceStatus.PARTICIPATED).length}
+                <div className="bg-linear-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-3xl font-bold text-blue-700">
+                        {students.filter(s => s.status === AttendanceStatus.PARTICIPATED).length}
+                      </div>
+                      <div className="text-sm font-medium text-blue-600 mt-1">Aktivizuar</div>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                      </svg>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">Aktivizuar</div>
                 </div>
               </div>
 
-              {/* Students Table */}
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Student
-                      </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Statusi i Prezencës
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {students.map((student, index) => (
-                      <tr key={student.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="shrink-0 h-8 w-8">
-                              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                <span className="text-sm font-medium text-blue-600">
-                                  {student.firstName.charAt(0)}{student.lastName.charAt(0)}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {student.firstName} {student.lastName}
-                              </div>
-                            </div>
+              {/* Students Grid/Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {students.map((student) => (
+                  <div 
+                    key={student.id} 
+                    className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-200 hover:border-indigo-300"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="shrink-0 h-12 w-12">
+                          <div className="h-12 w-12 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+                            <span className="text-lg font-semibold text-white">
+                              {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                            </span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <select
-                            value={student.status}
-                            onChange={(e) => handleStatusChange(student.id, e.target.value as AttendanceStatus)}
-                            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                          >
-                            <option value={AttendanceStatus.PRESENT}>✅ Prezente</option>
-                            <option value={AttendanceStatus.ABSENT}>❌ Mungesë</option>
-                            <option value={AttendanceStatus.PARTICIPATED}>🙋 Aktivizuar</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-gray-900">
+                            {student.firstName} {student.lastName}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            Student ID: #{student.id}
+                          </div>
+                        </div>
+                      </div>
+                      {student.status === AttendanceStatus.PARTICIPATED && (
+                        <div className="shrink-0">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            ⭐ VIP
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="block text-xs font-medium text-gray-700 mb-2">
+                        Statusi i Prezencës
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          onClick={() => handleStatusChange(student.id, AttendanceStatus.PRESENT)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
+                            student.status === AttendanceStatus.PRESENT
+                              ? 'border-green-500 bg-green-50 shadow-sm'
+                              : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                          }`}
+                        >
+                          <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.PRESENT ? 'text-green-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className={`text-xs font-medium ${student.status === AttendanceStatus.PRESENT ? 'text-green-700' : 'text-gray-600'}`}>
+                            Prezente
+                          </span>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleStatusChange(student.id, AttendanceStatus.ABSENT)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
+                            student.status === AttendanceStatus.ABSENT
+                              ? 'border-red-500 bg-red-50 shadow-sm'
+                              : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
+                          }`}
+                        >
+                          <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.ABSENT ? 'text-red-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className={`text-xs font-medium ${student.status === AttendanceStatus.ABSENT ? 'text-red-700' : 'text-gray-600'}`}>
+                            Mungesë
+                          </span>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleStatusChange(student.id, AttendanceStatus.PARTICIPATED)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
+                            student.status === AttendanceStatus.PARTICIPATED
+                              ? 'border-blue-500 bg-blue-50 shadow-sm'
+                              : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                          }`}
+                        >
+                          <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.PARTICIPATED ? 'text-blue-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                          </svg>
+                          <span className={`text-xs font-medium ${student.status === AttendanceStatus.PARTICIPATED ? 'text-blue-700' : 'text-gray-600'}`}>
+                            Aktiv
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Save Button */}
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-end pt-6">
                 <button
                   onClick={() => mutation.mutate(students)}
                   disabled={mutation.isPending}
-                  className="inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-x-2 px-8 py-3 border border-transparent text-base font-semibold rounded-xl text-white bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200"
                 >
-                  {mutation.isPending ? "Po ruhet..." : "Ruaj Prezencën"}
+                  {mutation.isPending ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Po ruhet...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Ruaj Prezencën
+                    </>
+                  )}
                 </button>
               </div>
             </div>
