@@ -101,13 +101,38 @@ export default function AttendancePageClient({
     const urlClassId = searchParams.get("classId");
     const urlLectureId = searchParams.get("lectureId");
     
-    if (urlClassId) {
+    if (urlClassId && !classId) {
       setClassId(parseInt(urlClassId, 10));
     }
-    if (urlLectureId) {
+    if (urlLectureId && !lectureId) {
       setLectureId(parseInt(urlLectureId, 10));
     }
-  }, [searchParams]);
+  }, [searchParams, classId, lectureId]);
+
+  // Ensure selections are valid when classes load
+  useEffect(() => {
+    if (classes && classes.length > 0) {
+      const urlClassId = searchParams.get("classId");
+      const urlLectureId = searchParams.get("lectureId");
+      
+      if (urlClassId) {
+        const parsedClassId = parseInt(urlClassId, 10);
+        const classExists = classes.find(c => c.id === parsedClassId);
+        if (classExists && classId !== parsedClassId) {
+          setClassId(parsedClassId);
+          
+          if (urlLectureId) {
+            const parsedLectureId = parseInt(urlLectureId, 10);
+            const lectureExists = classExists.lectures?.find(l => l.id === parsedLectureId);
+            if (lectureExists && lectureId !== parsedLectureId) {
+              setLectureId(parsedLectureId);
+            }
+          }
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classes, searchParams]);
   //#endregion
 
   //#region mutations
