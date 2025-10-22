@@ -76,11 +76,6 @@ export default function AssignmentsPageClient({
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-900">Caktimet</h1>
-      </div>
-
       {/* Add Assignment Form */}
       <Card>
         <AddAssignmentForm
@@ -162,11 +157,9 @@ export default function AssignmentsPageClient({
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tipi
                   </th>
-                  {isAdmin === "true" && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Veprime
-                    </th>
-                  )}
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Veprime
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -196,26 +189,37 @@ export default function AssignmentsPageClient({
                         {assignment.type?.name}
                       </span>
                     </td>
-                    {isAdmin === "true" && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => {/* TODO: Edit functionality */ }}
-                            className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                            title="Modifiko caktim"
-                          >
-                            <PencilIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeletingAssignment(assignment)}
-                            className="text-red-600 hover:text-red-900 p-1 rounded"
-                            title="Fshi caktim"
-                          >
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    )}
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end gap-2">
+                        <a
+                          href={`/lectures?professorId=${assignment.professor?.id}&subjectId=${assignment.subject?.id}&classId=${assignment.class?.id}`}
+                          className="text-indigo-600 hover:text-indigo-900 p-1"
+                          title="Menaxho Leksionet"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                          </svg>
+                        </a>
+                        {isAdmin === "true" && (
+                          <>
+                            <button
+                              onClick={() => {/* TODO: Edit functionality */ }}
+                              className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                              title="Modifiko caktim"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => setDeletingAssignment(assignment)}
+                              className="text-red-600 hover:text-red-900 p-1 rounded"
+                              title="Fshi caktim"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

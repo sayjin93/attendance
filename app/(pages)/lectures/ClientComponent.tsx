@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 import { PlusIcon, PencilIcon, TrashIcon, ClipboardDocumentCheckIcon } from "@heroicons/react/16/solid";
 
 //components
@@ -74,6 +75,12 @@ export default function LecturesPageClient() {
 
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+
+  // Get filter parameters from URL
+  const urlProfessorId = searchParams.get("professorId");
+  const urlSubjectId = searchParams.get("subjectId");
+  const urlClassId = searchParams.get("classId");
 
   // Fetch lectures and assignments
   const { data, isLoading, error } = useQuery<LecturesResponse>({
@@ -86,6 +93,32 @@ export default function LecturesPageClient() {
       return response.json();
     },
   });
+
+  // Set initial search term from URL parameters
+  useEffect(() => {
+    if (urlProfessorId || urlSubjectId || urlClassId) {
+      // Build search term from URL parameters
+      const searchParts: string[] = [];
+      
+      if (data?.lectures) {
+        const matchingLecture = data.lectures.find(lecture => 
+          (!urlProfessorId || lecture.professor.id === parseInt(urlProfessorId)) &&
+          (!urlSubjectId || lecture.subject.id === parseInt(urlSubjectId)) &&
+          (!urlClassId || lecture.class.id === parseInt(urlClassId))
+        );
+        
+        if (matchingLecture) {
+          // Use subject code or class name as search term
+          if (urlSubjectId) searchParts.push(matchingLecture.subject.code);
+          else if (urlClassId) searchParts.push(matchingLecture.class.name);
+          
+          if (searchParts.length > 0) {
+            setSearchTerm(searchParts.join(" "));
+          }
+        }
+      }
+    }
+  }, [urlProfessorId, urlSubjectId, urlClassId, data]);
 
   // Delete lecture mutation (Admin only)
   const deleteLectureMutation = useMutation({
@@ -180,27 +213,19 @@ export default function LecturesPageClient() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {assignments.length}
-            </div>
-            <div className="text-sm text-gray-600">Caktime Aktive</div>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {lectures.length}
+              {filteredLectures.length}
             </div>
-            <div className="text-sm text-gray-600">Leksione Totale</div>
+            <div className="text-sm text-gray-600">Leksione {searchTerm ? 'të Filtruara' : 'Totale'}</div>
           </div>
         </Card>
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-yellow-600">
-              {lectures.filter(lecture => lecture.attendance.length > 0).length}
+              {filteredLectures.filter(lecture => lecture.attendance.length > 0).length}
             </div>
             <div className="text-sm text-gray-600">Regjistra Prezence</div>
           </div>
