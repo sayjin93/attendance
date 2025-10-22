@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
+import { ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 
 //types
 import { Professor } from "@/types";
@@ -32,6 +33,10 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [editingProfessor, setEditingProfessor] = useState<Professor | null>(null);
     const [deletingProfessor, setDeletingProfessor] = useState<Professor | null>(null);
+    const [sortConfig, setSortConfig] = useState<{
+        key: keyof Professor | 'fullName' | 'assignments' | null;
+        direction: 'asc' | 'desc';
+    }>({ key: null, direction: 'asc' });
     //#endregion
 
     //#region useQuery
@@ -65,6 +70,23 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     //#endregion
 
     //#region functions
+    const handleSort = (key: keyof Professor | 'fullName' | 'assignments') => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIcon = (columnKey: keyof Professor | 'fullName' | 'assignments') => {
+        if (sortConfig.key !== columnKey) {
+            return <ChevronUpDownIcon className="w-4 h-4 inline ml-1 text-gray-400" />;
+        }
+        return sortConfig.direction === 'asc'
+            ? <ChevronUpIcon className="w-4 h-4 inline ml-1 text-indigo-600" />
+            : <ChevronDownIcon className="w-4 h-4 inline ml-1 text-indigo-600" />;
+    };
+
     const handleDeleteProfessor = () => {
         if (deletingProfessor) {
             deleteProfessorMutation.mutate(deletingProfessor.id);
@@ -74,6 +96,44 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
+
+    // Sort professors based on sortConfig
+    const sortedProfessors = useMemo(() => {
+        if (!sortConfig.key) return professors;
+
+        const sorted = [...professors].sort((a, b) => {
+            let aValue: string | number | boolean;
+            let bValue: string | number | boolean;
+
+            if (sortConfig.key === 'fullName') {
+                aValue = `${a.firstName} ${a.lastName}`;
+                bValue = `${b.firstName} ${b.lastName}`;
+            } else if (sortConfig.key === 'assignments') {
+                aValue = a.teachingAssignments?.length || 0;
+                bValue = b.teachingAssignments?.length || 0;
+            } else {
+                aValue = a[sortConfig.key as keyof Professor] as string | number | boolean;
+                bValue = b[sortConfig.key as keyof Professor] as string | number | boolean;
+            }
+
+            // Handle string values
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                const comparison = aValue.localeCompare(bValue);
+                return sortConfig.direction === 'asc' ? comparison : -comparison;
+            }
+
+            // Handle numeric and boolean values
+            if (aValue < bValue) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+
+        return sorted;
+    }, [professors, sortConfig]);
     //#endregion
 
     if (professorsError) {
@@ -88,55 +148,62 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                 <AddProfessorForm />
             </Card>
 
-            {/* Search Bar */}
+            {/* Professors List */}
             <Card>
-                <div className="mb-4">
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Kërko Profesor</h3>
-                    <div className="relative">
+                <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Lista e Profesorëve {!professorsLoading && `(${sortedProfessors.length})`}
+                    </h2>
+                    
+                    {/* Search Bar */}
+                    <div className="relative w-full md:w-96">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
                         </div>
                         <input
                             type="text"
-                            placeholder="Kërkoni profesor (emri, mbiemri, email, username)..."
+                            placeholder="Kërko profesor..."
                             value={searchTerm}
                             onChange={handleSearch}
                             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         />
                     </div>
                 </div>
-            </Card>
-
-            {/* Professors List */}
-            <Card>
-                <div className="mb-4">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Lista e Profesorëve {!professorsLoading && `(${professors.length})`}
-                    </h2>
-                </div>
 
                 {professorsLoading ? (
                     <div className="flex justify-center items-center py-8">
                         <Loader />
                     </div>
-                ) : professors.length === 0 ? (
+                ) : sortedProfessors.length === 0 ? (
                     <Alert type="default" title="Nuk ka profesorë për të shfaqur." />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Emri i plotë
+                                    <th 
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                        onClick={() => handleSort('fullName')}
+                                    >
+                                        Emri i plotë{getSortIcon('fullName')}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Email
+                                    <th 
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                        onClick={() => handleSort('email')}
+                                    >
+                                        Email{getSortIcon('email')}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Username
+                                    <th 
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                        onClick={() => handleSort('username')}
+                                    >
+                                        Username{getSortIcon('username')}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Caktime
+                                    <th 
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                        onClick={() => handleSort('assignments')}
+                                    >
+                                        Caktime{getSortIcon('assignments')}
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Veprime
@@ -144,7 +211,7 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {professors.map((professor) => (
+                                {sortedProfessors.map((professor) => (
                                     <tr key={professor.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-medium text-gray-900">
