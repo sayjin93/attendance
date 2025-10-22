@@ -108,7 +108,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
           <div className="flex justify-center gap-2 mt-3">
             <button
               onClick={() => setEditingSubject(subjectItem)}
-              className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               title="Modifiko lëndën"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +117,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
             </button>
             <button
               onClick={() => setDeletingSubject(subjectItem)}
-              className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
               title="Fshi lëndën"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

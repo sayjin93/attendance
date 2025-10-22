@@ -198,7 +198,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <button
                 onClick={() => setEditingClass(classItem)}
-                className="flex-1 inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors duration-150"
+                className="flex-1 inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors duration-150 cursor-pointer"
                 title="Modifiko klasën"
               >
                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +208,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
               </button>
               <button
                 onClick={() => setDeletingClass(classItem)}
-                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors duration-150"
+                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors duration-150 cursor-pointer"
                 title="Fshi klasën"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -420,14 +420,14 @@ export default function LecturesPageClient() {
                               <>
                                 <button
                                   onClick={() => handleEdit(lecture)}
-                                  className="text-indigo-600 hover:text-indigo-900 p-1"
+                                  className="text-indigo-600 hover:text-indigo-900 p-1 cursor-pointer"
                                   title="Redakto"
                                 >
                                   <PencilIcon className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(lecture)}
-                                  className="text-red-600 hover:text-red-900 p-1"
+                                  className="text-red-600 hover:text-red-900 p-1 cursor-pointer"
                                   title="Fshi"
                                 >
                                   <TrashIcon className="w-4 h-4" />
