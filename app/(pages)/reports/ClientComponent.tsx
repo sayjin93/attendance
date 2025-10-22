@@ -40,10 +40,12 @@ interface StudentReport {
   lastName: string;
   totalLectures: number;
   attendedLectures: number;
+  participatedLectures: number;
   attendancePercentage: number;
   passedLectures: boolean;
   totalSeminars: number;
   attendedSeminars: number;
+  participatedSeminars: number;
   seminarPercentage: number;
   passedSeminars: boolean;
   overallPassed: boolean;
@@ -114,21 +116,23 @@ export default function ReportsPageClient({
     if (reportData.summary) {
       doc.text(`Total Studentë: ${reportData.summary.totalStudents}`, 20, 70);
       doc.text(`Studentë të Kaluar: ${reportData.summary.passedStudents}`, 20, 80);
-      doc.text(`Studentë të Rrëzuar: ${reportData.summary.failedStudents}`, 20, 90);
-      doc.text(`Prezencë Mesatare: ${reportData.summary.averageAttendance.toFixed(1)}%`, 20, 100);
+      doc.text(`Studentë NK: ${reportData.summary.failedStudents}`, 20, 90);
+      doc.text(`Prezenca Mesatare: ${reportData.summary.averageAttendance.toFixed(1)}%`, 20, 100);
     }
 
     // Table
     autoTable(doc, {
       startY: 110,
-      head: [["Studenti", "Leksione (%)", "Kaloi Leksionet", "Seminare (%)", "Kaloi Seminaret", "Statusi Përgjithshëm"]],
+      head: [["Studenti", "Leksione (%)", "Aktiv.(L)", "Kaloi Leks.", "Seminare (%)", "Aktiv.(S)", "Kaloi Sem.", "Statusi"]],
       body: reportData.students.map((s: StudentReport) => [
         `${s.firstName} ${s.lastName}`,
         `${s.attendancePercentage.toFixed(1)}%`,
+        s.participatedLectures.toString(),
         s.passedLectures ? "Po" : "Jo",
         `${s.seminarPercentage.toFixed(1)}%`,
+        s.participatedSeminars.toString(),
         s.passedSeminars ? "Po" : "Jo",
-        s.overallPassed ? "KALOI" : "RRËZOI"
+        s.overallPassed ? "KALOI" : "NK"
       ]),
     });
 
@@ -157,147 +161,198 @@ export default function ReportsPageClient({
   const subjects = reportData?.subjects || [];
   const students = reportData?.students || [];
 
+  // Filter classes based on selected program
+  const filteredClasses = selectedProgramId 
+    ? classes.filter((c: Class) => c.programId === selectedProgramId)
+    : [];
+
   const selectedProgram = programs.find(p => p.id === selectedProgramId);
-  const selectedClass = classes.find(c => c.id === selectedClassId);
+  const selectedClass = filteredClasses.find(c => c.id === selectedClassId);
   const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
 
   return (
-    <div className="h-full flex flex-col gap-4">
-      {/* Program Selector */}
-      <Card title="Zgjidh programin">
-        <Listbox value={selectedProgramId} onChange={(value) => {
-          setSelectedProgramId(value);
-          resetSelections('program');
-        }}>
-          <div className="relative mt-2">
-            <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-              <span className="col-start-1 row-start-1 truncate pr-6">
-                {programs?.length === 0
-                  ? "Nuk ka programe"
-                  : !selectedProgramId
-                  ? "Zgjidh programin"
-                  : selectedProgram?.name}
-              </span>
-              <ChevronUpDownIcon
-                aria-hidden="true"
-                className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-              />
-            </ListboxButton>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Raporte</h1>
+        <p className="text-gray-600 mt-1">
+          Gjeneroni raporte të prezencës për studentët
+        </p>
+      </div>
 
-            <ListboxOptions
-              transition
-              className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
-            >
-              {programs?.map((program: Program) => (
-                <ListboxOption
-                  key={program.id}
-                  value={program.id}
-                  className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+      {/* Filters in one row */}
+      <Card title="Filtrat">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Program Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Zgjidh programin
+            </label>
+            <Listbox value={selectedProgramId} onChange={(value) => {
+              setSelectedProgramId(value);
+              resetSelections('program');
+            }}>
+              <div className="relative">
+                <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                  <span className="col-start-1 row-start-1 truncate pr-6">
+                    {programs?.length === 0
+                      ? "Nuk ka programe"
+                      : !selectedProgramId
+                      ? "Zgjidh programin"
+                      : selectedProgram?.name}
+                  </span>
+                  <ChevronUpDownIcon
+                    aria-hidden="true"
+                    className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                  />
+                </ListboxButton>
+
+                <ListboxOptions
+                  transition
+                  className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
                 >
-                  <span className="block truncate font-normal group-data-selected:font-semibold">
-                    {program.name}
-                  </span>
+                  {programs?.map((program: Program) => (
+                    <ListboxOption
+                      key={program.id}
+                      value={program.id}
+                      className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                    >
+                      <span className="block truncate font-normal group-data-selected:font-semibold">
+                        {program.name}
+                      </span>
 
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
-                    <CheckIcon aria-hidden="true" className="size-5" />
-                  </span>
-                </ListboxOption>
-              ))}
-            </ListboxOptions>
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                        <CheckIcon aria-hidden="true" className="size-5" />
+                      </span>
+                    </ListboxOption>
+                  ))}
+                </ListboxOptions>
+              </div>
+            </Listbox>
           </div>
-        </Listbox>
+
+          {/* Class Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Zgjidh klasën
+            </label>
+            <Listbox 
+              value={selectedClassId} 
+              onChange={(value) => {
+                setSelectedClassId(value);
+                resetSelections('class');
+              }}
+              disabled={!selectedProgramId}
+            >
+              <div className="relative">
+                <ListboxButton 
+                  className={`grid w-full grid-cols-1 rounded-md py-1.5 pr-2 pl-3 text-left outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6 ${
+                    !selectedProgramId 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-900 cursor-pointer focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600'
+                  }`}
+                >
+                  <span className="col-start-1 row-start-1 truncate pr-6">
+                    {!selectedProgramId
+                      ? "Zgjidhni programin më parë"
+                      : filteredClasses?.length === 0
+                      ? "Nuk ka klasa për këtë program"
+                      : !selectedClassId
+                      ? "Zgjidh klasën"
+                      : selectedClass?.name}
+                  </span>
+                  <ChevronUpDownIcon
+                    aria-hidden="true"
+                    className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                  />
+                </ListboxButton>
+
+                {selectedProgramId && (
+                  <ListboxOptions
+                    transition
+                    className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+                  >
+                    {filteredClasses?.map((cls: Class) => (
+                      <ListboxOption
+                        key={cls.id}
+                        value={cls.id}
+                        className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                      >
+                        <span className="block truncate font-normal group-data-selected:font-semibold">
+                          {cls.name}
+                        </span>
+
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                          <CheckIcon aria-hidden="true" className="size-5" />
+                        </span>
+                      </ListboxOption>
+                    ))}
+                  </ListboxOptions>
+                )}
+              </div>
+            </Listbox>
+          </div>
+
+          {/* Subject Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Zgjidh lëndën
+            </label>
+            <Listbox 
+              value={selectedSubjectId} 
+              onChange={setSelectedSubjectId}
+              disabled={!selectedClassId}
+            >
+              <div className="relative">
+                <ListboxButton 
+                  className={`grid w-full grid-cols-1 rounded-md py-1.5 pr-2 pl-3 text-left outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6 ${
+                    !selectedClassId 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-900 cursor-pointer focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600'
+                  }`}
+                >
+                  <span className="col-start-1 row-start-1 truncate pr-6">
+                    {!selectedClassId
+                      ? "Zgjidhni klasën më parë"
+                      : subjects?.length === 0
+                      ? "Nuk ka lëndë për këtë klasë"
+                      : !selectedSubjectId
+                      ? "Zgjidh lëndën"
+                      : selectedSubject?.name}
+                  </span>
+                  <ChevronUpDownIcon
+                    aria-hidden="true"
+                    className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                  />
+                </ListboxButton>
+
+                {selectedClassId && (
+                  <ListboxOptions
+                    transition
+                    className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+                  >
+                    {subjects?.map((subject: Subject) => (
+                      <ListboxOption
+                        key={subject.id}
+                        value={subject.id}
+                        className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                      >
+                        <span className="block truncate font-normal group-data-selected:font-semibold">
+                          {subject.name}
+                        </span>
+
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
+                          <CheckIcon aria-hidden="true" className="size-5" />
+                        </span>
+                      </ListboxOption>
+                    ))}
+                  </ListboxOptions>
+                )}
+              </div>
+            </Listbox>
+          </div>
+        </div>
       </Card>
-
-      {/* Class Selector - Only show if program is selected */}
-      {selectedProgramId && (
-        <Card title="Zgjidh klasën">
-          <Listbox value={selectedClassId} onChange={(value) => {
-            setSelectedClassId(value);
-            resetSelections('class');
-          }}>
-            <div className="relative mt-2">
-              <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                <span className="col-start-1 row-start-1 truncate pr-6">
-                  {classes?.length === 0
-                    ? "Nuk ka klasa për këtë program"
-                    : !selectedClassId
-                    ? "Zgjidh klasën"
-                    : selectedClass?.name}
-                </span>
-                <ChevronUpDownIcon
-                  aria-hidden="true"
-                  className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                />
-              </ListboxButton>
-
-              <ListboxOptions
-                transition
-                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
-              >
-                {classes?.map((cls: Class) => (
-                  <ListboxOption
-                    key={cls.id}
-                    value={cls.id}
-                    className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
-                  >
-                    <span className="block truncate font-normal group-data-selected:font-semibold">
-                      {cls.name}
-                    </span>
-
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
-                      <CheckIcon aria-hidden="true" className="size-5" />
-                    </span>
-                  </ListboxOption>
-                ))}
-              </ListboxOptions>
-            </div>
-          </Listbox>
-        </Card>
-      )}
-
-      {/* Subject Selector - Only show if class is selected */}
-      {selectedClassId && (
-        <Card title="Zgjidh lëndën">
-          <Listbox value={selectedSubjectId} onChange={setSelectedSubjectId}>
-            <div className="relative mt-2">
-              <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                <span className="col-start-1 row-start-1 truncate pr-6">
-                  {subjects?.length === 0
-                    ? "Nuk ka lëndë për këtë klasë"
-                    : !selectedSubjectId
-                    ? "Zgjidh lëndën"
-                    : selectedSubject?.name}
-                </span>
-                <ChevronUpDownIcon
-                  aria-hidden="true"
-                  className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                />
-              </ListboxButton>
-
-              <ListboxOptions
-                transition
-                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
-              >
-                {subjects?.map((subject: Subject) => (
-                  <ListboxOption
-                    key={subject.id}
-                    value={subject.id}
-                    className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
-                  >
-                    <span className="block truncate font-normal group-data-selected:font-semibold">
-                      {subject.name}
-                    </span>
-
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
-                      <CheckIcon aria-hidden="true" className="size-5" />
-                    </span>
-                  </ListboxOption>
-                ))}
-              </ListboxOptions>
-            </div>
-          </Listbox>
-        </Card>
-      )}
 
       {/* Summary Statistics */}
       {reportData?.summary && (
@@ -313,7 +368,7 @@ export default function ReportsPageClient({
             </div>
             <div className="bg-red-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-red-600">{reportData.summary.failedStudents}</div>
-              <div className="text-sm text-gray-600">Rrëzuan</div>
+              <div className="text-sm text-gray-600">NK</div>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-yellow-600">{reportData.summary.averageAttendance.toFixed(1)}%</div>
@@ -358,8 +413,10 @@ export default function ReportsPageClient({
                   <tr>
                     <th className="p-3 text-left">👤 Student</th>
                     <th className="p-3 text-center">📚 Leksione</th>
+                    <th className="p-3 text-center">⭐ Aktivizime (L)</th>
                     <th className="p-3 text-center">✅ Kaloi Leksionet</th>
                     <th className="p-3 text-center">🎓 Seminare</th>
+                    <th className="p-3 text-center">⭐ Aktivizime (S)</th>
                     <th className="p-3 text-center">✅ Kaloi Seminaret</th>
                     <th className="p-3 text-center">🏆 Statusi</th>
                   </tr>
@@ -383,6 +440,11 @@ export default function ReportsPageClient({
                         </div>
                       </td>
                       <td className="p-3 text-center">
+                        <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
+                          {student.participatedLectures}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded text-sm font-medium ${
                           student.passedLectures 
                             ? 'bg-green-100 text-green-800' 
@@ -404,6 +466,11 @@ export default function ReportsPageClient({
                         </div>
                       </td>
                       <td className="p-3 text-center">
+                        <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
+                          {student.participatedSeminars}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded text-sm font-medium ${
                           student.passedSeminars 
                             ? 'bg-green-100 text-green-800' 
@@ -418,7 +485,7 @@ export default function ReportsPageClient({
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          {student.overallPassed ? 'KALOI' : 'RRËZOI'}
+                          {student.overallPassed ? 'KALOI' : 'NK'}
                         </span>
                       </td>
                     </tr>
