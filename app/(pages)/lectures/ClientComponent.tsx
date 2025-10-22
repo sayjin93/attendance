@@ -269,9 +269,28 @@ export default function LecturesPageClient() {
                       </td>
                     )}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {lecture.attendance.length} student
-                      </span>
+                      {lecture.attendance.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          <div className="flex gap-2 items-center">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                              ✓ {lecture.attendance.filter(a => a.status === "PRESENT").length}
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              ⭐ {lecture.attendance.filter(a => a.status === "PARTICIPATED").length}
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                              ✗ {lecture.attendance.filter(a => a.status === "ABSENT").length}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Total: {lecture.attendance.length} studentë
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Pa prezencë
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end gap-2">
