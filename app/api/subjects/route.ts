@@ -21,10 +21,15 @@ export async function GET() {
       );
     }
 
-    // ✅ Fetch subjects AND include Program data
+    // ✅ Fetch subjects AND include Program data + classes through teaching assignments
     const subjects = await prisma.subject.findMany({
       include: {
         program: true, // ✅ Include program data
+        teachingAssignments: {
+          include: {
+            class: true, // ✅ Include class data from teaching assignments
+          },
+        },
       },
     });
 

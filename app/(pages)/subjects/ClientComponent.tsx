@@ -64,20 +64,47 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   };
 
   // Function to render subject cards
-  const renderSubjectCard = (subjectItem: Subject) => (
-    <div
-      key={subjectItem.id}
-      className="relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-    >
-      <div className="p-4 text-center">
-        <h2 className="text-xl font-semibold">
-          {subjectItem.name} {subjectItem.code ? `[${subjectItem.code}]` : ''}
-        </h2>
-        <p className="text-gray-600 text-sm">
-          {subjectItem.program?.name || "No Program"}
-        </p>
+  const renderSubjectCard = (subjectItem: Subject) => {
+    // Extract unique classes from teaching assignments
+    const uniqueClasses = subjectItem.teachingAssignments
+      ? Array.from(
+          new Map(
+            subjectItem.teachingAssignments
+              .filter(ta => ta.class)
+              .map(ta => [ta.class!.id, ta.class!])
+          ).values()
+        )
+      : [];
+
+    return (
+      <div
+        key={subjectItem.id}
+        className="relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
+      >
+        <div className="p-4 text-center">
+          <h2 className="text-xl font-semibold">
+            {subjectItem.name} {subjectItem.code ? `[${subjectItem.code}]` : ''}
+          </h2>
+          
+          {/* Display classes instead of program */}
+          <div className="mt-2 mb-3">
+            {uniqueClasses.length > 0 ? (
+              <div className="flex flex-wrap gap-1 justify-center">
+                {uniqueClasses.map((cls) => (
+                  <span
+                    key={cls.id}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+                  >
+                    {cls.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-xs italic">Nuk ka klasa</p>
+            )}
+          </div>
         
-        {isAdmin === "true" && (
+          {isAdmin === "true" && (
           <div className="flex justify-center gap-2 mt-3">
             <button
               onClick={() => setEditingSubject(subjectItem)}
@@ -98,11 +125,11 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
               </svg>
             </button>
           </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
-  //#endregion
+    );
+  };
 
   if (isLoading) return <Loader />;
   if (error) {
