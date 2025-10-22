@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 //types
 import { Subject } from "@/types";
@@ -23,9 +24,32 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
+
+  // Color palette for classes - consistent colors based on class ID
+  const classColors = [
+    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' },
+    { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100' },
+    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100' },
+    { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100' },
+    { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-100' },
+    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100' },
+    { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-100' },
+    { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100' },
+    { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-100' },
+    { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-100' },
+    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
+    { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-100' },
+  ];
+
+  // Function to get consistent color for a class based on its ID
+  const getClassColor = (classId: number) => {
+    return classColors[classId % classColors.length];
+  };
   //#endregion
 
   //#region state
+  const [programFilter, setProgramFilter] = useState<number>(0);
+  const [searchFilter, setSearchFilter] = useState<string>("");
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [deletingSubject, setDeletingSubject] = useState<Subject | null>(null);
   //#endregion
@@ -63,74 +87,6 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
     }
   };
 
-  // Function to render subject cards
-  const renderSubjectCard = (subjectItem: Subject) => {
-    // Extract unique classes from teaching assignments
-    const uniqueClasses = subjectItem.teachingAssignments
-      ? Array.from(
-          new Map(
-            subjectItem.teachingAssignments
-              .filter(ta => ta.class)
-              .map(ta => [ta.class!.id, ta.class!])
-          ).values()
-        )
-      : [];
-
-    return (
-      <div
-        key={subjectItem.id}
-        className="relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-      >
-        <div className="p-4 text-center">
-          <h2 className="text-xl font-semibold">
-            {subjectItem.name} {subjectItem.code ? `[${subjectItem.code}]` : ''}
-          </h2>
-          
-          {/* Display classes instead of program */}
-          <div className="mt-2 mb-3">
-            {uniqueClasses.length > 0 ? (
-              <div className="flex flex-wrap gap-1 justify-center">
-                {uniqueClasses.map((cls) => (
-                  <span
-                    key={cls.id}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
-                  >
-                    {cls.name}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-xs italic">Nuk ka klasa</p>
-            )}
-          </div>
-        
-          {isAdmin === "true" && (
-          <div className="flex justify-center gap-2 mt-3">
-            <button
-              onClick={() => setEditingSubject(subjectItem)}
-              className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              title="Modifiko lëndën"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setDeletingSubject(subjectItem)}
-              className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
-              title="Fshi lëndën"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   if (isLoading) return <Loader />;
   if (error) {
     showMessage("Error loading subjects.", "error");
@@ -139,11 +95,19 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
 
   const { subjects = [], programs = [] } = data || {}; // ✅ Extract subjects & programs
 
-  // Separate subjects by program type and sort alphabetically by name
-  const bachelorSubjects = (subjects?.filter((s: Subject) => s.program?.name === "Bachelor") || [])
-    .sort((a: Subject, b: Subject) => a.name.localeCompare(b.name));
-  const masterSubjects = (subjects?.filter((s: Subject) => s.program?.name === "Master") || [])
-    .sort((a: Subject, b: Subject) => a.name.localeCompare(b.name));
+  // Filter subjects based on filters
+  const filteredSubjects = subjects.filter((subject: Subject) => {
+    const matchesProgram = programFilter === 0 || subject.programId === programFilter;
+    const matchesSearch = searchFilter === "" || 
+      subject.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+      (subject.code && subject.code.toLowerCase().includes(searchFilter.toLowerCase()));
+    
+    return matchesProgram && matchesSearch;
+  }).sort((a: Subject, b: Subject) => a.name.localeCompare(b.name));
+
+  // Separate subjects by program type for statistics
+  const bachelorSubjects = (filteredSubjects?.filter((s: Subject) => s.program?.name === "Bachelor") || []);
+  const masterSubjects = (filteredSubjects?.filter((s: Subject) => s.program?.name === "Master") || []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -152,34 +116,203 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
         <AddSubjectForm isAdmin={isAdmin} programs={programs} />
       </Card>
 
-      {/* Bachelor Subjects */}
-      <Card title="Lëndët e Bachelorit">
-        {bachelorSubjects.length === 0 ? (
-          <Alert title="Nuk ka lëndë të Bachelor. Shtoni një lëndë Bachelor më sipër!" />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {bachelorSubjects.map((subjectItem: Subject) => renderSubjectCard(subjectItem))}
-          </div>
-        )}
-      </Card>
 
-      {/* Master Subjects */}
-      <Card title="Lëndët e Masterit">
-        {masterSubjects.length === 0 ? (
-          <Alert title="Nuk ka lëndë të Master. Shtoni një lëndë Master më sipër!" />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {masterSubjects.map((subjectItem: Subject) => renderSubjectCard(subjectItem))}
-          </div>
-        )}
-      </Card>
 
-      {/* Show message when no subjects exist at all */}
-      {subjects?.length === 0 && (
-        <Card title="Lista e lëndëve">
+      {/* All Subjects in Data Grid */}
+      <Card>
+        <div className="mb-4 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <h2 className="text-lg font-medium text-gray-900">
+            Lista e lëndëve ({filteredSubjects.length})
+          </h2>
+          
+          {/* Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:max-w-md">
+            {/* Program Filter */}
+            <select
+              value={programFilter}
+              onChange={(e) => setProgramFilter(Number(e.target.value))}
+              className="block w-full rounded-md bg-white px-3 py-2 text-sm text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+            >
+              <option value={0}>Të gjithë programet</option>
+              {programs.map((program: { id: number; name: string }) => (
+                <option key={program.id} value={program.id}>
+                  {program.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Search Filter */}
+            <input
+              type="text"
+              placeholder="Kërko lëndë ose kod..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="block w-full rounded-md bg-white px-3 py-2 text-sm text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+            />
+          </div>
+        </div>
+
+        {subjects?.length === 0 ? (
           <Alert title="Nuk keni ende lëndë. Shtoni një lëndë më sipër!" />
-        </Card>
-      )}
+        ) : filteredSubjects.length === 0 ? (
+          <Alert title="Nuk u gjetën lëndë që përputhen me filtrat." />
+        ) : (
+          <div className="mt-6">
+            <div className="overflow-hidden bg-white shadow-sm border border-gray-200 rounded-lg">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        #
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Emri i lëndës
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Kodi
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Programi
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Klasat
+                      </th>
+                      {isAdmin === "true" && (
+                        <th scope="col" className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Veprime
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredSubjects.map((subject: Subject, index: number) => {
+                      // Extract unique classes from teaching assignments
+                      const uniqueClasses = subject.teachingAssignments
+                        ? Array.from(
+                            new Map(
+                              subject.teachingAssignments
+                                .filter(ta => ta.class)
+                                .map(ta => [ta.class!.id, ta.class!])
+                            ).values()
+                          )
+                        : [];
+
+                      return (
+                        <tr key={subject.id} className="hover:bg-gray-50 transition-colors duration-150">
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                            {index + 1}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {subject.name}
+                            </div>
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {subject.code || '-'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {subject.program?.name || '-'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="flex flex-wrap gap-1">
+                              {uniqueClasses.length > 0 ? (
+                                uniqueClasses.slice(0, 2).map((cls) => {
+                                  const colors = getClassColor(cls.id);
+                                  return (
+                                    <span
+                                      key={cls.id}
+                                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
+                                    >
+                                      {cls.name}
+                                    </span>
+                                  );
+                                })
+                              ) : (
+                                <span className="text-xs text-gray-400 italic">Nuk ka klasa</span>
+                              )}
+                              {uniqueClasses.length > 2 && (
+                                <div className="relative group">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 cursor-help">
+                                    +{uniqueClasses.length - 2} më shumë
+                                  </span>
+                                  {/* Tooltip with remaining classes */}
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
+                                    <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs">
+                                      <div className="flex flex-wrap gap-1">
+                                        {uniqueClasses.slice(2).map((cls) => {
+                                          const colors = getClassColor(cls.id);
+                                          return (
+                                            <span
+                                              key={cls.id}
+                                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
+                                            >
+                                              {cls.name}
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                      {/* Tooltip arrow */}
+                                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          {isAdmin === "true" && (
+                            <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => setEditingSubject(subject)}
+                                  className="inline-flex items-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-150 cursor-pointer"
+                                  title="Modifiko lëndën"
+                                >
+                                  <PencilIcon className="w-3 h-3 mr-1" />
+                                  Ndrysho
+                                </button>
+                                <button
+                                  onClick={() => setDeletingSubject(subject)}
+                                  className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+                                  title="Fshi lëndën"
+                                >
+                                  <TrashIcon className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Subject count footer */}
+              <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span>
+                    {filteredSubjects.length} nga {subjects?.length} lëndë
+                    {(programFilter !== 0 || searchFilter !== "") && " (të filtruara)"}
+                  </span>
+                  <div className="flex gap-2">
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      Bachelor: {bachelorSubjects.length}
+                    </span>
+                    <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                      Master: {masterSubjects.length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
 
       {/* Edit Subject Modal */}
       <Modal
