@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/prisma/prisma";
 import bcrypt from "bcryptjs";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
-
-const prisma = new PrismaClient();
 
 // GET: Fetch all professors (Admin only)
 export async function GET(req: Request) {

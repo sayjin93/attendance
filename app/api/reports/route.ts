@@ -1,8 +1,6 @@
 ﻿import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/prisma/prisma";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
-
-const prisma = new PrismaClient();
 
 // Types for report responses
 interface ReportClass {

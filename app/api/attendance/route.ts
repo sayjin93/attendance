@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/prisma/prisma";
 
 // ✅ Fetch Attendance API
 export async function GET(req: Request) {

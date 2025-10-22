@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/prisma/prisma";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { serialize } from "cookie";
 import { SECRET_KEY } from "@/constants";
-
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {

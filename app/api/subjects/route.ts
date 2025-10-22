@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/prisma/prisma";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
-
-const prisma = new PrismaClient();
 
 // ✅ GET: Fetch all subjects for the logged-in professor or all subjects for admins
 export async function GET() {
