@@ -13,7 +13,7 @@ import autoTable from "jspdf-autotable";
 import { useState } from "react";
 import Alert from "../../../components/Alert";
 import Card from "../../../components/Card";
-import Loader from "../../../components/Loader";
+import Skeleton from "../../../components/Skeleton";
 import { useNotify } from "../../../contexts/NotifyContext";
 import { fetchReportData } from "../../../hooks/fetchFunctions";
 
@@ -150,7 +150,6 @@ export default function ReportsPageClient({
   };
   //#endregion
 
-  if (loadingReports) return <Loader />;
   if (errorReports) {
     showMessage("Gabim gjatë ngarkimit të raporteve.", "error");
     return <Alert type="error" title="Ka ndodhur një gabim gjatë ngarkimit të raporteve." />;
@@ -355,7 +354,18 @@ export default function ReportsPageClient({
       </Card>
 
       {/* Summary Statistics */}
-      {reportData?.summary && (
+      {loadingReports ? (
+        <Card title="Përmbledhja">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-gray-50 p-4 rounded-lg text-center">
+                <Skeleton times={1} rootCls="h-8 w-16 mx-auto mb-2" />
+                <Skeleton times={1} rootCls="h-4 w-24 mx-auto" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : reportData?.summary && students.length > 0 ? (
         <Card title="Përmbledhja">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg text-center">
@@ -376,11 +386,47 @@ export default function ReportsPageClient({
             </div>
           </div>
         </Card>
-      )}
+      ) : null}
 
       {/* Student Report Table */}
       <Card title="Raporti i studentëve">
-        {students.length === 0 ? (
+        {loadingReports ? (
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Skeleton times={1} rootCls="h-9 w-48" />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full bg-white shadow-md rounded-lg">
+                <thead className="bg-gray-200">
+                  <tr>
+                    <th className="p-3 text-left">👤 Student</th>
+                    <th className="p-3 text-center">📚 Leksione</th>
+                    <th className="p-3 text-center">⭐ Aktivizime (L)</th>
+                    <th className="p-3 text-center">✅ Kaloi Leksionet</th>
+                    <th className="p-3 text-center">🎓 Seminare</th>
+                    <th className="p-3 text-center">⭐ Aktivizime (S)</th>
+                    <th className="p-3 text-center">✅ Kaloi Seminaret</th>
+                    <th className="p-3 text-center">🏆 Statusi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <tr key={i} className="border-b">
+                      <td className="p-3"><Skeleton times={1} rootCls="h-5 w-32" /></td>
+                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-16 mx-auto" /></td>
+                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-10 mx-auto" /></td>
+                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-12 mx-auto" /></td>
+                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-16 mx-auto" /></td>
+                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-10 mx-auto" /></td>
+                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-12 mx-auto" /></td>
+                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-16 mx-auto" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : students.length === 0 ? (
           <Alert title="Zgjidh programin, klasën dhe lëndën për të parë raportin e studentëve." />
         ) : (
           <div className="flex flex-1 flex-col gap-6">
