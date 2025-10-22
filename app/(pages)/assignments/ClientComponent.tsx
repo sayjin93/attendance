@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 
 //types
-import { TeachingAssignment, Program } from "@/types";
+import { TeachingAssignment, Professor, Subject, Class, TeachingType } from "@/types";
 
 //hooks
 import { fetchAssignments } from "@/hooks/fetchFunctions";
@@ -31,8 +30,10 @@ export default function AssignmentsPageClient({
   //#endregion
 
   //#region states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [programFilter, setProgramFilter] = useState<number>(0);
+  const [professorFilter, setProfessorFilter] = useState<number>(0);
+  const [subjectFilter, setSubjectFilter] = useState<number>(0);
+  const [classFilter, setClassFilter] = useState<number>(0);
+  const [typeFilter, setTypeFilter] = useState<number>(0);
   const [deletingAssignment, setDeletingAssignment] = useState<TeachingAssignment | null>(null);
   //#endregion
 
@@ -58,20 +59,14 @@ export default function AssignmentsPageClient({
     teachingTypes = [],
   } = data || {}; // ✅ Extract assignments
 
-  // Filter assignments based on search and program filter
+  // Filter assignments based on filters
   const filteredAssignments = assignments.filter((assignment: TeachingAssignment) => {
-    const matchesSearch = searchTerm === "" ||
-      assignment.professor?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.professor?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.subject?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.subject?.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.class?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesProfessor = professorFilter === 0 || assignment.professorId === professorFilter;
+    const matchesSubject = subjectFilter === 0 || assignment.subjectId === subjectFilter;
+    const matchesClass = classFilter === 0 || assignment.classId === classFilter;
+    const matchesType = typeFilter === 0 || assignment.typeId === typeFilter;
 
-    const matchesProgram = programFilter === 0 ||
-      assignment.subject?.programId === programFilter ||
-      assignment.class?.programId === programFilter;
-
-    return matchesSearch && matchesProgram;
+    return matchesProfessor && matchesSubject && matchesClass && matchesType;
   });
 
   return (
@@ -88,54 +83,77 @@ export default function AssignmentsPageClient({
         />
       </Card>
 
-      {/* Filters and Search */}
+      {/* Assignments List */}
       <Card>
-        <div className="mb-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">Filtro Caktimet</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Kërko profesor, lëndë, kod, klasë..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            </div>
-
-            {/* Program Filter */}
+        <div className="mb-4 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <h2 className="text-lg font-medium text-gray-900">
+            Lista e Caktimeve ({filteredAssignments.length})
+          </h2>
+          
+          {/* Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:max-w-3xl">
+            {/* Professor Filter */}
             <select
-              value={programFilter}
-              onChange={(e) => setProgramFilter(Number(e.target.value))}
-              className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm"
+              value={professorFilter}
+              onChange={(e) => setProfessorFilter(Number(e.target.value))}
+              className="block w-full rounded-md bg-white px-3 py-2 text-sm text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
             >
-              <option value={0}>Të gjitha programet</option>
-              {programs.map((program: Program) => (
-                <option key={program.id} value={program.id}>
-                  {program.name}
+              <option value={0}>Të gjithë profesorët</option>
+              {professors.map((professor: Professor) => (
+                <option key={professor.id} value={professor.id}>
+                  {professor.firstName} {professor.lastName}
+                </option>
+              ))}
+            </select>
+
+            {/* Subject Filter */}
+            <select
+              value={subjectFilter}
+              onChange={(e) => setSubjectFilter(Number(e.target.value))}
+              className="block w-full rounded-md bg-white px-3 py-2 text-sm text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+            >
+              <option value={0}>Të gjitha lëndët</option>
+              {subjects.map((subject: Subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Class Filter */}
+            <select
+              value={classFilter}
+              onChange={(e) => setClassFilter(Number(e.target.value))}
+              className="block w-full rounded-md bg-white px-3 py-2 text-sm text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+            >
+              <option value={0}>Të gjitha klasat</option>
+              {classes.map((cls: Class) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Type Filter */}
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(Number(e.target.value))}
+              className="block w-full rounded-md bg-white px-3 py-2 text-sm text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+            >
+              <option value={0}>Të gjitha tipet</option>
+              {teachingTypes.map((type: TeachingType) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
                 </option>
               ))}
             </select>
           </div>
         </div>
-      </Card>
-
-      {/* Assignments List */}
-      <Card>
-        <div className="mb-4">
-          <h2 className="text-lg font-medium text-gray-900">
-            Lista e Caktimeve ({filteredAssignments.length})
-          </h2>
-        </div>
 
         {filteredAssignments.length === 0 ? (
           <Alert
             type="default"
-            title={searchTerm || programFilter ? "Nuk u gjetën caktime që përputhen me filtrat." : "Nuk ka caktime ende. Caktoni një profesor më sipër!"}
+            title={professorFilter || subjectFilter || classFilter || typeFilter ? "Nuk u gjetën caktime që përputhen me filtrat." : "Nuk ka caktime ende. Caktoni një profesor më sipër!"}
           />
         ) : (
           <div className="overflow-x-auto">

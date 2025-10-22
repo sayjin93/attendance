@@ -61,6 +61,7 @@ model TeachingType {
   id          Int                  @id @default(autoincrement())
   name        String               @unique
   assignments TeachingAssignment[]
+  lectures    Lecture[]
 }
 
 model Class {
@@ -83,14 +84,16 @@ model Student {
 }
 
 model Lecture {
-  id          Int          @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   date        DateTime
   professorId Int
-  professor   Professor    @relation(fields: [professorId], references: [id])
+  professor   Professor     @relation(fields: [professorId], references: [id])
   classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
+  class       Class         @relation(fields: [classId], references: [id])
   subjectId   Int
-  subject     Subject      @relation(fields: [subjectId], references: [id])
+  subject     Subject       @relation(fields: [subjectId], references: [id])
+  typeId      Int?
+  type        TeachingType? @relation(fields: [typeId], references: [id])
   attendance  Attendance[]
 }
 

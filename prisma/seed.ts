@@ -40,7 +40,7 @@ async function main() {
 
   // Insert TeachingType (Lecture & Seminar)
   await prisma.teachingType.createMany({
-    data: [{ name: "Lecture" }, { name: "Seminar" }],
+    data: [{ name: "Leksion" }, { name: "Seminar" }],
     skipDuplicates: true, // ✅ Prevents errors if they already exist
   });
   console.log("✅ TeachingType seeded successfully!");
@@ -236,6 +236,156 @@ async function main() {
     skipDuplicates: true, // ✅ Prevents errors if they already exist
   });
   console.log("✅ Subjects seeded successfully!");
+
+  // Insert TeachingAssignments (linking Professors with Subjects, Classes, and Types)
+  const teachingAssignments = [
+    // Jurgen Kruja teaching Database Theory to INF201 (Bachelor)
+    {
+      professorId: 2, // Jurgen Kruja
+      subjectId: 1, // Teori e bazave të të dhënave
+      classId: 1, // INF201
+      typeId: 1, // Leksion
+    },
+    {
+      professorId: 2,
+      subjectId: 1,
+      classId: 1,
+      typeId: 2, // Seminar
+    },
+    // Jurgen Kruja teaching Web Development to INF201 (Bachelor)
+    {
+      professorId: 2,
+      subjectId: 2, // Web Development
+      classId: 1, // INF201
+      typeId: 1, // Leksion
+    },
+    {
+      professorId: 2,
+      subjectId: 2,
+      classId: 1,
+      typeId: 2, // Seminar
+    },
+    // Jurgen Kruja teaching Database Design to Master classes
+    {
+      professorId: 2,
+      subjectId: 3, // Projektim dhe analizë e bazave të të dhënave
+      classId: 3, // INF (Master)
+      typeId: 1, // Leksion
+    },
+    {
+      professorId: 2,
+      subjectId: 3,
+      classId: 4, // IE (Master)
+      typeId: 1, // Leksion
+    },
+    // Jurgen Kruja teaching Web Development Advanced to Master classes
+    {
+      professorId: 2,
+      subjectId: 4, // Zhvillim webi: aplikime dhe programim
+      classId: 3, // INF (Master)
+      typeId: 1, // Leksion
+    },
+    {
+      professorId: 2,
+      subjectId: 4,
+      classId: 3,
+      typeId: 2, // Seminar
+    },
+    {
+      professorId: 2,
+      subjectId: 4,
+      classId: 5, // TI (Master)
+      typeId: 1, // Leksion
+    },
+  ];
+  await prisma.teachingAssignment.createMany({
+    data: teachingAssignments,
+    skipDuplicates: true,
+  });
+  console.log("✅ Teaching Assignments seeded successfully!");
+
+  // Insert Lectures
+  const lectures = [
+    // Database Theory Lectures for INF201
+    {
+      date: new Date("2025-01-15"),
+      professorId: 2,
+      classId: 1,
+      subjectId: 1,
+      typeId: 1, // Leksion
+    },
+    {
+      date: new Date("2025-01-17"),
+      professorId: 2,
+      classId: 1,
+      subjectId: 1,
+      typeId: 2, // Seminar
+    },
+    {
+      date: new Date("2025-01-22"),
+      professorId: 2,
+      classId: 1,
+      subjectId: 1,
+      typeId: 1, // Leksion
+    },
+    // Web Development Lectures for INF201
+    {
+      date: new Date("2025-01-20"),
+      professorId: 2,
+      classId: 1,
+      subjectId: 2,
+      typeId: 1, // Leksion
+    },
+    {
+      date: new Date("2025-01-25"),
+      professorId: 2,
+      classId: 1,
+      subjectId: 2,
+      typeId: 2, // Seminar
+    },
+    // Database Design Lectures for Master
+    {
+      date: new Date("2025-01-18"),
+      professorId: 2,
+      classId: 3, // INF Master
+      subjectId: 3,
+      typeId: 1, // Leksion
+    },
+    {
+      date: new Date("2025-01-19"),
+      professorId: 2,
+      classId: 4, // IE Master
+      subjectId: 3,
+      typeId: 1, // Leksion
+    },
+    // Advanced Web Development Lectures for Master
+    {
+      date: new Date("2025-01-21"),
+      professorId: 2,
+      classId: 3, // INF Master
+      subjectId: 4,
+      typeId: 1, // Leksion
+    },
+    {
+      date: new Date("2025-01-23"),
+      professorId: 2,
+      classId: 3,
+      subjectId: 4,
+      typeId: 2, // Seminar
+    },
+    {
+      date: new Date("2025-01-24"),
+      professorId: 2,
+      classId: 5, // TI Master
+      subjectId: 4,
+      typeId: 1, // Leksion
+    },
+  ];
+  await prisma.lecture.createMany({
+    data: lectures,
+    skipDuplicates: true,
+  });
+  console.log("✅ Lectures seeded successfully!");
 }
 
 main()

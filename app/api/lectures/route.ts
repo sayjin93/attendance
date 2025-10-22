@@ -52,6 +52,7 @@ export async function GET() {
           professor: { select: { id: true, firstName: true, lastName: true } },
           subject: { select: { id: true, name: true, code: true } },
           class: { select: { id: true, name: true } },
+          type: { select: { id: true, name: true } },
           attendance: { select: { id: true, status: true } },
         },
         orderBy: [{ date: 'desc' }],
@@ -62,6 +63,7 @@ export async function GET() {
         include: {
           subject: { select: { id: true, name: true, code: true } },
           class: { select: { id: true, name: true } },
+          type: { select: { id: true, name: true } },
           attendance: { select: { id: true, status: true } },
         },
         orderBy: [{ date: 'desc' }],
