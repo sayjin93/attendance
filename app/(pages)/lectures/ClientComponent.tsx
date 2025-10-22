@@ -370,7 +370,7 @@ export default function LecturesPageClient() {
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               lecture.type.name === 'Leksion' 
                                 ? 'bg-blue-100 text-blue-800' 
-                                : 'bg-purple-100 text-purple-800'
+                                : 'bg-green-100 text-green-800'
                             }`}>
                               {lecture.type.name}
                             </span>

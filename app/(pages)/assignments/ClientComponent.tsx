@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 
@@ -10,6 +10,7 @@ import { TeachingAssignment, Professor, Subject, Class, TeachingType } from "@/t
 
 //hooks
 import { fetchAssignments } from "@/hooks/fetchFunctions";
+import { deleteAssignment } from "@/hooks/functions";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -18,7 +19,9 @@ import { useNotify } from "@/contexts/NotifyContext";
 import Loader from "@/components/Loader";
 import Card from "@/components/Card";
 import Alert from "@/components/Alert";
+import Modal from "@/components/Modal";
 import AddAssignmentForm from "@/components/AddAssignmentForm";
+import EditAssignmentForm from "@/components/EditAssignmentForm";
 
 export default function AssignmentsPageClient({
   isAdmin,
@@ -27,6 +30,7 @@ export default function AssignmentsPageClient({
 }) {
   //#region constants
   const { showMessage } = useNotify();
+  const queryClient = useQueryClient();
   //#endregion
 
   //#region states
@@ -34,6 +38,7 @@ export default function AssignmentsPageClient({
   const [subjectFilter, setSubjectFilter] = useState<number>(0);
   const [classFilter, setClassFilter] = useState<number>(0);
   const [typeFilter, setTypeFilter] = useState<number>(0);
+  const [editingAssignment, setEditingAssignment] = useState<TeachingAssignment | null>(null);
   const [deletingAssignment, setDeletingAssignment] = useState<TeachingAssignment | null>(null);
   //#endregion
 
@@ -44,6 +49,26 @@ export default function AssignmentsPageClient({
     enabled: isAdmin === "true",
   });
   //#endregion
+
+  //#region mutations
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteAssignment(id),
+    onSuccess: () => {
+      showMessage("Caktimi u fshi me sukses!", "success");
+      queryClient.invalidateQueries({ queryKey: ["assignments"] });
+      setDeletingAssignment(null);
+    },
+    onError: (error: Error) => {
+      showMessage(error.message || "Gabim gjatë fshirjes së caktimit!", "error");
+    },
+  });
+  //#endregion
+
+  const handleDelete = () => {
+    if (deletingAssignment) {
+      deleteMutation.mutate(deletingAssignment.id);
+    }
+  };
 
   if (isLoading) return <Loader />;
   if (error) {
@@ -203,7 +228,11 @@ export default function AssignmentsPageClient({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        assignment.type?.name === 'Leksion'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}>
                         {assignment.type?.name}
                       </span>
                     </td>
@@ -221,15 +250,15 @@ export default function AssignmentsPageClient({
                         {isAdmin === "true" && (
                           <>
                             <button
-                              onClick={() => {/* TODO: Edit functionality */ }}
-                              className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                              onClick={() => setEditingAssignment(assignment)}
+                              className="text-blue-600 hover:text-blue-900 p-1 rounded cursor-pointer"
                               title="Modifiko caktim"
                             >
                               <PencilIcon className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => setDeletingAssignment(assignment)}
-                              className="text-red-600 hover:text-red-900 p-1 rounded"
+                              className="text-red-600 hover:text-red-900 p-1 rounded cursor-pointer"
                               title="Fshi caktim"
                             >
                               <TrashIcon className="h-4 w-4" />
@@ -246,7 +275,25 @@ export default function AssignmentsPageClient({
         )}
       </Card>
 
-      {/* Delete Confirmation Modal - TODO: Implement delete functionality */}
+      {/* Edit Assignment Modal */}
+      {editingAssignment && (
+        <Modal
+          isOpen={!!editingAssignment}
+          onClose={() => setEditingAssignment(null)}
+          title="Modifiko Caktimin"
+        >
+          <EditAssignmentForm
+            assignment={editingAssignment}
+            professors={professors}
+            subjects={subjects}
+            classes={classes}
+            teachingTypes={teachingTypes}
+            onClose={() => setEditingAssignment(null)}
+          />
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Modal */}
       {deletingAssignment && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -272,19 +319,17 @@ export default function AssignmentsPageClient({
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setDeletingAssignment(null)}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  disabled={deleteMutation.isPending}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   Anulo
                 </button>
                 <button
-                  onClick={() => {
-                    // TODO: Implement delete functionality
-                    setDeletingAssignment(null);
-                    showMessage("Funksionaliteti i fshirjes do të implementohet së shpejti!", "default");
-                  }}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  onClick={handleDelete}
+                  disabled={deleteMutation.isPending}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
                 >
-                  Fshi
+                  {deleteMutation.isPending ? "Duke fshirë..." : "Fshi"}
                 </button>
               </div>
             </div>

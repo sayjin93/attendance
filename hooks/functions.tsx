@@ -19,3 +19,37 @@ export const formatDate = (dateString: string): string => {
 export const classNames = (...classes: (string | false | null | undefined)[]): string => {
     return classes.filter(Boolean).join(" ");
 }
+
+// Assignment functions
+export const updateAssignment = async (id: number, data: {
+    professorId: number;
+    subjectId: number;
+    classId: number;
+    typeId: number;
+}) => {
+    const response = await fetch(`/api/assignments/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Gabim gjatë përditësimit të caktimit");
+    }
+
+    return response.json();
+};
+
+export const deleteAssignment = async (id: number) => {
+    const response = await fetch(`/api/assignments/${id}`, {
+        method: "DELETE",
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Gabim gjatë fshirjes së caktimit");
+    }
+
+    return response.json();
+};
