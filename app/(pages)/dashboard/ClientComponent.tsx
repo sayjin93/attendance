@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  AcademicCapIcon, 
-  BookOpenIcon, 
+import CountUp from "react-countup";
+import {
+  AcademicCapIcon,
+  BookOpenIcon,
   ClipboardDocumentListIcon,
-  FolderIcon, 
+  FolderIcon,
   UsersIcon,
   CalendarIcon,
   DocumentDuplicateIcon,
@@ -14,7 +15,6 @@ import {
 
 //components
 import Card from "@/components/Card";
-import Loader from "@/components/Loader";
 
 interface DashboardStats {
   classes: number;
@@ -32,7 +32,7 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ fullName, isAdmin }: DashboardClientProps) {
   // Fetch dashboard statistics
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
+  const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["dashboardStats"],
     queryFn: async () => {
       const response = await fetch("/api/dashboard/stats");
@@ -120,64 +120,84 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
       </div>
 
       {/* Statistics */}
-      {isLoading ? (
-        <Loader />
-      ) : stats ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {isAdmin && (
-            <>
-              <Card>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {stats.classes}
-                  </div>
-                  <div className="text-sm text-gray-600">Klasa Totale</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {isAdmin && (
+          <>
+            <Card>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats ? (
+                    <CountUp end={stats.classes} duration={1.5} />
+                  ) : (
+                    0
+                  )}
                 </div>
-              </Card>
-              <Card>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {stats.students}
-                  </div>
-                  <div className="text-sm text-gray-600">Studentë Totalë</div>
-                </div>
-              </Card>
-              <Card>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-indigo-600">
-                    {stats.professors}
-                  </div>
-                  <div className="text-sm text-gray-600">Profesorë Totalë</div>
-                </div>
-              </Card>
-              <Card>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-teal-600">
-                    {stats.subjects}
-                  </div>
-                  <div className="text-sm text-gray-600">Kurse Totale</div>
-                </div>
-              </Card>
-              <Card>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-cyan-600">
-                    {stats.assignments}
-                  </div>
-                  <div className="text-sm text-gray-600">Caktime Aktive</div>
-                </div>
-              </Card>
-            </>
-          )}
-          <Card>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {stats.lectures}
+                <div className="text-sm text-gray-600">Klasa Totale</div>
               </div>
-              <div className="text-sm text-gray-600">Leksione Totale</div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {stats ? (
+                    <CountUp end={stats.students} duration={1.5} />
+                  ) : (
+                    0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Studentë Totalë</div>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-indigo-600">
+                  {stats ? (
+                    <CountUp end={stats.professors} duration={1.5} />
+                  ) : (
+                    0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Profesorë Totalë</div>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-teal-600">
+                  {stats ? (
+                    <CountUp end={stats.subjects} duration={1.5} />
+                  ) : (
+                    0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Kurse Totale</div>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-cyan-600">
+                  {stats ? (
+                    <CountUp end={stats.assignments} duration={1.5} />
+                  ) : (
+                    0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Caktime Aktive</div>
+              </div>
+            </Card>
+          </>
+        )}
+        <Card>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-purple-600">
+              {stats ? (
+                <CountUp end={stats.lectures} duration={1.5} />
+              ) : (
+                0
+              )}
             </div>
-          </Card>
-        </div>
-      ) : null}
+            <div className="text-sm text-gray-600">Leksione Totale</div>
+          </div>
+        </Card>
+      </div>
 
       {/* Admin Actions */}
       {isAdmin && (
