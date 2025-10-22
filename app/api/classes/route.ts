@@ -32,6 +32,11 @@ export async function GET(req: Request) {
     // Build include options
     const includeOptions = {
       program: true,
+      teachingAssignments: {
+        include: {
+          subject: true, // Include subject info for each assignment
+        },
+      },
       ...(includeStudents && { students: true }),
       ...(includeLectures && {
         lectures: {

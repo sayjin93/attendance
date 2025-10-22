@@ -86,18 +86,46 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   // Function to render class cards
-  const renderClassCard = (classItem: Class) => (
-    <div
-      key={classItem.id}
-      className="relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-    >
-      <div className="p-4 text-center">
-        <h2 className="text-xl font-semibold">{classItem.name}</h2>
-        <p className="text-gray-600 text-sm">
-          {classItem.program?.name || "No Program"}
-        </p>
+  const renderClassCard = (classItem: Class) => {
+    // Extract unique subjects from teaching assignments
+    const uniqueSubjects = classItem.teachingAssignments
+      ? Array.from(
+          new Map(
+            classItem.teachingAssignments
+              .filter((ta) => ta.subject)
+              .map((ta) => [ta.subject!.id, ta.subject!])
+          ).values()
+        )
+      : [];
+
+    return (
+      <div
+        key={classItem.id}
+        className="relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
+      >
+        <div className="p-4 text-center">
+          <h2 className="text-xl font-semibold">{classItem.name}</h2>
+          
+          {/* Display subjects instead of program */}
+          <div className="mt-2 mb-3">
+            {uniqueSubjects.length > 0 ? (
+              <div className="flex flex-wrap gap-1 justify-center">
+                {uniqueSubjects.map((subject) => (
+                  <span
+                    key={subject.id}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                  >
+                    {subject.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-xs italic">Nuk ka kurse</p>
+            )}
+          </div>
         
-        {isAdmin === "true" && (
+        
+          {isAdmin === "true" && (
           <div className="flex justify-center gap-2 mt-3">
             <button
               onClick={() => setEditingClass(classItem)}
@@ -118,12 +146,11 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
               </svg>
             </button>
           </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
-
-  return (
+    );
+  };  return (
     <div className="flex flex-col gap-4">
       {/* Forma për shtimin e klasave */}
       <Card title="Shto klasë">

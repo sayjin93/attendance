@@ -31,6 +31,7 @@ export interface Class {
   programId: number;
   program?: Program;
   students?: Student[];
+  teachingAssignments?: TeachingAssignment[];
 }
 
 export interface Student {
