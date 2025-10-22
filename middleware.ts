@@ -20,6 +20,15 @@ export async function middleware(req: Request) {
       new TextEncoder().encode(SECRET_KEY)
     );
 
+    // Check if non-admin professor is trying to access admin-only pages
+    const url = new URL(req.url);
+    const adminOnlyPaths = ['/classes', '/students', '/professors', '/subjects', '/assignments'];
+    const isAdminOnlyPath = adminOnlyPaths.some(path => url.pathname.startsWith(path));
+    
+    if (isAdminOnlyPath && !payload.isAdmin) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
     // Attach decoded info as custom headers
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set("X-Professor-Id", String(payload.professorId));
