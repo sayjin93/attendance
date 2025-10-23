@@ -47,25 +47,24 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   try {
-    debugger;
-    const { firstName, lastName, classId, professorId } = await req.json();
+    const { firstName, lastName, email, classId } = await req.json();
 
-    if (!professorId || !classId || !firstName || !lastName) {
+    if (!classId || !firstName || !lastName || !email) {
       return NextResponse.json(
         { error: "❌ All fields are required!" },
         { status: 400 }
       );
     }
 
-    // ✅ Ensure professor owns the class before adding a student
+    // ✅ Ensure class exists before adding a student
     const classExists = await prisma.class.findFirst({
       where: { id: classId },
     });
 
     if (!classExists) {
       return NextResponse.json(
-        { error: "❌ You cannot add students to a class you do not own!" },
-        { status: 403 }
+        { error: "❌ Class not found!" },
+        { status: 404 }
       );
     }
 
@@ -76,11 +75,24 @@ export async function POST(req: Request) {
     const formattedFirstName = formatName(firstName);
     const formattedLastName = formatName(lastName);
 
+    // ✅ Check if email already exists
+    const existingStudent = await prisma.student.findUnique({
+      where: { email },
+    });
+
+    if (existingStudent) {
+      return NextResponse.json(
+        { error: "❌ A student with this email already exists!" },
+        { status: 409 }
+      );
+    }
+
     const newStudent = await prisma.student.create({
       data: {
         firstName: formattedFirstName,
         lastName: formattedLastName,
-        classId,
+        email: email.toLowerCase().trim(),
+        classId: classId,
       },
     });
 
