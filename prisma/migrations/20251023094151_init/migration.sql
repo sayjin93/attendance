@@ -68,8 +68,10 @@ CREATE TABLE `Student` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `firstName` VARCHAR(191) NOT NULL,
     `lastName` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
     `classId` INTEGER NOT NULL,
 
+    UNIQUE INDEX `Student_email_key`(`email`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -80,6 +82,7 @@ CREATE TABLE `Lecture` (
     `professorId` INTEGER NOT NULL,
     `classId` INTEGER NOT NULL,
     `subjectId` INTEGER NOT NULL,
+    `typeId` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -123,6 +126,9 @@ ALTER TABLE `Lecture` ADD CONSTRAINT `Lecture_classId_fkey` FOREIGN KEY (`classI
 
 -- AddForeignKey
 ALTER TABLE `Lecture` ADD CONSTRAINT `Lecture_subjectId_fkey` FOREIGN KEY (`subjectId`) REFERENCES `Subject`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Lecture` ADD CONSTRAINT `Lecture_typeId_fkey` FOREIGN KEY (`typeId`) REFERENCES `TeachingType`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Attendance` ADD CONSTRAINT `Attendance_studentId_fkey` FOREIGN KEY (`studentId`) REFERENCES `Student`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -7,8 +7,10 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "clean-install": "npx rimraf node_modules package-lock.json && npm install",
-    "db:seed": "tsx prisma/seed.ts"
+    "clean-install": "npx rimraf node_modules package-lock.json && npm install"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -31,7 +33,6 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.1.15",
-    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^24.9.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",

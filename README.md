@@ -5,6 +5,7 @@ A modern, full-stack attendance management system built for educational institut
 ## 🌟 Features
 
 ### For Administrators
+
 - **Complete CRUD Operations**: Manage classes, students, professors, subjects, and teaching assignments
 - **Program Management**: Handle multiple academic programs (Bachelor, Master)
 - **Subject & Course Management**: Create and assign subjects with unique codes
@@ -13,6 +14,7 @@ A modern, full-stack attendance management system built for educational institut
 - **Comprehensive Reports**: Generate detailed attendance reports with PDF export
 
 ### For Professors
+
 - **Lecture Management**: Create and manage lectures for assigned subjects
 - **Attendance Tracking**: Mark student attendance with three statuses:
   - ✅ **PRESENT** - Student attended the lecture
@@ -22,6 +24,7 @@ A modern, full-stack attendance management system built for educational institut
 - **Student Reports**: Access attendance data for assigned classes
 
 ### General Features
+
 - 🔐 **Secure Authentication**: JWT-based authentication with HTTP-only cookies
 - 🎨 **Modern UI**: Clean, responsive interface with Albanian language support
 - 📊 **Data Visualization**: Interactive charts using Chart.js
@@ -33,6 +36,7 @@ A modern, full-stack attendance management system built for educational institut
 ### Tech Stack
 
 **Frontend**
+
 - [Next.js 16](https://nextjs.org/) - React framework with App Router
 - [React 19](https://react.dev/) - UI library
 - [TypeScript 5](https://www.typescriptlang.org/) - Type safety
@@ -44,12 +48,14 @@ A modern, full-stack attendance management system built for educational institut
 - [Framer Motion 12](https://www.framer.com/motion/) - Animations
 
 **Backend**
+
 - [Prisma ORM 6](https://www.prisma.io/) - Database toolkit
 - [MySQL](https://www.mysql.com/) - Relational database
 - [jose](https://github.com/panva/jose) - JWT implementation
 - [bcryptjs](https://github.com/dcodeIO/bcrypt.js) - Password hashing
 
 **Development Tools**
+
 - [Turbopack](https://turbo.build/pack) - Fast bundler
 - [ESLint 9](https://eslint.org/) - Code linting
 - [tsx](https://github.com/esbuild-kit/tsx) - TypeScript execution
@@ -57,7 +63,9 @@ A modern, full-stack attendance management system built for educational institut
 ### Architecture Patterns
 
 #### Hybrid SSR/Client Pattern
+
 The application uses a hybrid rendering approach:
+
 - **Server Components**: Fetch authentication data and initial page data
 - **Client Components**: Handle user interactions and client-side state
 - **Data Flow**: Server → Client Component props → TanStack Query hooks
@@ -66,16 +74,24 @@ The application uses a hybrid rendering approach:
 // Server Layout (app/(pages)/layout.tsx)
 export default async function RootLayout({ children }) {
   const { professorId, isAdmin } = await getAuthHeaders();
-  return <ClientLayout professorId={professorId} isAdmin={isAdmin}>{children}</ClientLayout>;
+  return (
+    <ClientLayout professorId={professorId} isAdmin={isAdmin}>
+      {children}
+    </ClientLayout>
+  );
 }
 
 // Client Component
 export default function PageClient({ professorId }: { professorId: string }) {
-  const { data } = useQuery({ queryKey: ["data", professorId], queryFn: fetchData });
+  const { data } = useQuery({
+    queryKey: ["data", professorId],
+    queryFn: fetchData,
+  });
 }
 ```
 
 #### Authentication Flow
+
 1. **Login**: User credentials → `/api/auth/login` → JWT stored in HTTP-only cookie
 2. **Middleware**: `proxy.ts` validates JWT, injects auth headers (`X-Professor-Id`, `X-Is-Admin`)
 3. **Server Auth**: `getAuthHeaders()` extracts auth from headers in Server Components
@@ -93,6 +109,7 @@ Attendance  ←   Student
 ```
 
 **Key Models**:
+
 - **Professor**: User accounts with admin flag
 - **Program**: Academic programs (Bachelor/Master)
 - **Subject**: Courses with unique codes
@@ -105,6 +122,7 @@ Attendance  ←   Student
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm/yarn
 - MySQL database server
 - Git
@@ -112,18 +130,21 @@ Attendance  ←   Student
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/sayjin93/attendance.git
    cd attendance
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Configure environment variables**
    Create a `.env` file in the root directory:
+
    ```env
    DATABASE_URL="mysql://username:password@localhost:3306/attendance"
    SHADOW_DATABASE_URL="mysql://username:password@localhost:3306/attendance_shadow"
@@ -131,18 +152,26 @@ Attendance  ←   Student
    ```
 
 4. **Set up the database**
+
    ```bash
-   # Push schema to database
-   npx prisma db push
-   
    # Generate Prisma Client
    npx prisma generate
-   
+
+   # Push schema to database
+   npx prisma db push
+
+   # Migrationn example
+   npx prisma migrate dev --name init
+
+   # Reset DB
+   npx prisma migrate reset --force
+
    # Seed initial data (optional)
-   npm run db:seed
+   npx tsx prisma/seed.ts
    ```
 
 5. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -151,7 +180,9 @@ Attendance  ←   Student
    Navigate to [http://localhost:9900](http://localhost:9900)
 
 ### Default Admin Credentials (After Seeding)
+
 After running the seed script, use these credentials to log in:
+
 - **Username**: Set in `prisma/seed.ts`
 - **Password**: Set in `prisma/seed.ts`
 
@@ -219,11 +250,11 @@ attendance/
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | MySQL connection string | Yes |
-| `SHADOW_DATABASE_URL` | Shadow database for migrations | Yes |
-| `SECRET_KEY` | JWT signing secret | Yes |
+| Variable              | Description                    | Required |
+| --------------------- | ------------------------------ | -------- |
+| `DATABASE_URL`        | MySQL connection string        | Yes      |
+| `SHADOW_DATABASE_URL` | Shadow database for migrations | Yes      |
+| `SECRET_KEY`          | JWT signing secret             | Yes      |
 
 ### Application Settings
 
@@ -277,17 +308,20 @@ npx prisma migrate reset
 ### Adding a New Feature
 
 1. **Update Database Schema** (if needed)
+
    - Edit `prisma/schema.prisma`
    - Run `npx prisma db push`
    - Run `npx prisma generate`
    - Add TypeScript types to `types.ts`
 
 2. **Create API Endpoints**
+
    - Create route file in `app/api/[feature]/route.ts`
    - Implement authentication with `authenticateRequest()`
    - Add role-based access control
 
 3. **Create UI Components**
+
    - Add page in `app/(pages)/[feature]/page.tsx` (Server Component)
    - Add client component in `app/(pages)/[feature]/ClientComponent.tsx`
    - Create forms in `components/Add[Feature]Form.tsx` and `components/Edit[Feature]Form.tsx`
@@ -301,9 +335,11 @@ npx prisma migrate reset
 ### Authentication
 
 #### POST `/api/auth/login`
+
 Login with username and password.
 
 **Request Body**:
+
 ```json
 {
   "username": "string",
@@ -312,6 +348,7 @@ Login with username and password.
 ```
 
 **Response**:
+
 ```json
 {
   "professorId": 1,
@@ -322,73 +359,91 @@ Login with username and password.
 ```
 
 #### POST `/api/auth/logout`
+
 Logout and clear session cookie.
 
 ### Professors (Admin Only)
 
 #### GET `/api/professors`
+
 Get all professors.
 
 #### POST `/api/professors`
+
 Create a new professor.
 
 #### PUT `/api/professors/[id]`
+
 Update professor details.
 
 #### DELETE `/api/professors/[id]`
+
 Delete a professor.
 
 ### Classes (Admin Only)
 
 #### GET `/api/classes`
+
 Get all classes with program and student details.
 
 #### POST `/api/classes`
+
 Create a new class.
 
 ### Students (Admin Only)
 
 #### GET `/api/students`
+
 Get all students with class details.
 
 #### POST `/api/students`
+
 Create a new student.
 
 ### Subjects (Admin Only)
 
 #### GET `/api/subjects`
+
 Get all subjects with program details.
 
 #### POST `/api/subjects`
+
 Create a new subject.
 
 ### Teaching Assignments (Admin Only)
 
 #### GET `/api/assignments`
+
 Get all teaching assignments.
 
 #### POST `/api/assignments`
+
 Create a teaching assignment.
 
 ### Lectures
 
 #### GET `/api/lectures`
+
 Get lectures (filtered by professor if not admin).
 
 #### POST `/api/lectures`
+
 Create a new lecture.
 
 ### Attendance
 
 #### GET `/api/attendance`
+
 Get attendance records.
 
 #### POST `/api/attendance`
+
 Mark attendance for students.
 
 ### Reports
 
 #### POST `/api/reports`
+
 Generate attendance report.
 
 ## 🌐 Internationalization
@@ -491,6 +546,7 @@ This project is private and proprietary. All rights reserved.
 ## 👨‍💻 Author
 
 **sayjin93**
+
 - GitHub: [@sayjin93](https://github.com/sayjin93)
 
 ## 🙏 Acknowledgments
