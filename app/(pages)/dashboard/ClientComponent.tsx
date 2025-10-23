@@ -120,7 +120,7 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {isAdmin && (
           <>
             <Card>
@@ -202,7 +202,7 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
       {/* Admin Actions */}
       {isAdmin && (
         <Card title="Veprime Administruese">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {adminActions.map((action) => (
               <Link
                 key={action.name}
@@ -224,7 +224,7 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
 
       {/* Professor Actions */}
       <Card title={isAdmin ? "Veprime Profesori" : "Veprimet Tuaja"}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {professorActions.map((action) => (
             <Link
               key={action.name}

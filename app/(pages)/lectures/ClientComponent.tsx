@@ -236,46 +236,93 @@ export default function LecturesPageClient() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-      {/* Search */}
-      <div className="flex-1">
-        <input
-          type="text"
-          placeholder="Kërkoni sipas lëndës, klases, profesorit ose tipit..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-      
-      {/* Group By Dropdown */}
-      <div className="flex gap-2 items-center">
-        <Squares2X2Icon className="w-5 h-5 text-gray-500" />
-        <select
-          value={groupBy}
-          onChange={(e) => setGroupBy(e.target.value as typeof groupBy)}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="none">Pa grupim</option>
-          <option value="subject">Grupo sipas Lëndës</option>
-          <option value="class">Grupo sipas Klasës</option>
-          {isAdmin && <option value="professor">Grupo sipas Profesorit</option>}
-          <option value="type">Grupo sipas Tipit</option>
-        </select>
-      </div>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
-        >
-          <PlusIcon className="w-4 h-4" />
-          Shto Leksion
-        </button>
+      <div className="space-y-4">
+        {/* Mobile Layout - 2 rows */}
+        <div className="block md:hidden space-y-3">
+          {/* Row 1: Search - Full width */}
+          <div className="w-full">
+            <input
+              type="text"
+              placeholder="Kërkoni sipas lëndës, klases, profesorit ose tipit..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          {/* Row 2: Group dropdown and Add button - 2 columns */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Column 1: Group By Dropdown */}
+            <div className="flex gap-2 items-center">
+              <Squares2X2Icon className="w-5 h-5 text-gray-500 shrink-0" />
+              <select
+                value={groupBy}
+                onChange={(e) => setGroupBy(e.target.value as typeof groupBy)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="none">Pa grupim</option>
+                <option value="subject">Grupo sipas Lëndës</option>
+                <option value="class">Grupo sipas Klasës</option>
+                {isAdmin && <option value="professor">Grupo sipas Profesorit</option>}
+                <option value="type">Grupo sipas Tipit</option>
+              </select>
+            </div>
+            
+            {/* Column 2: Add Button */}
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <PlusIcon className="w-4 h-4" />
+              <span>Shto Leksion</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Layout - 1 row with 4 columns */}
+        <div className="hidden md:grid md:grid-cols-4 gap-4 items-center">
+          {/* Columns 1-2: Search - Takes 2 columns */}
+          <div className="col-span-2">
+            <input
+              type="text"
+              placeholder="Kërkoni sipas lëndës, klases, profesorit ose tipit..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          {/* Column 3: Group By Dropdown */}
+          <div className="flex gap-2 items-center">
+            <Squares2X2Icon className="w-5 h-5 text-gray-500 shrink-0" />
+            <select
+              value={groupBy}
+              onChange={(e) => setGroupBy(e.target.value as typeof groupBy)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="none">Pa grupim</option>
+              <option value="subject">Grupo sipas Lëndës</option>
+              <option value="class">Grupo sipas Klasës</option>
+              {isAdmin && <option value="professor">Grupo sipas Profesorit</option>}
+              <option value="type">Grupo sipas Tipit</option>
+            </select>
+          </div>
+          
+          {/* Column 4: Add Button */}
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors w-full"
+          >
+            <PlusIcon className="w-4 h-4" />
+            <span>Shto Leksion</span>
+          </button>
+        </div>
       </div>
 
 
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
@@ -420,14 +467,14 @@ export default function LecturesPageClient() {
                               <>
                                 <button
                                   onClick={() => handleEdit(lecture)}
-                                  className="text-indigo-600 hover:text-indigo-900 p-1"
+                                  className="text-indigo-600 hover:text-indigo-900 p-1 cursor-pointer"
                                   title="Redakto"
                                 >
                                   <PencilIcon className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(lecture)}
-                                  className="text-red-600 hover:text-red-900 p-1"
+                                  className="text-red-600 hover:text-red-900 p-1 cursor-pointer"
                                   title="Fshi"
                                 >
                                   <TrashIcon className="w-4 h-4" />

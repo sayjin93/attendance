@@ -238,14 +238,14 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                                             <div className="flex space-x-2">
                                                 <button
                                                     onClick={() => setEditingProfessor(professor)}
-                                                    className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                                                    className="text-blue-600 hover:text-blue-900 p-1 rounded cursor-pointer"
                                                     title="Modifiko profesor"
                                                 >
                                                     <PencilIcon className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => setDeletingProfessor(professor)}
-                                                    className="text-red-600 hover:text-red-900 p-1 rounded"
+                                                    className="text-red-600 hover:text-red-900 p-1 rounded cursor-pointer"
                                                     title="Fshi profesor"
                                                 >
                                                     <TrashIcon className="h-4 w-4" />

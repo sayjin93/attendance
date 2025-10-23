@@ -229,7 +229,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
       </Card>
 
       {/* Students List */}
-      <Card title="Lista e studentëve">
+      <Card title={`Lista e studentëve ${selectedClass ? `- ${selectedClass.name}` : ''}`}>
         {studentsLoading ? (
           <Loader />
         ) : studentsError ? (
@@ -239,42 +239,87 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
         ) : studentsData?.length === 0 ? (
           <Alert title="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!" />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {studentsData?.map((student: Student) => (
-              <div
-                key={student.id}
-                className="relative w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-              >
-                <div className="p-4 text-center">
-                  <h2 className="text-xl font-semibold">
-                    {student.firstName + " " + student.lastName}
-                  </h2>
-                  
-                  {isAdmin === "true" && (
-                    <div className="flex justify-center gap-2 mt-3">
-                      <button
-                        onClick={() => setEditingStudent(student)}
-                        className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        title="Modifiko studentin"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setDeletingStudent(student)}
-                        className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        title="Fshi studentin"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
+          <div className="mt-6">
+            <div className="overflow-hidden bg-white shadow-sm border border-gray-200 rounded-lg">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        #
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Emri
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Mbiemri
+                      </th>
+                      {isAdmin === "true" && (
+                        <th scope="col" className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Veprime
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {studentsData?.map((student: Student, index: number) => (
+                      <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-150">
+                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                          {index + 1}
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {student.firstName}
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {student.lastName}
+                          </div>
+                        </td>
+                        {isAdmin === "true" && (
+                          <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => setEditingStudent(student)}
+                                className="inline-flex items-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-150 cursor-pointer"
+                                title="Modifiko studentin"
+                              >
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Ndrysho
+                              </button>
+                              <button
+                                onClick={() => setDeletingStudent(student)}
+                                className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+                                title="Fshi studentin"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Student count footer */}
+              <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span>Gjithsej {studentsData?.length} student{studentsData?.length !== 1 ? 'ë' : ''}</span>
+                  {selectedClass && (
+                    <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">
+                      {selectedClass.name}
+                    </span>
                   )}
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         )}
       </Card>

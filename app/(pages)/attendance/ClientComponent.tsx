@@ -314,50 +314,47 @@ export default function AttendancePageClient({
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Statistics */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-linear-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-3xl font-bold text-green-700">
-                        {students.filter(s => s.status === AttendanceStatus.PRESENT).length}
-                      </div>
-                      <div className="text-sm font-medium text-green-600 mt-1">Prezente</div>
-                    </div>
-                    <div className="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {/* Statistics - Responsive Layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                {/* Prezente */}
+                <div className="bg-linear-to-br from-green-50 to-green-100 p-4 sm:p-6 rounded-xl border border-green-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
+                  <div className="flex flex-row items-center gap-3 sm:flex-col sm:items-center sm:gap-2 w-full">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-200 rounded-full flex items-center justify-center mr-2 sm:mr-0">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
+                    <div className="flex flex-col items-start sm:items-center">
+                      <div className="text-2xl sm:text-3xl font-bold text-green-700">{students.filter(s => s.status === AttendanceStatus.PRESENT).length}</div>
+                      <div className="text-xs sm:text-sm font-medium text-green-600 mt-1">Prezente</div>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-linear-to-br from-red-50 to-red-100 p-6 rounded-xl border border-red-200 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-3xl font-bold text-red-700">
-                        {students.filter(s => s.status === AttendanceStatus.ABSENT).length}
-                      </div>
-                      <div className="text-sm font-medium text-red-600 mt-1">Mungesë</div>
-                    </div>
-                    <div className="w-12 h-12 bg-red-200 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {/* Mungesë */}
+                <div className="bg-linear-to-br from-red-50 to-red-100 p-4 sm:p-6 rounded-xl border border-red-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
+                  <div className="flex flex-row items-center gap-3 sm:flex-col sm:items-center sm:gap-2 w-full">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-200 rounded-full flex items-center justify-center mr-2 sm:mr-0">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
+                    <div className="flex flex-col items-start sm:items-center">
+                      <div className="text-2xl sm:text-3xl font-bold text-red-700">{students.filter(s => s.status === AttendanceStatus.ABSENT).length}</div>
+                      <div className="text-xs sm:text-sm font-medium text-red-600 mt-1">Mungesë</div>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-linear-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-3xl font-bold text-blue-700">
-                        {students.filter(s => s.status === AttendanceStatus.PARTICIPATED).length}
-                      </div>
-                      <div className="text-sm font-medium text-blue-600 mt-1">Aktivizuar</div>
-                    </div>
-                    <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {/* Aktivizuar */}
+                <div className="bg-linear-to-br from-blue-50 to-blue-100 p-4 sm:p-6 rounded-xl border border-blue-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
+                  <div className="flex flex-row items-center gap-3 sm:flex-col sm:items-center sm:gap-2 w-full">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-200 rounded-full flex items-center justify-center mr-2 sm:mr-0">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
                       </svg>
+                    </div>
+                    <div className="flex flex-col items-start sm:items-center">
+                      <div className="text-2xl sm:text-3xl font-bold text-blue-700">{students.filter(s => s.status === AttendanceStatus.PARTICIPATED).length}</div>
+                      <div className="text-xs sm:text-sm font-medium text-blue-600 mt-1">Aktivizuar</div>
                     </div>
                   </div>
                 </div>
