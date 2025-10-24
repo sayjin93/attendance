@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import CountUp from "react-countup";
 import {
@@ -16,6 +17,11 @@ import {
 //components
 import Card from "@/components/Card";
 
+interface TeachingType {
+  id: number;
+  name: string;
+}
+
 interface DashboardStats {
   classes: number;
   students: number;
@@ -23,6 +29,9 @@ interface DashboardStats {
   subjects: number;
   assignments: number;
   lectures: number;
+  attendance?: number;
+  assignmentClasses?: Array<{ id: number; name: string; types: TeachingType[] }>;
+  subjectList?: Array<{ id: number; name: string; code: string; types: TeachingType[] }>;
 }
 
 interface DashboardClientProps {
@@ -31,6 +40,17 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ fullName, isAdmin }: DashboardClientProps) {
+  // Tooltip state
+  const [tooltipData, setTooltipData] = useState<{
+    show: boolean;
+    content: string;
+    position: { x: number; y: number };
+  }>({
+    show: false,
+    content: "",
+    position: { x: 0, y: 0 }
+  });
+
   // Fetch dashboard statistics
   const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["dashboardStats"],
@@ -42,6 +62,44 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
       return response.json();
     },
   });
+
+  // Color palette for labels
+  const labelColors = [
+    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+    { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
+    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+    { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+    { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  ];
+
+  const getLabelColor = (id: number) => {
+    return labelColors[id % labelColors.length];
+  };
+
+  const formatTeachingTypes = (types: TeachingType[]) => {
+    if (!types || types.length === 0) return "Nuk ka tip";
+    return types.map(type => type.name).join(", ");
+  };
+
+  // Tooltip handlers
+  const handleTooltipShow = (event: React.MouseEvent, content: string) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltipData({
+      show: true,
+      content,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top - 10
+      }
+    });
+  };
+
+  const handleTooltipHide = () => {
+    setTooltipData(prev => ({ ...prev, show: false }));
+  };
 
   const adminActions = [
     {
@@ -115,7 +173,7 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
         <p className="text-gray-600 mt-1">
           {isAdmin
             ? "Menaxhoni të gjithë sistemin e prezencës"
-            : "Menaxhoni klasat, studentët dhe leksionet tuaja"}
+            : "Menaxhoni leksionet, listëprezencat dhe gjeneroni raporte"}
         </p>
       </div>
 
@@ -185,18 +243,148 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
             </Card>
           </>
         )}
-        <Card>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {stats ? (
-                <CountUp end={stats.lectures} duration={1.5} />
-              ) : (
-                0
-              )}
+        
+        {/* Professor Statistics - Show for non-admin users */}
+        {!isAdmin && (
+          <>
+            {/* Row 1: Assignments and Subjects */}
+            <div className="col-span-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* My Assignments Card - Shows Classes */}
+                <Card>
+                  <div className="p-2">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <div className="text-2xl font-bold text-cyan-600">
+                          {stats ? (
+                            <CountUp end={stats.assignments || 0} duration={1.5} />
+                          ) : (
+                            0
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">Caktimet e Mia</div>
+                      </div>
+                      <ClipboardDocumentListIcon className="w-8 h-8 text-cyan-600" />
+                    </div>
+                    <div className="min-h-16">
+                      {stats?.assignmentClasses && stats.assignmentClasses.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {stats.assignmentClasses.map((cls) => {
+                            const colors = getLabelColor(cls.id);
+                            const typesText = formatTeachingTypes(cls.types);
+                            return (
+                              <span
+                                key={cls.id}
+                                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border} cursor-help`}
+                                onMouseEnter={(e) => handleTooltipShow(e, typesText)}
+                                onMouseLeave={handleTooltipHide}
+                              >
+                                {cls.name}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center py-2">
+                          <span className="text-xs text-gray-400 italic">Nuk ka caktime</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+
+                {/* My Subjects Card - Shows Subjects */}
+                <Card>
+                  <div className="p-2">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <div className="text-2xl font-bold text-teal-600">
+                          {stats ? (
+                            <CountUp end={stats.subjects || 0} duration={1.5} />
+                          ) : (
+                            0
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">Kurset e Mia</div>
+                      </div>
+                      <BookOpenIcon className="w-8 h-8 text-teal-600" />
+                    </div>
+                    <div className="min-h-16">
+                      {stats?.subjectList && stats.subjectList.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {stats.subjectList.map((subject) => {
+                            const colors = getLabelColor(subject.id);
+                            const typesText = formatTeachingTypes(subject.types);
+                            return (
+                              <span
+                                key={subject.id}
+                                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border} cursor-help`}
+                                onMouseEnter={(e) => handleTooltipShow(e, typesText)}
+                                onMouseLeave={handleTooltipHide}
+                              >
+                                {subject.name}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center py-2">
+                          <span className="text-xs text-gray-400 italic">Nuk ka kurse</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">Leksione Totale</div>
-          </div>
-        </Card>
+
+            {/* Row 2: Lectures and Attendance */}
+            <div className="col-span-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Card>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {stats ? (
+                        <CountUp end={stats.lectures} duration={1.5} />
+                      ) : (
+                        0
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600">Leksionet e Mia</div>
+                  </div>
+                </Card>
+                <Card>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {stats ? (
+                        <CountUp end={stats.attendance || 0} duration={1.5} />
+                      ) : (
+                        0
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600">Prezenca Totale</div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </>
+        )}
+        
+        {/* Lectures card for admin users */}
+        {isAdmin && (
+          <Card>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {stats ? (
+                  <CountUp end={stats.lectures} duration={1.5} />
+                ) : (
+                  0
+                )}
+              </div>
+              <div className="text-sm text-gray-600">Leksione Totale</div>
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Admin Actions */}
@@ -242,6 +430,25 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
           ))}
         </div>
       </Card>
+
+      {/* Fixed position tooltip */}
+      {tooltipData.show && (
+        <div 
+          className="fixed pointer-events-none transition-opacity duration-200"
+          style={{
+            zIndex: 9999,
+            left: tooltipData.position.x,
+            top: tooltipData.position.y,
+            transform: 'translate(-50%, -100%)'
+          }}
+        >
+          <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs shadow-xl border border-gray-600">
+            {tooltipData.content}
+            {/* Tooltip arrow */}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
