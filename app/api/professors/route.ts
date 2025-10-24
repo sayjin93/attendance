@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import bcrypt from "bcryptjs";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { sendWelcomeEmail } from "@/lib/emailService";
 
 // GET: Fetch all professors (Admin only)
 export async function GET(req: Request) {
@@ -159,6 +160,28 @@ export async function POST(req: Request) {
         isAdmin: true
       }
     });
+
+    // Send welcome email to the new professor
+    try {
+      const websiteUrl = `${req.headers.get('origin') || 'http://localhost:9900'}`;
+      const professorFullName = `${formattedFirstName} ${formattedLastName}`;
+      
+      const emailResult = await sendWelcomeEmail({
+        to: trimmedEmail,
+        professorName: professorFullName,
+        username: trimmedUsername,
+        password: password, // Send the original password (before hashing)
+        websiteUrl: websiteUrl,
+      });
+
+      if (!emailResult.success) {
+        console.error('Failed to send welcome email:', emailResult.error);
+        // Don't fail the registration if email fails, just log it
+      }
+    } catch (emailError) {
+      console.error('Error sending welcome email:', emailError);
+      // Don't fail the registration if email fails
+    }
 
     return NextResponse.json(newProfessor, { status: 201 });
   } catch (error) {

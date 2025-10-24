@@ -59,7 +59,7 @@ export default function AddProfessorForm() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["professors"] });
-      showMessage("Profesori u krijua me sukses!", "success");
+      showMessage("Profesori u krijua me sukses! Një email me të dhënat e hyrjes është dërguar.", "success");
       
       // Reset form
       setFirstName("");

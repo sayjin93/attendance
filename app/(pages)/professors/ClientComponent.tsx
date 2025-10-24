@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 
@@ -37,6 +37,8 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
         key: keyof Professor | 'fullName' | 'assignments' | null;
         direction: 'asc' | 'desc';
     }>({ key: null, direction: 'asc' });
+    const [testEmail, setTestEmail] = useState("");
+    const [showEmailTest, setShowEmailTest] = useState(false);
     //#endregion
 
     //#region useQuery
@@ -67,6 +69,36 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
             showMessage("Dështoi fshirja e profesorit!", "error");
         },
     });
+
+    // Test email mutation
+    const testEmailMutation = useMutation({
+        mutationFn: async (email: string) => {
+            const res = await fetch("/api/test-email", {
+                method: "POST",
+                body: JSON.stringify({
+                    testType: "send",
+                    email: email
+                }),
+                headers: { "Content-Type": "application/json" },
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || "Dështoi dërgimi i email-it!");
+            }
+
+            return data;
+        },
+        onSuccess: () => {
+            showMessage("Email-i u dërgua me sukses!", "success");
+            setTestEmail("");
+            setShowEmailTest(false);
+        },
+        onError: (error: Error) => {
+            showMessage(error.message, "error");
+        },
+    });
     //#endregion
 
     //#region functions
@@ -95,6 +127,13 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
+    };
+
+    const handleTestEmail = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (testEmail.trim()) {
+            testEmailMutation.mutate(testEmail.trim());
+        }
     };
 
     // Sort professors based on sortConfig
@@ -146,6 +185,57 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
             {/* Add Professor Form */}
             <Card>
                 <AddProfessorForm />
+            </Card>
+
+            {/* Test Email Form */}
+            <Card>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                            <EnvelopeIcon className="h-5 w-5 text-green-600" />
+                            <h3 className="text-lg font-medium text-gray-900">Testo Email-in</h3>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowEmailTest(!showEmailTest)}
+                            className="text-sm text-blue-600 hover:text-blue-700"
+                        >
+                            {showEmailTest ? 'Fshih' : 'Shfaq'}
+                        </button>
+                    </div>
+                    
+                    {showEmailTest && (
+                        <form onSubmit={handleTestEmail} className="space-y-4">
+                            <div>
+                                <label
+                                    htmlFor="testEmail"
+                                    className="block text-sm font-medium text-gray-700"
+                                >
+                                    Email për test *
+                                </label>
+                                <input
+                                    type="email"
+                                    id="testEmail"
+                                    value={testEmail}
+                                    onChange={(e) => setTestEmail(e.target.value)}
+                                    required
+                                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Shkruani email-in për test..."
+                                    disabled={testEmailMutation.isPending}
+                                />
+                            </div>
+                            <div className="flex justify-end">
+                                <button
+                                    type="submit"
+                                    disabled={testEmailMutation.isPending}
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {testEmailMutation.isPending ? "Duke dërguar..." : "Dërgo Email Test"}
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
             </Card>
 
             {/* Professors List */}
