@@ -30,7 +30,11 @@ export async function GET() {
       const [classes, students, professors, subjects, assignments, lectures] = await Promise.all([
         prisma.class.count(),
         prisma.student.count(),
-        prisma.professor.count(),
+        prisma.professor.count({
+          where: {
+            isAdmin: false,
+          },
+        }),
         prisma.subject.count(),
         prisma.teachingAssignment.count(),
         prisma.lecture.count(),

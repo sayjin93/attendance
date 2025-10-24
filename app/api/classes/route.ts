@@ -25,7 +25,6 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const professorId = searchParams.get("professorId");
     const includeLectures = searchParams.get("includeLectures") === "true";
-    const includeStudents = searchParams.get("includeStudents") === "true";
 
     // Build include options
     const includeOptions = {
@@ -35,7 +34,7 @@ export async function GET(req: Request) {
           subject: true, // Include subject info for each assignment
         },
       },
-      ...(includeStudents && { students: true }),
+      students: true, // Always include students to count them
       ...(includeLectures && {
         lectures: {
           where: professorId && !decoded.isAdmin ? {
