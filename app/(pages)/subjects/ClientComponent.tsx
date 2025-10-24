@@ -52,6 +52,15 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [deletingSubject, setDeletingSubject] = useState<Subject | null>(null);
+  const [tooltipData, setTooltipData] = useState<{
+    show: boolean;
+    classes: Array<{ id: number; name: string }>;
+    position: { x: number; y: number };
+  }>({
+    show: false,
+    classes: [],
+    position: { x: 0, y: 0 }
+  });
   //#endregion
 
   //#region useQuery
@@ -85,6 +94,22 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
     if (deletingSubject) {
       deleteSubjectMutation.mutate(deletingSubject.id);
     }
+  };
+
+  const handleTooltipShow = (event: React.MouseEvent, classes: Array<{ id: number; name: string }>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltipData({
+      show: true,
+      classes,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top - 10
+      }
+    });
+  };
+
+  const handleTooltipHide = () => {
+    setTooltipData(prev => ({ ...prev, show: false }));
   };
 
   if (isLoading) return <Loader />;
@@ -158,8 +183,8 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
           <Alert title="Nuk u gjetën lëndë që përputhen me filtrat." />
         ) : (
           <div className="mt-6">
-            <div className="overflow-hidden bg-white shadow-sm border border-gray-200 rounded-lg">
-              <div className="overflow-x-auto">
+            <div className="bg-white shadow-sm border border-gray-200 rounded-lg">
+              <div className="overflow-x-auto overflow-y-visible">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -236,31 +261,13 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
                                 <span className="text-xs text-gray-400 italic">Nuk ka klasa</span>
                               )}
                               {uniqueClasses.length > 2 && (
-                                <div className="relative group">
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 cursor-help">
-                                    +{uniqueClasses.length - 2} më shumë
-                                  </span>
-                                  {/* Tooltip with remaining classes */}
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
-                                    <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs">
-                                      <div className="flex flex-wrap gap-1">
-                                        {uniqueClasses.slice(2).map((cls) => {
-                                          const colors = getClassColor(cls.id);
-                                          return (
-                                            <span
-                                              key={cls.id}
-                                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
-                                            >
-                                              {cls.name}
-                                            </span>
-                                          );
-                                        })}
-                                      </div>
-                                      {/* Tooltip arrow */}
-                                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                </div>
+                                <span 
+                                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 cursor-help"
+                                  onMouseEnter={(e) => handleTooltipShow(e, uniqueClasses.slice(2))}
+                                  onMouseLeave={handleTooltipHide}
+                                >
+                                  +{uniqueClasses.length - 2} më shumë
+                                </span>
                               )}
                             </div>
                           </td>
@@ -365,6 +372,37 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
           </div>
         )}
       </Modal>
+
+      {/* Fixed position tooltip */}
+      {tooltipData.show && (
+        <div 
+          className="fixed pointer-events-none transition-opacity duration-200"
+          style={{
+            zIndex: 9999,
+            left: tooltipData.position.x,
+            top: tooltipData.position.y,
+            transform: 'translate(-50%, -100%)'
+          }}
+        >
+          <div className="bg-gray-100 text-black text-xs rounded-lg py-2 px-3 max-w-xs shadow-xl border border-gray-200">
+            <div className="flex flex-wrap gap-1">
+              {tooltipData.classes.map((cls) => {
+                const colors = getClassColor(cls.id);
+                return (
+                  <span
+                    key={cls.id}
+                    className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
+                  >
+                    {cls.name}
+                  </span>
+                );
+              })}
+            </div>
+            {/* Tooltip arrow */}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
