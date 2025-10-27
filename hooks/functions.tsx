@@ -7,6 +7,14 @@ export const handleLogout = async () => {
     }
 };
 
+export const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 export const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // Get month (0-based)

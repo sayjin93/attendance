@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNotify } from "@/contexts/NotifyContext";
+import { getTodayDate } from "@/hooks/functions";
+
+//components
 import Alert from "./Alert";
 import Loader from "./Loader";
 
@@ -39,7 +42,7 @@ const AddLectureForm: React.FC<AddLectureFormProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     assignmentId: "",
-    date: "",
+    date: getTodayDate(),
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -91,9 +94,6 @@ const AddLectureForm: React.FC<AddLectureFormProps> = ({
 
   return (
     <div className="max-w-md mx-auto">
-      <h3 className="text-xl font-semibold mb-4 text-gray-800">
-        Shto Leksion të Ri
-      </h3>
 
       {error && <Alert type="error" title={error} />}
 
@@ -129,6 +129,7 @@ const AddLectureForm: React.FC<AddLectureFormProps> = ({
           <input
             type="date"
             value={formData.date}
+            min="2025-10-06"
             onChange={(e) =>
               setFormData({ ...formData, date: e.target.value })
             }
