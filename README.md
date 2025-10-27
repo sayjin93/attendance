@@ -160,10 +160,10 @@ Attendance  ←   Student
    # Push schema to database
    npx prisma db push
 
-   # Migrationn example
+   # Migrationn creation
    npx prisma migrate dev --name init
 
-   # Reset DB
+   # Migrate reset & Seed
    npx prisma migrate reset --force
 
    # Seed initial data (optional)
