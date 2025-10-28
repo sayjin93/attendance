@@ -27,7 +27,6 @@ A modern, full-stack attendance management system built for educational institut
 
 - 🔐 **Secure Authentication**: JWT-based authentication with HTTP-only cookies
 - 🎨 **Modern UI**: Clean, responsive interface with Albanian language support
-- 📊 **Data Visualization**: Interactive charts using Chart.js
 - 🔄 **Real-time Updates**: TanStack Query for optimistic UI updates
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
 
@@ -43,7 +42,6 @@ A modern, full-stack attendance management system built for educational institut
 - [Tailwind CSS 4](https://tailwindcss.com/) - Utility-first CSS
 - [TanStack Query 5](https://tanstack.com/query) - Server state management
 - [Headless UI 2](https://headlessui.com/) - Accessible UI components
-- [Chart.js 4](https://www.chartjs.org/) - Data visualization
 - [Heroicons 2](https://heroicons.com/) - Icon library
 - [Framer Motion 12](https://www.framer.com/motion/) - Animations
 
