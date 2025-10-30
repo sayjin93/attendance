@@ -51,6 +51,9 @@ export async function GET(request: Request) {
     const programId = searchParams.get("programId");
     const classId = searchParams.get("classId");
     const subjectId = searchParams.get("subjectId");
+    
+    const professorId = Number(decoded.professorId);
+    const isAdmin = decoded.isAdmin;
 
     // Always fetch programs
     const programs = await prisma.program.findMany({
@@ -66,11 +69,30 @@ export async function GET(request: Request) {
 
     // If program is selected, fetch classes for that program
     if (programId) {
-      const classesData = await prisma.class.findMany({
-        where: { programId: parseInt(programId) },
-        select: { id: true, name: true, programId: true },
-        orderBy: { name: "asc" }
-      });
+      let classesData;
+      
+      if (isAdmin) {
+        // Admin can see all classes in the program
+        classesData = await prisma.class.findMany({
+          where: { programId: parseInt(programId) },
+          select: { id: true, name: true, programId: true },
+          orderBy: { name: "asc" }
+        });
+      } else {
+        // Professor can only see classes where they have teaching assignments
+        classesData = await prisma.class.findMany({
+          where: { 
+            programId: parseInt(programId),
+            teachingAssignments: {
+              some: {
+                professorId: professorId
+              }
+            }
+          },
+          select: { id: true, name: true, programId: true },
+          orderBy: { name: "asc" }
+        });
+      }
       
       classes = classesData.map(c => ({
         id: c.id.toString(),
@@ -95,7 +117,10 @@ export async function GET(request: Request) {
 
       // Get unique subjects from teaching assignments for this class
       const assignments = await prisma.teachingAssignment.findMany({
-        where: { classId: parseInt(classId) },
+        where: { 
+          classId: parseInt(classId),
+          ...(isAdmin ? {} : { professorId: professorId })
+        },
         include: { 
           subject: { select: { id: true, name: true, code: true } }
         },
