@@ -22,6 +22,10 @@ interface Assignment {
   class: {
     id: number;
     name: string;
+    program: {
+      id: number;
+      name: string;
+    };
   };
   type: {
     id: number;
@@ -88,6 +92,14 @@ const AddLectureForm: React.FC<AddLectureFormProps> = ({
     });
   };
 
+  // Group assignments by program
+  const bachelorAssignments = assignments.filter(assignment => 
+    assignment.class.program.name === "Bachelor"
+  );
+  const masterAssignments = assignments.filter(assignment => 
+    assignment.class.program.name === "Master"
+  );
+
   const selectedAssignment = assignments.find(
     (a) => a.id === parseInt(formData.assignmentId)
   );
@@ -111,14 +123,32 @@ const AddLectureForm: React.FC<AddLectureFormProps> = ({
             required
           >
             <option value="">Zgjidhni caktimin...</option>
-            {assignments.map((assignment) => (
-              <option key={assignment.id} value={assignment.id}>
-                {assignment.subject.name} ({assignment.subject.code}) -{" "}
-                {assignment.class.name} - {assignment.type.name}
-                {isAdmin &&
-                  ` - ${assignment.professor.firstName} ${assignment.professor.lastName}`}
-              </option>
-            ))}
+            
+            {bachelorAssignments.length > 0 && (
+              <optgroup label="Bachelor">
+                {bachelorAssignments.map((assignment) => (
+                  <option key={assignment.id} value={assignment.id}>
+                    {assignment.subject.name} ({assignment.subject.code}) -{" "}
+                    {assignment.class.name} - {assignment.type.name}
+                    {isAdmin &&
+                      ` - ${assignment.professor.firstName} ${assignment.professor.lastName}`}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            
+            {masterAssignments.length > 0 && (
+              <optgroup label="Master">
+                {masterAssignments.map((assignment) => (
+                  <option key={assignment.id} value={assignment.id}>
+                    {assignment.subject.name} ({assignment.subject.code}) -{" "}
+                    {assignment.class.name} - {assignment.type.name}
+                    {isAdmin &&
+                      ` - ${assignment.professor.firstName} ${assignment.professor.lastName}`}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </div>
 

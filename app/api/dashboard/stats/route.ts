@@ -58,7 +58,7 @@ export async function GET() {
       // For non-admin professors, get their specific stats and data
       const professorId = Number(decoded.professorId);
       
-      const [assignmentData, subjectData, lectures, attendanceCount] = await Promise.all([
+      const [assignmentData, subjectData, lectures, lecturesWithAttendance] = await Promise.all([
         // Get teaching assignments with class and type info for this professor
         prisma.teachingAssignment.findMany({
           where: {
@@ -86,11 +86,12 @@ export async function GET() {
             professorId: professorId,
           },
         }),
-        // Count total attendance records for this professor's lectures
-        prisma.attendance.count({
+        // Count lectures with attendance records for this professor
+        prisma.lecture.count({
           where: {
-            lecture: {
-              professorId: professorId,
+            professorId: professorId,
+            attendance: {
+              some: {},
             },
           },
         }),
@@ -133,7 +134,7 @@ export async function GET() {
       stats.assignments = assignmentData.length;
       stats.subjects = subjectData.length;
       stats.lectures = lectures;
-      stats.attendance = attendanceCount;
+      stats.attendance = lecturesWithAttendance;
       
       // Add the actual data for display
       stats.assignmentClasses = uniqueClasses;

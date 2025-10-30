@@ -36,6 +36,10 @@ interface Assignment {
   class: {
     id: number;
     name: string;
+    program: {
+      id: number;
+      name: string;
+    };
   };
   type: {
     id: number;
@@ -325,7 +329,7 @@ export default function LecturesPageClient() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-purple-600">
               {totalLectures}
             </div>
             <div className="text-sm text-gray-600">Leksione {searchTerm ? 'të Filtruara' : 'Totale'}</div>
@@ -333,7 +337,7 @@ export default function LecturesPageClient() {
         </Card>
         <Card>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-orange-600">
               {lecturesWithAttendance}
             </div>
             <div className="text-sm text-gray-600">Regjistra Prezence</div>

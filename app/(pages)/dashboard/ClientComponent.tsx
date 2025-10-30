@@ -350,7 +350,7 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
                         0
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">Leksionet e Mia</div>
+                    <div className="text-sm text-gray-600">Leksione të mbajtura</div>
                   </div>
                 </Card>
                 <Card>
@@ -362,7 +362,7 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
                         0
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">Prezenca Totale</div>
+                    <div className="text-sm text-gray-600">Listëprezenca të mbajtura</div>
                   </div>
                 </Card>
               </div>

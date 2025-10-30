@@ -26,7 +26,13 @@ export async function GET() {
         include: {
           professor: { select: { id: true, firstName: true, lastName: true } },
           subject: { select: { id: true, name: true, code: true } },
-          class: { select: { id: true, name: true } },
+          class: { 
+            select: { 
+              id: true, 
+              name: true,
+              program: { select: { id: true, name: true } }
+            } 
+          },
           type: { select: { id: true, name: true } },
         },
         orderBy: [{ subject: { name: 'asc' } }, { class: { name: 'asc' } }],
@@ -36,7 +42,13 @@ export async function GET() {
         where: { professorId },
         include: {
           subject: { select: { id: true, name: true, code: true } },
-          class: { select: { id: true, name: true } },
+          class: { 
+            select: { 
+              id: true, 
+              name: true,
+              program: { select: { id: true, name: true } }
+            } 
+          },
           type: { select: { id: true, name: true } },
         },
         orderBy: [{ subject: { name: 'asc' } }, { class: { name: 'asc' } }],
