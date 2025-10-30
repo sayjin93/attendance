@@ -3,14 +3,6 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
-import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/react";
-import { ChevronUpDownIcon, CheckIcon } from "@heroicons/react/16/solid";
-
 //types
 import { AttendanceRecord, AttendanceStatus, Class, Lecture } from "@/types";
 
@@ -167,6 +159,10 @@ export default function AttendancePageClient({
     (lecture: Lecture) => lecture.id === lectureId
   );
 
+  // Group classes by program
+  const bachelorClasses = classes?.filter(cls => cls.program?.name === "Bachelor") || [];
+  const masterClasses = classes?.filter(cls => cls.program?.name === "Master") || [];
+
   const handleStatusChange = (studentId: number, status: AttendanceStatus) => {
     setStudents((prev) =>
       prev.map((s) =>
@@ -182,103 +178,70 @@ export default function AttendancePageClient({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Class Selector */}
           <div>
-            <Listbox value={classId} onChange={setClassId}>
-              <div className="relative">
-                <ListboxButton className="relative w-full cursor-pointer rounded-md bg-white py-2 pl-3 pr-10 text-left shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  <span className="block truncate">
-                    {!classId
-                      ? "Zgjidhni një klasë"
-                      : selectedClass?.name || "Klasa e zgjedhur"}
-                  </span>
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-2">
-                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </span>
-                </ListboxButton>
-
-                <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                  {classes?.map((cls) => (
-                    <ListboxOption
-                      key={cls.id}
-                      value={cls.id}
-                      className={({ active }) =>
-                        `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? "bg-blue-100 text-blue-900" : "text-gray-900"
-                        }`
-                      }
-                    >
-                      {({ selected }) => (
-                        <>
-                          <span className={`block truncate ${selected ? "font-medium" : "font-normal"}`}>
-                            {cls.name}
-                          </span>
-                          {selected ? (
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                              <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                            </span>
-                          ) : null}
-                        </>
-                      )}
-                    </ListboxOption>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Klasa *
+            </label>
+            <select
+              value={classId || ""}
+              onChange={(e) => setClassId(e.target.value ? parseInt(e.target.value) : null)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="">Zgjidhni një klasë...</option>
+              
+              {bachelorClasses.length > 0 && (
+                <optgroup label="Bachelor">
+                  {bachelorClasses.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </option>
                   ))}
-                </ListboxOptions>
-              </div>
-            </Listbox>
+                </optgroup>
+              )}
+              
+              {masterClasses.length > 0 && (
+                <optgroup label="Master">
+                  {masterClasses.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
           </div>
 
           {/* Lecture Selector */}
           <div>
-            <Listbox
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Leksioni *
+            </label>
+            <select
               disabled={!classId}
-              value={lectureId}
-              onChange={setLectureId}
+              value={lectureId || ""}
+              onChange={(e) => setLectureId(e.target.value ? parseInt(e.target.value) : null)}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                classId
+                  ? "border-gray-300 bg-white"
+                  : "border-gray-200 bg-gray-100 cursor-not-allowed"
+              }`}
+              required
             >
-              <div className="relative">
-                <ListboxButton className={`relative w-full cursor-pointer rounded-md py-2 pl-3 pr-10 text-left shadow-sm border sm:text-sm ${classId
-                  ? "bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  : "bg-gray-100 border-gray-200 cursor-not-allowed"
-                  }`}>
-                  <span className={`block truncate ${!classId ? "text-gray-400" : ""}`}>
-                    {!classId
-                      ? "Zgjidhni një klasë fillimisht"
-                      : !selectedClass?.lectures?.length
-                        ? "Nuk ka leksione për këtë klasë"
-                        : !lectureId
-                          ? "Zgjidhni një leksion"
-                          : selectedLecture?.date ? formatDate(selectedLecture.date.toString()) : "Zgjedhni një leksion"}
-                  </span>
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-2">
-                    <ChevronUpDownIcon className={`h-5 w-5 ${!classId ? "text-gray-300" : "text-gray-400"}`} aria-hidden="true" />
-                  </span>
-                </ListboxButton>
-
-                {classId && selectedClass?.lectures && selectedClass.lectures.length > 0 && (
-                  <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    {selectedClass.lectures.map((lecture) => (
-                      <ListboxOption
-                        key={lecture.id}
-                        value={lecture.id}
-                        className={({ active }) =>
-                          `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? "bg-blue-100 text-blue-900" : "text-gray-900"
-                          }`
-                        }
-                      >
-                        {({ selected }) => (
-                          <>
-                            <span className={`block truncate ${selected ? "font-medium" : "font-normal"}`}>
-                              {formatDate(lecture.date.toString())}
-                            </span>
-                            {selected ? (
-                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                              </span>
-                            ) : null}
-                          </>
-                        )}
-                      </ListboxOption>
-                    ))}
-                  </ListboxOptions>
-                )}
-              </div>
-            </Listbox>
+              <option value="">
+                {!classId
+                  ? "Zgjidhni një klasë fillimisht"
+                  : !selectedClass?.lectures?.length
+                  ? "Nuk ka leksione për këtë klasë"
+                  : "Zgjidhni një leksion..."}
+              </option>
+              {classId && selectedClass?.lectures && selectedClass.lectures.length > 0 && 
+                selectedClass.lectures.map((lecture) => (
+                  <option key={lecture.id} value={lecture.id}>
+                    {formatDate(lecture.date.toString())}
+                  </option>
+                ))
+              }
+            </select>
           </div>
         </div>
       </Card>
