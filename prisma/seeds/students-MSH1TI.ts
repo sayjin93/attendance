@@ -11,6 +11,7 @@ async function seedStudentsMSH1TI() {
     { firstName: "Ergita", lastName: "Curri", email: "ecurri1@uet.edu.al", classId: 14 },
     { firstName: "Robert", lastName: "Feinaj", email: "rfeinaj@uet.edu.al", classId: 14 },
     { firstName: "Bleona", lastName: "Gazulli", email: "bgazulli2@uet.edu.al", classId: 14 },
+    { firstName: "Ermal", lastName: "Imeraj", email: "eimeraj10@uet.edu.al", classId: 14 },
     { firstName: "Horges", lastName: "Kaca", email: "hkaca@uet.edu.al", classId: 14 },
     { firstName: "Xhoalina", lastName: "Karasani", email: "xkarasani@uet.edu.al", classId: 14 },
     { firstName: "Mario", lastName: "Lipo", email: "mlipo@uet.edu.al", classId: 14 },
@@ -18,6 +19,7 @@ async function seedStudentsMSH1TI() {
     { firstName: "Ergi", lastName: "Mankollari", email: "emankollari@uet.edu.al", classId: 14 },
     { firstName: "Arsa", lastName: "Picari", email: "apicari1@uet.edu.al", classId: 14 },
     { firstName: "Frenklin", lastName: "Saliasi", email: "fsaliasi@uet.edu.al", classId: 14 },
+    { firstName: "Luiza", lastName: "Sula", email: "lsula@uet.edu.al", classId: 14 },
     { firstName: "Xhoilda", lastName: "Vuksanaj", email: "xvuksanaj@uet.edu.al", classId: 14 },
     { firstName: "Endrit", lastName: "Zharri", email: "ezharri@uet.edu.al", classId: 14 },
   ];

@@ -9,6 +9,7 @@ async function seedStudentsINF205() {
     { firstName: "Enri", lastName: "Elezi", email: "eelezi11@uet.edu.al", classId: 5 },
     { firstName: "Geraldina", lastName: "Farruku", email: "gfarruku3@uet.edu.al", classId: 5 },
     { firstName: "Melisa", lastName: "Fezo", email: "mfezo@uet.edu.al", classId: 5 },
+    { firstName: "Klindi ", lastName: "Fida", email: "mfezo@uet.edu.al", classId: 5 },
     { firstName: "Fiona", lastName: "Guma", email: "fguma@uet.edu.al", classId: 5 },
     { firstName: "Kledisa", lastName: "Haka", email: "khaka4@uet.edu.al", classId: 5 },
     { firstName: "Rejdian", lastName: "Hyka", email: "rhyka6@uet.edu.al", classId: 5 },

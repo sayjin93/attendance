@@ -5,10 +5,13 @@ async function seedStudentsInfoek202() {
   console.log("🌱 Seeding students for Infoek202...");
 
   const studentsInfoek202 = [
+    { firstName: "Gerald", lastName: "Balla", email: "ebeharaj@uet.edu.al", classId: 8 },
     { firstName: "Eldjon", lastName: "Beharaj", email: "ebeharaj@uet.edu.al", classId: 8 },
     { firstName: "Alesia", lastName: "Bufi", email: "abufi2@uet.edu.al", classId: 8 },
+    { firstName: "Juljan", lastName: "Deliu", email: "jdeliu2@uet.edu.al", classId: 8 },
     { firstName: "Esa", lastName: "Deliu", email: "edeliu3@uet.edu.al", classId: 8 },
     { firstName: "Eni", lastName: "Dema", email: "edema7@uet.edu.al", classId: 8 },
+    { firstName: "Fabian", lastName: "Ferhati", email: "fferhati@uet.edu.al", classId: 8 },
     { firstName: "Aqilea", lastName: "Gaqos", email: "agaqos@uet.edu.al", classId: 8 },
     { firstName: "Marjela", lastName: "Gjeloshaj", email: "mgjeloshaj@uet.edu.al", classId: 8 },
     { firstName: "Lorenzo", lastName: "Gjeloshi", email: "lgjeloshi@uet.edu.al", classId: 8 },
@@ -26,6 +29,7 @@ async function seedStudentsInfoek202() {
     { firstName: "Almedina", lastName: "Piranaj", email: "apiranaj2@uet.edu.al", classId: 8 },
     { firstName: "Albiona", lastName: "Qinami", email: "aqinami6@uet.edu.al", classId: 8 },
     { firstName: "Selma", lastName: "Qoku", email: "sqoku@uet.edu.al", classId: 8 },
+    { firstName: "Erjon ", lastName: "Rira", email: "erira4@uet.edu.al", classId: 8 },
     { firstName: "Amelja", lastName: "Rrapaj", email: "arrapaj@uet.edu.al", classId: 8 },
     { firstName: "Erisa", lastName: "Sadikaj", email: "esadikaj4@uet.edu.al", classId: 8 },
     { firstName: "Ertugel", lastName: "Saliaj", email: "esaliaj11@uet.edu.al", classId: 8 },
