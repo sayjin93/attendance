@@ -71,12 +71,17 @@ export default function AttendancePageClient({
   //#region useEffect
   useEffect(() => {
     if (attendance) {
-      setStudents(
-        attendance.map((student) => ({
+      const sortedStudents = attendance
+        .map((student) => ({
           ...student,
           status: student.status || AttendanceStatus.PRESENT, // Default status
         }))
-      );
+        .sort((a, b) => {
+          const comparison = a.firstName.localeCompare(b.firstName);
+          return comparison === 0 ? a.lastName.localeCompare(b.lastName) : comparison;
+        });
+      
+      setStudents(sortedStudents);
     }
   }, [attendance]);
 

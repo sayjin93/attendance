@@ -83,7 +83,7 @@ export default function ReportsPageClient({
   const [sortConfig, setSortConfig] = useState<{
     key: keyof StudentReport | null;
     direction: 'asc' | 'desc';
-  }>({ key: null, direction: 'asc' });
+  }>({ key: 'firstName', direction: 'asc' });
   //#endregion
 
   //#region useQuery

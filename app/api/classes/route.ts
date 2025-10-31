@@ -34,7 +34,9 @@ export async function GET(req: Request) {
           subject: true, // Include subject info for each assignment
         },
       },
-      students: true, // Always include students to count them
+      students: {
+        orderBy: [{ firstName: 'asc' as const }, { lastName: 'asc' as const }]
+      }, // Always include students to count them
       ...(includeLectures && {
         lectures: {
           where: professorId && !decoded.isAdmin ? {

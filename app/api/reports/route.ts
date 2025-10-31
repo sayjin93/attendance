@@ -145,7 +145,8 @@ export async function GET(request: Request) {
       // Get all students in the class
       const studentsData = await prisma.student.findMany({
         where: { classId: parseInt(classId) },
-        select: { id: true, firstName: true, lastName: true }
+        select: { id: true, firstName: true, lastName: true },
+        orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }]
       });
 
       // Get teaching assignments for this subject and class

@@ -22,6 +22,7 @@ export async function GET(req: Request) {
         classId: classId ? parseInt(classId, 10) : undefined
       },
       select: { id: true, firstName: true, lastName: true },
+      orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }]
     });
 
     // ✅ Fetch attendance records for the selected lecture
