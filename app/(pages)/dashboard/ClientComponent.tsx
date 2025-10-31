@@ -164,13 +164,13 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
           🎓 Mirësevini, {fullName}!
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-sm sm:text-base text-gray-600 mt-1">
           {isAdmin
             ? "Menaxhoni të gjithë sistemin e prezencës"
             : "Menaxhoni leksionet, listëprezencat dhe gjeneroni raporte"}
@@ -178,67 +178,67 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {isAdmin && (
           <>
             <Card>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">
                   {stats ? (
                     <CountUp end={stats.classes} duration={1.5} />
                   ) : (
                     0
                   )}
                 </div>
-                <div className="text-sm text-gray-600">Klasa Totale</div>
+                <div className="text-xs sm:text-sm text-gray-600">Klasa Totale</div>
               </div>
             </Card>
             <Card>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
                   {stats ? (
                     <CountUp end={stats.students} duration={1.5} />
                   ) : (
                     0
                   )}
                 </div>
-                <div className="text-sm text-gray-600">Studentë Totalë</div>
+                <div className="text-xs sm:text-sm text-gray-600">Studentë Totalë</div>
               </div>
             </Card>
             <Card>
               <div className="text-center">
-                <div className="text-2xl font-bold text-indigo-600">
+                <div className="text-xl sm:text-2xl font-bold text-indigo-600">
                   {stats ? (
                     <CountUp end={stats.professors} duration={1.5} />
                   ) : (
                     0
                   )}
                 </div>
-                <div className="text-sm text-gray-600">Profesorë Totalë</div>
+                <div className="text-xs sm:text-sm text-gray-600">Profesorë Totalë</div>
               </div>
             </Card>
             <Card>
               <div className="text-center">
-                <div className="text-2xl font-bold text-teal-600">
+                <div className="text-xl sm:text-2xl font-bold text-teal-600">
                   {stats ? (
                     <CountUp end={stats.subjects} duration={1.5} />
                   ) : (
                     0
                   )}
                 </div>
-                <div className="text-sm text-gray-600">Kurse Totale</div>
+                <div className="text-xs sm:text-sm text-gray-600">Kurse Totale</div>
               </div>
             </Card>
             <Card>
               <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-600">
+                <div className="text-xl sm:text-2xl font-bold text-cyan-600">
                   {stats ? (
                     <CountUp end={stats.assignments} duration={1.5} />
                   ) : (
                     0
                   )}
                 </div>
-                <div className="text-sm text-gray-600">Caktime Aktive</div>
+                <div className="text-xs sm:text-sm text-gray-600">Caktime Aktive</div>
               </div>
             </Card>
           </>
@@ -249,22 +249,22 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
           <>
             {/* Row 1: Assignments and Subjects */}
             <div className="col-span-full">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                 {/* My Assignments Card - Shows Classes */}
                 <Card>
-                  <div className="p-2">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="p-1 sm:p-2">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                       <div>
-                        <div className="text-2xl font-bold text-cyan-600">
+                        <div className="text-xl sm:text-2xl font-bold text-cyan-600">
                           {stats ? (
                             <CountUp end={stats.assignments || 0} duration={1.5} />
                           ) : (
                             0
                           )}
                         </div>
-                        <div className="text-sm text-gray-600">Caktimet e Mia</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Caktimet e Mia</div>
                       </div>
-                      <ClipboardDocumentListIcon className="w-8 h-8 text-cyan-600" />
+                      <ClipboardDocumentListIcon className="w-7 h-7 sm:w-8 sm:h-8 min-w-7 sm:min-w-8 shrink-0 text-cyan-600" />
                     </div>
                     <div className="min-h-16">
                       {stats?.assignmentClasses && stats.assignmentClasses.length > 0 ? (
@@ -295,19 +295,19 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
 
                 {/* My Subjects Card - Shows Subjects */}
                 <Card>
-                  <div className="p-2">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="p-1 sm:p-2">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                       <div>
-                        <div className="text-2xl font-bold text-teal-600">
+                        <div className="text-xl sm:text-2xl font-bold text-teal-600">
                           {stats ? (
                             <CountUp end={stats.subjects || 0} duration={1.5} />
                           ) : (
                             0
                           )}
                         </div>
-                        <div className="text-sm text-gray-600">Kurset e Mia</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Kurset e Mia</div>
                       </div>
-                      <BookOpenIcon className="w-8 h-8 text-teal-600" />
+                      <BookOpenIcon className="w-7 h-7 sm:w-8 sm:h-8 min-w-7 sm:min-w-8 shrink-0 text-teal-600" />
                     </div>
                     <div className="min-h-16">
                       {stats?.subjectList && stats.subjectList.length > 0 ? (
@@ -374,14 +374,14 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
         {isAdmin && (
           <Card>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
                 {stats ? (
                   <CountUp end={stats.lectures} duration={1.5} />
                 ) : (
                   0
                 )}
               </div>
-              <div className="text-sm text-gray-600">Leksione Totale</div>
+              <div className="text-xs sm:text-sm text-gray-600">Leksione Totale</div>
             </div>
           </Card>
         )}
@@ -390,18 +390,18 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
       {/* Admin Actions */}
       {isAdmin && (
         <Card title="Veprime Administruese">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {adminActions.map((action) => (
               <Link
                 key={action.name}
                 href={action.href}
-                className={`${action.color} p-6 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105`}
+                className={`${action.color} p-4 sm:p-6 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 active:scale-95`}
               >
-                <div className="flex items-center gap-3 text-white">
-                  <action.icon className="w-8 h-8" />
-                  <div>
-                    <div className="font-semibold text-lg">{action.name}</div>
-                    <div className="text-sm opacity-90">{action.description}</div>
+                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3 text-white">
+                  <action.icon className="w-8 h-8 sm:w-8 sm:h-8 min-w-8 shrink-0" />
+                  <div className="text-center sm:text-left">
+                    <div className="font-semibold text-sm sm:text-lg">{action.name}</div>
+                    <div className="text-xs sm:text-sm opacity-90 hidden sm:block">{action.description}</div>
                   </div>
                 </div>
               </Link>
@@ -412,18 +412,18 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
 
       {/* Professor Actions */}
       <Card title={isAdmin ? "Veprime Profesori" : "Veprimet Tuaja"}>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {professorActions.map((action) => (
             <Link
               key={action.name}
               href={action.href}
-              className={`${action.color} p-6 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105`}
+              className={`${action.color} p-4 sm:p-6 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 active:scale-95`}
             >
-              <div className="flex items-center gap-3 text-white">
-                <action.icon className="w-8 h-8" />
-                <div>
-                  <div className="font-semibold text-lg">{action.name}</div>
-                  <div className="text-sm opacity-90">{action.description}</div>
+              <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3 text-white">
+                <action.icon className="w-8 h-8 sm:w-8 sm:h-8 min-w-8 shrink-0" />
+                <div className="text-center sm:text-left">
+                  <div className="font-semibold text-sm sm:text-lg">{action.name}</div>
+                  <div className="text-xs sm:text-sm opacity-90 hidden sm:block">{action.description}</div>
                 </div>
               </div>
             </Link>
