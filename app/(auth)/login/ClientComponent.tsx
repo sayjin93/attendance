@@ -133,6 +133,15 @@ export default function LoginPageClient() {
               </div>
             </div>
 
+            <div className="flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <div>
               <button
                 type="submit"

@@ -44,15 +44,17 @@ export async function middleware(req: Request) {
   }
 }
 
-// Middleware applies to everything EXCEPT login, API routes, and Next.js assets
+// Middleware applies to everything EXCEPT login, forgot-password, reset-password, API routes, and Next.js assets
 export const config = {
   matcher: [
     /*
      * Apply middleware to all pages except:
      * 1. /api/* (exclude all API routes)
      * 2. /login (exclude the login page)
-     * 3. /_next/* (exclude Next.js assets, e.g., /_next/static/*)
+     * 3. /forgot-password (exclude forgot password page)
+     * 4. /reset-password/* (exclude reset password pages)
+     * 5. /_next/* (exclude Next.js assets, e.g., /_next/static/*)
      */
-    "/((?!api|login|_next/.*|images/.*).*)",
+    "/((?!api|login|forgot-password|reset-password|_next/.*|images/.*).*)",
   ],
 };
