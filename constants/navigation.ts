@@ -7,7 +7,8 @@ import {
   ChartPieIcon,
   BookOpenIcon,
   ClipboardDocumentListIcon,
-  AcademicCapIcon 
+  AcademicCapIcon,
+  TableCellsIcon
 } from "@heroicons/react/24/outline";
 
 const navigationItems = [
@@ -19,6 +20,7 @@ const navigationItems = [
   { name: "Caktime", href: "/assignments", icon: ClipboardDocumentListIcon , adminOnly: true },
   { name: "Leksionet", href: "/lectures", icon: CalendarIcon },
   { name: "Listëprezenca", href: "/attendance", icon: DocumentDuplicateIcon },
+  { name: "Regjistri", href: "/registry", icon: TableCellsIcon },
   { name: "Raporte", href: "/reports", icon: ChartPieIcon },
 ];
 
