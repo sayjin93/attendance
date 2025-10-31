@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
+import { jwtVerify, SignJWT } from "jose";
+import { serialize } from "cookie";
 import { SECRET_KEY } from "./constants";
 
 export async function middleware(req: Request) {
@@ -29,15 +30,58 @@ export async function middleware(req: Request) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    // Attach decoded info as custom headers
-    const requestHeaders = new Headers(req.headers);
-    requestHeaders.set("X-Professor-Id", String(payload.professorId));
-    requestHeaders.set("X-First-Name", String(payload.firstName));
-    requestHeaders.set("X-Last-Name", String(payload.lastName));
-    requestHeaders.set("X-Is-Admin", payload.isAdmin ? "true" : "false");
+    // Check if token is about to expire (less than 10 minutes remaining)
+    const exp = payload.exp as number;
+    const now = Math.floor(Date.now() / 1000);
+    const timeUntilExpiry = exp - now;
+    const shouldRefresh = timeUntilExpiry < 10 * 60; // Less than 10 minutes
+
+    let response: NextResponse;
+
+    // If token needs refresh, create a new one
+    if (shouldRefresh) {
+      const newToken = await new SignJWT({
+        professorId: payload.professorId,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        isAdmin: payload.isAdmin,
+      })
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("30m")
+        .sign(new TextEncoder().encode(SECRET_KEY));
+
+      // Create new cookie
+      const cookie = serialize("session", newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 30 * 60, // 30 minutes
+      });
+
+      // Attach decoded info as custom headers
+      const requestHeaders = new Headers(req.headers);
+      requestHeaders.set("X-Professor-Id", String(payload.professorId));
+      requestHeaders.set("X-First-Name", String(payload.firstName));
+      requestHeaders.set("X-Last-Name", String(payload.lastName));
+      requestHeaders.set("X-Is-Admin", payload.isAdmin ? "true" : "false");
+
+      response = NextResponse.next({ request: { headers: requestHeaders } });
+      response.headers.set("Set-Cookie", cookie);
+    } else {
+      // Attach decoded info as custom headers
+      const requestHeaders = new Headers(req.headers);
+      requestHeaders.set("X-Professor-Id", String(payload.professorId));
+      requestHeaders.set("X-First-Name", String(payload.firstName));
+      requestHeaders.set("X-Last-Name", String(payload.lastName));
+      requestHeaders.set("X-Is-Admin", payload.isAdmin ? "true" : "false");
+
+      response = NextResponse.next({ request: { headers: requestHeaders } });
+    }
 
     // Pass the request along with our new headers
-    return NextResponse.next({ request: { headers: requestHeaders } });
+    return response;
   } catch (error) {
     console.log("Error in middleware:", error);
     return NextResponse.redirect(new URL("/login", req.url)); // Redirect if token is invalid/expired

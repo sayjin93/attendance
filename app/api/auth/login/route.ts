@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
-      .setExpirationTime("1h")
+      .setExpirationTime("30m")
       .sign(new TextEncoder().encode(SECRET_KEY));
 
     // Create cookie with the token
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60, // 1h to match the token expiresIn so cookie will removed automatically
+      maxAge: 30 * 60, // 30 minutes to match the token expiration
     });
 
     // Return response with cookie

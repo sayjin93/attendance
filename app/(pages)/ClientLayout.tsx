@@ -12,6 +12,7 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 //hooks
 import { classNames, handleLogout } from "@/hooks/functions";
+import { useSessionRefresh } from "@/hooks/useSessionRefresh";
 
 //constants
 import navigationItems from "@/constants/navigation";
@@ -29,6 +30,11 @@ export default function ClientLayout({
   professorId?: string | null;
   isAdmin?: string;
 }) {
+  //#region hooks
+  // Auto-refresh session when user is active to prevent logout
+  useSessionRefresh(!!professorId);
+  //#endregion
+
   //#region constants
   const pathname = usePathname();
 
