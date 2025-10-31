@@ -104,7 +104,6 @@ export default function ReportsPageClient({
   const {
     data: subjectsData,
     isLoading: loadingSubjects,
-    error: errorSubjects,
   } = useQuery<{ subjects: Subject[] }>({
     queryKey: ["report-subjects", professorId, selectedClassId],
     queryFn: () => fetchReportData(professorId, selectedClass?.programId || "", selectedClassId, ""),
@@ -129,7 +128,7 @@ export default function ReportsPageClient({
   //#region computed values
   // Extract data from queries
   const subjects = subjectsData?.subjects || [];
-  
+
   // Sort students based on sortConfig
   const students = useMemo(() => {
     const studentsRaw = reportData?.students || [];
@@ -167,9 +166,6 @@ export default function ReportsPageClient({
     acc[programName].push(cls);
     return acc;
   }, {} as Record<string, Class[]>) || {};
-
-  // Find selected items (selectedClass is defined above)
-  const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
 
   // Reset functions
   const resetSelections = (from: 'class') => {
@@ -277,7 +273,7 @@ export default function ReportsPageClient({
                     ? "Nuk ka klasa"
                     : "Zgjidhni një klasë..."}
               </option>
-              
+
               {Object.entries(groupedClasses).map(([programName, programClasses]) => (
                 <optgroup key={programName} label={programName}>
                   {programClasses.map((cls: Class) => (
@@ -287,7 +283,7 @@ export default function ReportsPageClient({
                   ))}
                 </optgroup>
               ))}
-              
+
               {/* Fallback: show all classes without grouping if grouping fails */}
               {Object.entries(groupedClasses).length === 0 && classes?.map((cls: Class) => (
                 <option key={cls.id} value={cls.id}>
@@ -306,11 +302,10 @@ export default function ReportsPageClient({
               disabled={!selectedClassId}
               value={selectedSubjectId || ""}
               onChange={(e) => setSelectedSubjectId(e.target.value)}
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                selectedClassId
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${selectedClassId
                   ? "border-gray-300 bg-white"
                   : "border-gray-200 bg-gray-100 cursor-not-allowed"
-              }`}
+                }`}
               required
             >
               <option value="">
@@ -322,7 +317,7 @@ export default function ReportsPageClient({
                       ? "Nuk ka lëndë për këtë klasë"
                       : "Zgjidhni një lëndë..."}
               </option>
-              {selectedClassId && subjects && subjects.length > 0 && 
+              {selectedClassId && subjects && subjects.length > 0 &&
                 subjects.map((subject: Subject) => (
                   <option key={subject.id} value={subject.id}>
                     {subject.name}
@@ -496,8 +491,8 @@ export default function ReportsPageClient({
                       </td>
                       <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded text-sm ${student.attendancePercentage >= 50
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {student.attendancePercentage.toFixed(1)}%
                         </span>
@@ -512,16 +507,16 @@ export default function ReportsPageClient({
                       </td>
                       <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded text-sm font-medium ${student.passedLectures
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {student.passedLectures ? 'PO' : 'JO'}
                         </span>
                       </td>
                       <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded text-sm ${student.seminarPercentage >= 50
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {student.seminarPercentage.toFixed(1)}%
                         </span>
@@ -536,16 +531,16 @@ export default function ReportsPageClient({
                       </td>
                       <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded text-sm font-medium ${student.passedSeminars
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {student.passedSeminars ? 'PO' : 'JO'}
                         </span>
                       </td>
                       <td className="p-3 text-center">
                         <span className={`px-3 py-1 rounded-full text-sm font-bold ${student.overallPassed
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {student.overallPassed ? 'KALOI' : 'NK'}
                         </span>
