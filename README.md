@@ -27,8 +27,10 @@ A modern, full-stack attendance management system built for educational institut
 
 - 🔐 **Secure Authentication**: JWT-based authentication with HTTP-only cookies
 - 🎨 **Modern UI**: Clean, responsive interface with Albanian language support
-- 🔄 **Real-time Updates**: TanStack Query for optimistic UI updates
+- 🔄 **Real-time Updates**: TanStack Query for optimistic UI updates and caching
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
+- ⚡ **Performance Optimized**: React memoization, placeholderData for smooth transitions
+- 📋 **Registry Management**: Comprehensive student attendance registry with status tracking (NK/OK)
 
 ## 🏗️ Architecture
 
@@ -202,7 +204,8 @@ attendance/
 │   │   ├── assignments/     # Teaching assignments (Admin)
 │   │   ├── lectures/        # Lecture management
 │   │   ├── attendance/      # Attendance tracking
-│   │   ├── reports/         # Reports and analytics
+│   │   ├── registry/        # Student registry with attendance status
+│   │   ├── reports/         # Reports and analytics with PDF export
 │   │   └── utils/           # Server utilities
 │   ├── api/                 # API routes
 │   │   ├── auth/            # Authentication endpoints
@@ -213,7 +216,8 @@ attendance/
 │   │   ├── assignments/     # Assignment CRUD
 │   │   ├── lectures/        # Lecture CRUD
 │   │   ├── attendance/      # Attendance CRUD
-│   │   └── reports/         # Report generation
+│   │   ├── registry/        # Registry data with cascade filtering
+│   │   └── reports/         # Report generation with filtering
 │   ├── globals.css          # Global styles
 │   └── layout.tsx           # Root layout
 ├── components/              # Reusable React components
@@ -237,6 +241,15 @@ attendance/
 ├── prisma/                  # Database configuration
 │   ├── schema.prisma        # Prisma schema
 │   ├── seed.ts              # Database seeder
+│   ├── seeds/               # Seed data files (students by class)
+│   │   ├── README.md        # Seed files documentation
+│   │   ├── students-INF205.ts      # 42 students
+│   │   ├── students-INF206.ts      # 12 students
+│   │   ├── students-Infoek202.ts   # 36 students
+│   │   ├── students-MSH1IE.ts      # 33 students
+│   │   ├── students-MSH1TI.ts      # 48 students
+│   │   ├── students-MSH1INFA.ts    # 15 students
+│   │   └── students-MSH1INFB.ts    # 15 students
 │   └── migrations/          # Database migrations
 ├── public/                  # Static assets
 ├── proxy.ts                 # Authentication middleware
@@ -317,16 +330,29 @@ npx prisma migrate reset
    - Create route file in `app/api/[feature]/route.ts`
    - Implement authentication with `authenticateRequest()`
    - Add role-based access control
+   - Add alphabetical sorting with `orderBy` clauses for better UX
 
 3. **Create UI Components**
 
    - Add page in `app/(pages)/[feature]/page.tsx` (Server Component)
    - Add client component in `app/(pages)/[feature]/ClientComponent.tsx`
    - Create forms in `components/Add[Feature]Form.tsx` and `components/Edit[Feature]Form.tsx`
+   - Use React.memo() for components to prevent unnecessary re-renders
+   - Use useCallback() for event handlers
+   - Use useMemo() for computed values
+   - Use placeholderData in TanStack Query to prevent flicker during refetch
 
 4. **Add Navigation**
    - Update `constants/navigation.ts` with new menu item
    - Set `adminOnly: true` if admin-restricted
+
+### Performance Best Practices
+
+- **Avoid Component Flicker**: Use `placeholderData` in React Query to keep previous data visible during refetch
+- **Minimize Re-renders**: Keep dropdown elements as native HTML in parent component, not as separate React components
+- **Optimize Queries**: Use `staleTime`, `refetchOnWindowFocus: false`, `refetchOnMount: false`
+- **Cascade Filtering**: Include filter parameters in queryKey only when they affect the API response
+- **Memoization**: Use React.memo(), useCallback(), and useMemo() appropriately
 
 ## 📝 API Documentation
 
@@ -448,6 +474,7 @@ Generate attendance report.
 
 The application uses Albanian language labels for the UI:
 
+- **Dashboard** - Paneli
 - **Klasat** - Classes
 - **Studentët** - Students
 - **Profesorët** - Professors
@@ -455,7 +482,10 @@ The application uses Albanian language labels for the UI:
 - **Caktime** - Assignments
 - **Leksionet** - Lectures
 - **Listëprezenca** - Attendance
+- **Regjistri** - Registry (Student attendance status tracking)
 - **Raporte** - Reports
+- **NK** - Nuk Kalon (Does not pass - >30% absences)
+- **OK** - Student passing (≤30% absences)
 
 ## 🔐 Security Features
 
