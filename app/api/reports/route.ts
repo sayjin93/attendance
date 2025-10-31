@@ -145,7 +145,7 @@ export async function GET(request: Request) {
       // Get all students in the class
       const studentsData = await prisma.student.findMany({
         where: { classId: parseInt(classId) },
-        select: { id: true, firstName: true, lastName: true },
+        select: { id: true, firstName: true, lastName: true, memo: true },
         orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }]
       });
 
@@ -232,13 +232,14 @@ export async function GET(request: Request) {
           : 100; // Nëse nuk ka seminare, prezenca është 100%
 
         const passedLectures = attendancePercentage >= 50;
-        const passedSeminars = totalSeminars === 0 || seminarPercentage >= 50;
+        const passedSeminars = totalSeminars === 0 || seminarPercentage >= 75;
         const overallPassed = passedLectures && passedSeminars;
 
         return {
           id: student.id.toString(),
           firstName: student.firstName,
           lastName: student.lastName,
+          memo: student.memo,
           totalLectures,
           attendedLectures,
           participatedLectures,

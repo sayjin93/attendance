@@ -36,6 +36,7 @@ interface StudentReport {
   id: string;
   firstName: string;
   lastName: string;
+  memo?: string | null;
   totalLectures: number;
   attendedLectures: number;
   participatedLectures: number;
@@ -136,7 +137,12 @@ export default function ReportsPageClient({
       const aValue = a[sortConfig.key as keyof StudentReport];
       const bValue = b[sortConfig.key as keyof StudentReport];
 
-      // Handle string values (firstName, lastName)
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      // Handle string values (firstName, lastName, memo)
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         const comparison = aValue.localeCompare(bValue);
         return sortConfig.direction === 'asc' ? comparison : -comparison;
@@ -220,15 +226,13 @@ export default function ReportsPageClient({
     // Table
     autoTable(doc, {
       startY: 110,
-      head: [["Studenti", "Leksione (%)", "Aktiv.(L)", "Kaloi Leks.", "Seminare (%)", "Aktiv.(S)", "Kaloi Sem.", "Statusi"]],
+      head: [["Studenti", "Leksione (%)", "Aktiv.(L)", "Seminare (%)", "Aktiv.(S)", "Statusi"]],
       body: reportData.students.map((s: StudentReport) => [
         `${s.firstName} ${s.lastName}`,
         `${s.attendancePercentage.toFixed(1)}%`,
         s.participatedLectures.toString(),
-        s.passedLectures ? "Po" : "Jo",
         `${s.seminarPercentage.toFixed(1)}%`,
         s.participatedSeminars.toString(),
-        s.passedSeminars ? "Po" : "Jo",
         s.overallPassed ? "KALOI" : "NK"
       ]),
     });
@@ -379,10 +383,8 @@ export default function ReportsPageClient({
                     <th className="p-3 text-left">👤 Student</th>
                     <th className="p-3 text-center">📚 Leksione</th>
                     <th className="p-3 text-center">⭐ Aktivizime (L)</th>
-                    <th className="p-3 text-center">✅ Kaloi Leksionet</th>
                     <th className="p-3 text-center">🎓 Seminare</th>
                     <th className="p-3 text-center">⭐ Aktivizime (S)</th>
-                    <th className="p-3 text-center">✅ Kaloi Seminaret</th>
                     <th className="p-3 text-center">🏆 Statusi</th>
                   </tr>
                 </thead>
@@ -454,12 +456,6 @@ export default function ReportsPageClient({
                     </th>
                     <th
                       className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
-                      onClick={() => handleSort('passedLectures')}
-                    >
-                      ✅ Kaloi Leksionet{getSortIcon('passedLectures')}
-                    </th>
-                    <th
-                      className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
                       onClick={() => handleSort('seminarPercentage')}
                     >
                       🎓 Seminare{getSortIcon('seminarPercentage')}
@@ -469,12 +465,6 @@ export default function ReportsPageClient({
                       onClick={() => handleSort('participatedSeminars')}
                     >
                       ⭐ Aktivizime (S){getSortIcon('participatedSeminars')}
-                    </th>
-                    <th
-                      className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
-                      onClick={() => handleSort('passedSeminars')}
-                    >
-                      ✅ Kaloi Seminaret{getSortIcon('passedSeminars')}
                     </th>
                     <th
                       className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
@@ -488,7 +478,24 @@ export default function ReportsPageClient({
                   {students.map((student: StudentReport) => (
                     <tr key={student.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-medium">
-                        {student.firstName} {student.lastName}
+                        <div className="flex items-center gap-2">
+                          <span>{student.firstName} {student.lastName}</span>
+                          {student.memo && (
+                            <div className="group relative inline-block">
+                              <svg 
+                                className="w-4 h-4 text-indigo-500 cursor-help" 
+                                fill="currentColor" 
+                                viewBox="0 0 20 20"
+                              >
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                              </svg>
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none print:hidden">
+                                {student.memo}
+                                <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded text-sm ${student.attendancePercentage >= 50
@@ -507,15 +514,7 @@ export default function ReportsPageClient({
                         </span>
                       </td>
                       <td className="p-3 text-center">
-                        <span className={`px-2 py-1 rounded text-sm font-medium ${student.passedLectures
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                          }`}>
-                          {student.passedLectures ? 'PO' : 'JO'}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className={`px-2 py-1 rounded text-sm ${student.seminarPercentage >= 50
+                        <span className={`px-2 py-1 rounded text-sm ${student.seminarPercentage >= 75
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                           }`}>
@@ -528,14 +527,6 @@ export default function ReportsPageClient({
                       <td className="p-3 text-center">
                         <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
                           {student.participatedSeminars}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className={`px-2 py-1 rounded text-sm font-medium ${student.passedSeminars
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                          }`}>
-                          {student.passedSeminars ? 'PO' : 'JO'}
                         </span>
                       </td>
                       <td className="p-3 text-center">

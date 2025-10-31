@@ -30,11 +30,12 @@ export default function EditStudentForm({ student, classes, onClose }: EditStude
   const [firstName, setFirstName] = useState(student.firstName);
   const [lastName, setLastName] = useState(student.lastName);
   const [classId, setClassId] = useState(student.classId);
+  const [memo, setMemo] = useState(student.memo || "");
   //#endregion
 
   //#region mutations
   const updateStudentMutation = useMutation({
-    mutationFn: () => updateStudent(student.id, firstName, lastName, classId),
+    mutationFn: () => updateStudent(student.id, firstName, lastName, classId, memo.trim() || null),
     onSuccess: (data) => {
       if (data.error) {
         showMessage(data.error, "error");
@@ -123,6 +124,20 @@ export default function EditStudentForm({ student, classes, onClose }: EditStude
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label htmlFor="memo" className="block text-sm font-medium text-gray-700">
+          Memo (opsionale)
+        </label>
+        <textarea
+          id="memo"
+          value={memo}
+          onChange={(e) => setMemo(e.target.value)}
+          rows={2}
+          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          placeholder="Shënim i shkurtër për studentin..."
+        />
       </div>
 
       <div className="flex justify-end gap-2 pt-4">

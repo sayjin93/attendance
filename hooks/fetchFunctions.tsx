@@ -206,13 +206,13 @@ export async function deleteClass(id: number) {
   return res.json();
 }
 
-export async function updateStudent(id: number, firstName: string, lastName: string, classId: number) {
+export async function updateStudent(id: number, firstName: string, lastName: string, classId: number, memo?: string | null) {
   const res = await fetch("/api/students", {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ id, firstName, lastName, classId }),
+    body: JSON.stringify({ id, firstName, lastName, classId, memo }),
   });
   return res.json();
 }

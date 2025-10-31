@@ -80,6 +80,7 @@ model Student {
   firstName  String
   lastName   String
   email      String       @unique
+  memo       String?
   classId    Int
   class      Class        @relation(fields: [classId], references: [id])
   attendance Attendance[]

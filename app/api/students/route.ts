@@ -48,7 +48,7 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   try {
-    const { firstName, lastName, email, classId } = await req.json();
+    const { firstName, lastName, email, classId, memo } = await req.json();
 
     if (!classId || !firstName || !lastName || !email) {
       return NextResponse.json(
@@ -94,6 +94,7 @@ export async function POST(req: Request) {
         lastName: formattedLastName,
         email: email.toLowerCase().trim(),
         classId: classId,
+        memo: memo || null,
       },
     });
 
@@ -138,7 +139,7 @@ export async function PUT(req: Request) {
       );
     }
 
-    const { id, firstName, lastName, classId } = await req.json();
+    const { id, firstName, lastName, classId, memo } = await req.json();
 
     // Validate required fields
     if (!id || !firstName || !lastName || !classId) {
@@ -186,6 +187,7 @@ export async function PUT(req: Request) {
         firstName: formattedFirstName,
         lastName: formattedLastName,
         classId,
+        memo: memo || null,
       },
     });
 

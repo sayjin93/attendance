@@ -69,6 +69,7 @@ CREATE TABLE `Student` (
     `firstName` VARCHAR(191) NOT NULL,
     `lastName` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
+    `memo` VARCHAR(191) NULL,
     `classId` INTEGER NOT NULL,
 
     UNIQUE INDEX `Student_email_key`(`email`),

@@ -48,6 +48,7 @@ interface Student {
     id: string;
     firstName: string;
     lastName: string;
+    memo?: string | null;
 }
 
 interface AttendanceRecord {

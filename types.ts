@@ -38,6 +38,7 @@ export interface Student {
   id: number;
   firstName: string;
   lastName: string;
+  memo?: string | null;
   classId: number;
   class?: Class;
   attendance?: Attendance[];
@@ -68,6 +69,7 @@ export interface AttendanceRecord {
   id: number;
   firstName: string;
   lastName: string;
+  memo?: string | null;
   status: AttendanceStatus;
 }
 

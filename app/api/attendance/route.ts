@@ -21,7 +21,7 @@ export async function GET(req: Request) {
       where: {
         classId: classId ? parseInt(classId, 10) : undefined
       },
-      select: { id: true, firstName: true, lastName: true },
+      select: { id: true, firstName: true, lastName: true, memo: true },
       orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }]
     });
 
@@ -42,6 +42,7 @@ export async function GET(req: Request) {
         id: student.id,
         firstName: student.firstName,
         lastName: student.lastName,
+        memo: student.memo,
         status: attendance ? attendance.status : "PRESENT", // Default status
       };
     });
