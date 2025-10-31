@@ -5,7 +5,7 @@ async function seedStudentsInfoek202() {
   console.log("🌱 Seeding students for Infoek202...");
 
   const studentsInfoek202 = [
-    { firstName: "Gerald", lastName: "Balla", email: "ebeharaj@uet.edu.al", classId: 8 },
+    { firstName: "Gerald", lastName: "Balla", email: "gballa6@uet.edu.al", classId: 8 },
     { firstName: "Eldjon", lastName: "Beharaj", email: "ebeharaj@uet.edu.al", classId: 8 },
     { firstName: "Alesia", lastName: "Bufi", email: "abufi2@uet.edu.al", classId: 8 },
     { firstName: "Juljan", lastName: "Deliu", email: "jdeliu2@uet.edu.al", classId: 8 },

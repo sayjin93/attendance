@@ -5,13 +5,13 @@ This directory contains separate seed files for each class. You can run them ind
 ## Available Seed Files
 
 ### Bachelor Program
-- `students-INF205.ts` - Seeds 19 students for class INF205 (Class ID: 5)
+- `students-INF205.ts` - Seeds 21 (-3 to 206) students for class INF205 (Class ID: 5)
 - `students-INF206.ts` - Seeds 12 students for class INF206 (Class ID: 6)
-- `students-Infoek202.ts` - Seeds 31 students for class Infoek202 (Class ID: 8)
+- `students-Infoek202.ts` - Seeds 35 students for class Infoek202 (Class ID: 8)
 
 ### Master Program
-- `students-MSH1IE.ts` - Seeds 31 students for class MSH1IE (Class ID: 11)
-- `students-MSH1TI.ts` - Seeds 15 students for class MSH1TI (Class ID: 14)
+- `students-MSH1IE.ts` - Seeds 51 students for class MSH1IE (Class ID: 11)
+- `students-MSH1TI.ts` - Seeds 17 students for class MSH1TI (Class ID: 14)
 - `students-MSH1INFA.ts` - Seeds 1 students for class MSH1INFA (Class ID: 15)
 - `students-MSH1INFB.ts` - Seeds 1 students for class MSH1INFB (Class ID: 16)
 
