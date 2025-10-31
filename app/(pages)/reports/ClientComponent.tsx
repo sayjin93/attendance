@@ -1,12 +1,8 @@
 "use client";
 
 import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
+  ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon
+} from "@heroicons/react/20/solid";
 import { useQuery } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -15,7 +11,7 @@ import Alert from "../../../components/Alert";
 import Card from "../../../components/Card";
 import Skeleton from "../../../components/Skeleton";
 import { useNotify } from "../../../contexts/NotifyContext";
-import { fetchReportData } from "../../../hooks/fetchFunctions";
+import { fetchReportData, fetchClassesByProfessor } from "../../../hooks/fetchFunctions";
 
 // New interfaces for the reports module
 interface Program {
@@ -27,6 +23,10 @@ interface Class {
   id: string;
   name: string;
   programId: string;
+  program?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface Subject {
@@ -77,7 +77,6 @@ export default function ReportsPageClient({
   const { showMessage } = useNotify();
 
   //#region states
-  const [selectedProgramId, setSelectedProgramId] = useState("");
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
   const [sortConfig, setSortConfig] = useState<{
@@ -87,16 +86,97 @@ export default function ReportsPageClient({
   //#endregion
 
   //#region useQuery
-  // Fetch programs initially
+  // Fetch classes first (includes program info)
+  const {
+    data: classes,
+    isLoading: loadingClasses,
+    error: errorClasses,
+  } = useQuery<Class[]>({
+    queryKey: ["classes-for-reports", professorId],
+    queryFn: () => fetchClassesByProfessor(professorId),
+    enabled: !!professorId,
+  });
+
+  // Find selected class first (needed for other queries)
+  const selectedClass = classes?.find(c => c.id === selectedClassId) || null;
+
+  // Fetch subjects when class is selected
+  const {
+    data: subjectsData,
+    isLoading: loadingSubjects,
+    error: errorSubjects,
+  } = useQuery<{ subjects: Subject[] }>({
+    queryKey: ["report-subjects", professorId, selectedClassId],
+    queryFn: () => fetchReportData(professorId, selectedClass?.programId || "", selectedClassId, ""),
+    enabled: !!professorId && !!selectedClassId,
+    select: (data) => ({
+      subjects: data.subjects || []
+    })
+  });
+
+  // Fetch full report data when all filters are selected
   const {
     data: reportData,
     isLoading: loadingReports,
     error: errorReports,
   } = useQuery<ReportData>({
-    queryKey: ["reports", professorId, selectedProgramId, selectedClassId, selectedSubjectId],
-    queryFn: () => fetchReportData(professorId, selectedProgramId, selectedClassId, selectedSubjectId),
-    enabled: !!professorId,
+    queryKey: ["reports", professorId, selectedClass?.programId, selectedClassId, selectedSubjectId],
+    queryFn: () => fetchReportData(professorId, selectedClass?.programId || "", selectedClassId, selectedSubjectId),
+    enabled: !!professorId && !!selectedClassId && !!selectedSubjectId,
   });
+  //#endregion
+
+  //#region computed values
+  // Extract data from queries
+  const subjects = subjectsData?.subjects || [];
+  
+  // Sort students based on sortConfig
+  const students = useMemo(() => {
+    const studentsRaw = reportData?.students || [];
+    if (!sortConfig.key) return studentsRaw;
+
+    const sorted = [...studentsRaw].sort((a, b) => {
+      const aValue = a[sortConfig.key as keyof StudentReport];
+      const bValue = b[sortConfig.key as keyof StudentReport];
+
+      // Handle string values (firstName, lastName)
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      }
+
+      // Handle numeric and boolean values
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [reportData?.students, sortConfig]);
+
+  // Group classes by program for the dropdown
+  const groupedClasses = classes?.reduce((acc, cls) => {
+    const programName = cls.program?.name || 'Other';
+    if (!acc[programName]) {
+      acc[programName] = [];
+    }
+    acc[programName].push(cls);
+    return acc;
+  }, {} as Record<string, Class[]>) || {};
+
+  // Find selected items (selectedClass is defined above)
+  const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
+
+  // Reset functions
+  const resetSelections = (from: 'class') => {
+    if (from === 'class') {
+      setSelectedSubjectId("");
+    }
+  };
   //#endregion
 
   //#region functions
@@ -161,223 +241,95 @@ export default function ReportsPageClient({
     doc.save(fileName);
   };
 
-  const resetSelections = (fromLevel: 'program' | 'class') => {
-    if (fromLevel === 'program') {
-      setSelectedClassId("");
-      setSelectedSubjectId("");
-    } else if (fromLevel === 'class') {
-      setSelectedSubjectId("");
-    }
-  };
-  //#endregion
-
-  const programs = reportData?.programs || [];
-  const classes = reportData?.classes || [];
-  const subjects = reportData?.subjects || [];
-
-  // Sort students based on sortConfig
-  const students = useMemo(() => {
-    const studentsRaw = reportData?.students || [];
-    if (!sortConfig.key) return studentsRaw;
-
-    const sorted = [...studentsRaw].sort((a, b) => {
-      const aValue = a[sortConfig.key as keyof StudentReport];
-      const bValue = b[sortConfig.key as keyof StudentReport];
-
-      // Handle string values (firstName, lastName)
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        const comparison = aValue.localeCompare(bValue);
-        return sortConfig.direction === 'asc' ? comparison : -comparison;
-      }
-
-      // Handle numeric and boolean values
-      if (aValue < bValue) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-
-    return sorted;
-  }, [reportData?.students, sortConfig]);
+  if (errorClasses) {
+    showMessage("Gabim gjatë ngarkimit të klasave.", "error");
+    return <Alert type="error" title="Ka ndodhur një gabim gjatë ngarkimit të të dhënave." />;
+  }
 
   if (errorReports) {
     showMessage("Gabim gjatë ngarkimit të raporteve.", "error");
     return <Alert type="error" title="Ka ndodhur një gabim gjatë ngarkimit të raporteve." />;
   }
 
-  // Filter classes based on selected program
-  const filteredClasses = selectedProgramId
-    ? classes.filter((c: Class) => c.programId === selectedProgramId)
-    : [];
-
-  const selectedProgram = programs.find(p => p.id === selectedProgramId);
-  const selectedClass = filteredClasses.find(c => c.id === selectedClassId);
-  const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
-
   return (
     <div className="space-y-6">
-      {/* Filters in one row */}
-      <Card title="Filtrat">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Program Selector */}
-          <div>
-            <Listbox value={selectedProgramId} onChange={(value) => {
-              setSelectedProgramId(value);
-              resetSelections('program');
-            }}>
-              <div className="relative">
-                <ListboxButton className="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                  <span className="col-start-1 row-start-1 truncate pr-6">
-                    {programs?.length === 0
-                      ? "Nuk ka programe"
-                      : !selectedProgramId
-                        ? "Zgjidh programin"
-                        : selectedProgram?.name}
-                  </span>
-                  <ChevronUpDownIcon
-                    aria-hidden="true"
-                    className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                  />
-                </ListboxButton>
-
-                <ListboxOptions
-                  transition
-                  className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
-                >
-                  {programs?.map((program: Program) => (
-                    <ListboxOption
-                      key={program.id}
-                      value={program.id}
-                      className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
-                    >
-                      <span className="block truncate font-normal group-data-selected:font-semibold">
-                        {program.name}
-                      </span>
-
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
-                        <CheckIcon aria-hidden="true" className="size-5" />
-                      </span>
-                    </ListboxOption>
-                  ))}
-                </ListboxOptions>
-              </div>
-            </Listbox>
-          </div>
-
+      {/* Filters */}
+      <Card title="Zgjidhni Klasën dhe Lëndën">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Class Selector */}
           <div>
-            <Listbox
-              value={selectedClassId}
-              onChange={(value) => {
-                setSelectedClassId(value);
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Klasa *
+            </label>
+            <select
+              value={selectedClassId || ""}
+              onChange={(e) => {
+                setSelectedClassId(e.target.value);
                 resetSelections('class');
               }}
-              disabled={!selectedProgramId}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
             >
-              <div className="relative">
-                <ListboxButton
-                  className={`grid w-full grid-cols-1 rounded-md py-1.5 pr-2 pl-3 text-left outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6 ${!selectedProgramId
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-900 cursor-pointer focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600'
-                    }`}
-                >
-                  <span className="col-start-1 row-start-1 truncate pr-6">
-                    {!selectedProgramId
-                      ? "Zgjidhni programin më parë"
-                      : filteredClasses?.length === 0
-                        ? "Nuk ka klasa për këtë program"
-                        : !selectedClassId
-                          ? "Zgjidh klasën"
-                          : selectedClass?.name}
-                  </span>
-                  <ChevronUpDownIcon
-                    aria-hidden="true"
-                    className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                  />
-                </ListboxButton>
-
-                {selectedProgramId && (
-                  <ListboxOptions
-                    transition
-                    className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
-                  >
-                    {filteredClasses?.map((cls: Class) => (
-                      <ListboxOption
-                        key={cls.id}
-                        value={cls.id}
-                        className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
-                      >
-                        <span className="block truncate font-normal group-data-selected:font-semibold">
-                          {cls.name}
-                        </span>
-
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
-                          <CheckIcon aria-hidden="true" className="size-5" />
-                        </span>
-                      </ListboxOption>
-                    ))}
-                  </ListboxOptions>
-                )}
-              </div>
-            </Listbox>
+              <option value="">
+                {loadingClasses
+                  ? "Duke ngarkuar..."
+                  : classes?.length === 0
+                    ? "Nuk ka klasa"
+                    : "Zgjidhni një klasë..."}
+              </option>
+              
+              {Object.entries(groupedClasses).map(([programName, programClasses]) => (
+                <optgroup key={programName} label={programName}>
+                  {programClasses.map((cls: Class) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+              
+              {/* Fallback: show all classes without grouping if grouping fails */}
+              {Object.entries(groupedClasses).length === 0 && classes?.map((cls: Class) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Subject Selector */}
           <div>
-            <Listbox
-              value={selectedSubjectId}
-              onChange={setSelectedSubjectId}
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Lënda *
+            </label>
+            <select
               disabled={!selectedClassId}
+              value={selectedSubjectId || ""}
+              onChange={(e) => setSelectedSubjectId(e.target.value)}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                selectedClassId
+                  ? "border-gray-300 bg-white"
+                  : "border-gray-200 bg-gray-100 cursor-not-allowed"
+              }`}
+              required
             >
-              <div className="relative">
-                <ListboxButton
-                  className={`grid w-full grid-cols-1 rounded-md py-1.5 pr-2 pl-3 text-left outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6 ${!selectedClassId
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-900 cursor-pointer focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600'
-                    }`}
-                >
-                  <span className="col-start-1 row-start-1 truncate pr-6">
-                    {!selectedClassId
-                      ? "Zgjidhni klasën më parë"
-                      : subjects?.length === 0
-                        ? "Nuk ka lëndë për këtë klasë"
-                        : !selectedSubjectId
-                          ? "Zgjidh lëndën"
-                          : selectedSubject?.name}
-                  </span>
-                  <ChevronUpDownIcon
-                    aria-hidden="true"
-                    className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                  />
-                </ListboxButton>
-
-                {selectedClassId && (
-                  <ListboxOptions
-                    transition
-                    className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
-                  >
-                    {subjects?.map((subject: Subject) => (
-                      <ListboxOption
-                        key={subject.id}
-                        value={subject.id}
-                        className="group relative cursor-pointer py-2 pr-4 pl-8 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
-                      >
-                        <span className="block truncate font-normal group-data-selected:font-semibold">
-                          {subject.name}
-                        </span>
-
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-600 group-not-data-selected:hidden group-data-focus:text-white">
-                          <CheckIcon aria-hidden="true" className="size-5" />
-                        </span>
-                      </ListboxOption>
-                    ))}
-                  </ListboxOptions>
-                )}
-              </div>
-            </Listbox>
+              <option value="">
+                {!selectedClassId
+                  ? "Zgjidhni një klasë fillimisht"
+                  : loadingSubjects
+                    ? "Duke ngarkuar..."
+                    : subjects?.length === 0
+                      ? "Nuk ka lëndë për këtë klasë"
+                      : "Zgjidhni një lëndë..."}
+              </option>
+              {selectedClassId && subjects && subjects.length > 0 && 
+                subjects.map((subject: Subject) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </option>
+                ))
+              }
+            </select>
           </div>
         </div>
       </Card>
