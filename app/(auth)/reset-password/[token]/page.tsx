@@ -1,5 +1,10 @@
 import ClientComponent from "./ClientComponent";
 
-export default function ResetPasswordPage({ params }: { params: { token: string } }) {
-  return <ClientComponent token={params.token} />;
+export default async function ResetPasswordPage({ 
+  params 
+}: { 
+  params: Promise<{ token: string }> 
+}) {
+  const { token } = await params;
+  return <ClientComponent token={token} />;
 }
