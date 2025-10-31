@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Alert from "../../../components/Alert";
 import Skeleton from "../../../components/Skeleton";
@@ -94,20 +94,25 @@ export default function RegistryPageClient({
 
     const isAdminUser = isAdmin === "true";
 
-    // Check if all required filters are selected
-    const canShowTable = !!(selectedClassId && selectedSubjectId && selectedTypeId && 
-        (isAdminUser ? selectedProfessorId : true));    //#region useQuery for filter data only
+    // Check if all required filters are selected - memoized
+    const canShowTable = useMemo(() => 
+        !!(selectedClassId && selectedSubjectId && selectedTypeId && 
+        (isAdminUser ? selectedProfessorId : true))
+    , [selectedClassId, selectedSubjectId, selectedTypeId, isAdminUser, selectedProfessorId]);
+
+    //#region useQuery for filter data only
     const {
         data: filterData,
         isLoading: loadingFilters,
         error: errorFilters,
     } = useQuery<RegistryData>({
-        queryKey: ["registry-filters", professorId, selectedProfessorId, selectedClassId, selectedSubjectId],
+        queryKey: ["registry-filters", professorId, isAdminUser ? selectedProfessorId : null, selectedClassId, selectedSubjectId],
         queryFn: async () => {
             // For admin, use selectedProfessorId if available, otherwise use current professorId
             const effectiveProfessorId = isAdminUser && selectedProfessorId ? selectedProfessorId : professorId;
             const params = new URLSearchParams({ professorId: effectiveProfessorId });
 
+            // Add filters to get cascade data
             if (selectedClassId) params.append('classId', selectedClassId);
             if (selectedSubjectId) params.append('subjectId', selectedSubjectId);
 
@@ -118,7 +123,10 @@ export default function RegistryPageClient({
             return response.json();
         },
         enabled: !!professorId,
-        staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        placeholderData: (previousData) => previousData, // CRITICAL: Keep previous data to prevent flicker
     });
 
     //#region useQuery for registry table data
@@ -145,6 +153,9 @@ export default function RegistryPageClient({
         },
         enabled: !!canShowTable,
         staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
+        refetchOnWindowFocus: false, // Prevent refetch on window focus
+        refetchOnMount: false, // Prevent refetch on component mount if data exists
+        placeholderData: (previousData) => previousData, // Keep previous data while loading new data
     });
     //#endregion
 
@@ -183,7 +194,7 @@ export default function RegistryPageClient({
         resetSelections('type');
     }, [resetSelections]);
 
-    // Filter data based on selections (use filterData for dropdowns, registryData for table)
+    // Filter data - API returns already filtered data based on professor
     const programs = filterData?.programs || [];
     const classes = filterData?.classes || [];
     const subjects = filterData?.subjects || [];
@@ -192,22 +203,13 @@ export default function RegistryPageClient({
     const lectures = registryData?.lectures || [];
     const registryRows = registryData?.registryRows || [];
 
-    // Filter classes based on selected program
-    const filteredClasses = classes;
-
-    const selectedClass = filteredClasses.find((c: Class) => c.id === selectedClassId);
+    // Selected items
+    const selectedClass = classes.find((c: Class) => c.id === selectedClassId);
     const selectedSubject = subjects.find((s: Subject) => s.id === selectedSubjectId);
     const selectedType = types.find((t: TeachingType) => t.id === selectedTypeId);
     const selectedProfessor = professors.find((p: Professor) => p.id === selectedProfessorId);
 
-    if (loadingFilters) {
-        return (
-            <div className="space-y-6">
-                <Skeleton />
-            </div>
-        );
-    }
-
+    // Show error if there's an error, but don't block rendering for loading state
     if (errorFilters) {
         return (
             <Alert
@@ -220,47 +222,54 @@ export default function RegistryPageClient({
 
     return (
         <div className="space-y-6">
-            {/* Filters - This component won't rerender unnecessarily */}
-            <FilterSection
-                programs={programs}
-                classes={classes}
-                subjects={subjects}
-                types={types}
-                professors={professors}
-                selectedClassId={selectedClassId}
-                selectedSubjectId={selectedSubjectId}
-                selectedTypeId={selectedTypeId}
-                selectedProfessorId={selectedProfessorId}
-                isAdminUser={isAdminUser}
-                onClassChange={handleClassChange}
-                onSubjectChange={handleSubjectChange}
-                onTypeChange={handleTypeChange}
-                onProfessorChange={handleProfessorChange}
-            />
+            {/* Show skeleton only on initial load, not on filter changes */}
+            {loadingFilters && !filterData ? (
+                <Skeleton />
+            ) : (
+                <>
+                    {/* Filters - This component won't rerender unnecessarily */}
+                    <FilterSection
+                        programs={programs}
+                        classes={classes}
+                        subjects={subjects}
+                        types={types}
+                        professors={professors}
+                        selectedClassId={selectedClassId}
+                        selectedSubjectId={selectedSubjectId}
+                        selectedTypeId={selectedTypeId}
+                        selectedProfessorId={selectedProfessorId}
+                        isAdminUser={isAdminUser}
+                        onClassChange={handleClassChange}
+                        onSubjectChange={handleSubjectChange}
+                        onTypeChange={handleTypeChange}
+                        onProfessorChange={handleProfessorChange}
+                    />
 
-            {/* Registry Table - Only renders when data is available */}
-            {canShowTable && registryRows.length > 0 && (
-                <RegistryTable
-                    programs={programs}
-                    professors={professors}
-                    lectures={lectures}
-                    registryRows={registryRows}
-                    selectedClass={selectedClass}
-                    selectedSubject={selectedSubject}
-                    selectedType={selectedType}
-                    selectedProfessor={selectedProfessor}
-                    isAdminUser={isAdminUser}
-                    isLoading={loadingRegistry}
-                />
+                    {/* Registry Table - Only renders when data is available */}
+                    {canShowTable && registryRows.length > 0 && (
+                        <RegistryTable
+                            programs={programs}
+                            professors={professors}
+                            lectures={lectures}
+                            registryRows={registryRows}
+                            selectedClass={selectedClass}
+                            selectedSubject={selectedSubject}
+                            selectedType={selectedType}
+                            selectedProfessor={selectedProfessor}
+                            isAdminUser={isAdminUser}
+                            isLoading={loadingRegistry}
+                        />
+                    )}
+
+                    {/* Empty States - Handles both no data and no filters selected */}
+                    <EmptyState
+                        canShowTable={canShowTable}
+                        registryRows={registryRows}
+                        isAdminUser={isAdminUser}
+                        isLoading={loadingRegistry}
+                    />
+                </>
             )}
-
-            {/* Empty States - Handles both no data and no filters selected */}
-            <EmptyState
-                canShowTable={canShowTable}
-                registryRows={registryRows}
-                isAdminUser={isAdminUser}
-                isLoading={loadingRegistry}
-            />
         </div>
     );
 }

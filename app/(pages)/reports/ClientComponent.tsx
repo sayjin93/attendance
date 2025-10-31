@@ -1,12 +1,10 @@
 "use client";
 
-import {
-  ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon
-} from "@heroicons/react/20/solid";
+import { ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useQuery } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Alert from "../../../components/Alert";
 import Card from "../../../components/Card";
 import Skeleton from "../../../components/Skeleton";
@@ -157,43 +155,45 @@ export default function ReportsPageClient({
     return sorted;
   }, [reportData?.students, sortConfig]);
 
-  // Group classes by program for the dropdown
-  const groupedClasses = classes?.reduce((acc, cls) => {
-    const programName = cls.program?.name || 'Other';
-    if (!acc[programName]) {
-      acc[programName] = [];
-    }
-    acc[programName].push(cls);
-    return acc;
-  }, {} as Record<string, Class[]>) || {};
+  // Group classes by program for the dropdown - memoized
+  const groupedClasses = useMemo(() => {
+    return classes?.reduce((acc, cls) => {
+      const programName = cls.program?.name || 'Other';
+      if (!acc[programName]) {
+        acc[programName] = [];
+      }
+      acc[programName].push(cls);
+      return acc;
+    }, {} as Record<string, Class[]>) || {};
+  }, [classes]);
 
-  // Reset functions
-  const resetSelections = (from: 'class') => {
+  // Reset functions - memoized to prevent re-renders
+  const resetSelections = useCallback((from: 'class') => {
     if (from === 'class') {
       setSelectedSubjectId("");
     }
-  };
+  }, []);
   //#endregion
 
-  //#region functions
-  const handleSort = (key: keyof StudentReport) => {
+  //#region functions - memoized
+  const handleSort = useCallback((key: keyof StudentReport) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
-  };
+  }, [sortConfig.key, sortConfig.direction]);
 
-  const getSortIcon = (columnKey: keyof StudentReport) => {
+  const getSortIcon = useCallback((columnKey: keyof StudentReport) => {
     if (sortConfig.key !== columnKey) {
       return <ChevronUpDownIcon className="w-4 h-4 inline ml-1 text-gray-400" />;
     }
     return sortConfig.direction === 'asc'
       ? <ChevronUpIcon className="w-4 h-4 inline ml-1 text-indigo-600" />
       : <ChevronDownIcon className="w-4 h-4 inline ml-1 text-indigo-600" />;
-  };
+  }, [sortConfig.key, sortConfig.direction]);
 
-  const downloadPDF = () => {
+  const downloadPDF = useCallback(() => {
     if (!reportData?.students || !reportData?.metadata) return;
 
     const doc = new jsPDF();
@@ -235,7 +235,8 @@ export default function ReportsPageClient({
 
     const fileName = `Raporti_${program || 'TeGjitha'}_${className || 'TeGjitha'}_${subject || 'TeGjitha'}.pdf`;
     doc.save(fileName);
-  };
+  }, [reportData]);
+  //#endregion
 
   if (errorClasses) {
     showMessage("Gabim gjatë ngarkimit të klasave.", "error");

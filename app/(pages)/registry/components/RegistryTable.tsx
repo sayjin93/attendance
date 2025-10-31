@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Card from "../../../../components/Card";
@@ -80,17 +80,17 @@ const RegistryTable = memo(function RegistryTable({
   isAdminUser,
   isLoading,
 }: RegistryTableProps) {
-  // Format date helper
-  const formatDate = (dateString: string) => {
+  // Format date helper - memoized to prevent rerenders
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: '2-digit'
     });
-  };
+  }, []);
 
-  // PDF Export function
-  const downloadPDF = () => {
+  // PDF Export function - memoized to prevent rerenders
+  const downloadPDF = useCallback(() => {
     if (!registryRows.length || !lectures.length) return;
 
     const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation for better table fit
@@ -164,7 +164,7 @@ const RegistryTable = memo(function RegistryTable({
     const fileName = `Regjistri_${programName}_${className}_${subjectCode}_${typeName}.pdf`;
     
     doc.save(fileName);
-  };
+  }, [registryRows, lectures, programs, selectedClass, selectedSubject, selectedType, selectedProfessor, isAdminUser, professors, formatDate]);
 
   return (
     <div className="relative">

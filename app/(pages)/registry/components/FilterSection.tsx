@@ -65,13 +65,13 @@ const FilterSection = memo(function FilterSection({
   onProfessorChange,
 }: FilterSectionProps) {
   // Group classes by program
-  const groupedClasses = programs.reduce((acc, program) => {
+  const groupedClasses: { [programName: string]: Class[] } = {};
+  programs.forEach((program) => {
     const programClasses = classes.filter(c => c.programId === program.id);
     if (programClasses.length > 0) {
-      acc[program.name] = programClasses;
+      groupedClasses[program.name] = programClasses;
     }
-    return acc;
-  }, {} as Record<string, Class[]>);
+  });
 
   return (
     <Card title="Filtrat">
@@ -81,7 +81,7 @@ const FilterSection = memo(function FilterSection({
           : 'sm:grid-cols-2 lg:grid-cols-3'
       }`}>
         
-        {/* Professor Selector - Only for Admin and shown first */}
+        {/* Professor Selector - Only for Admin */}
         {isAdminUser && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -93,8 +93,8 @@ const FilterSection = memo(function FilterSection({
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             >
-              <option value="" disabled>Zgjidhni profesorin...</option>
-              {professors.map((professor: Professor) => (
+              <option value="">Zgjidhni profesorin...</option>
+              {professors.map((professor) => (
                 <option key={professor.id} value={professor.id}>
                   {professor.firstName} {professor.lastName}
                 </option>
@@ -103,7 +103,7 @@ const FilterSection = memo(function FilterSection({
           </div>
         )}
 
-        {/* Class Selector with Program Grouping */}
+        {/* Class Selector */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Klasa *
@@ -113,23 +113,22 @@ const FilterSection = memo(function FilterSection({
             value={selectedClassId}
             onChange={(e) => onClassChange(e.target.value)}
             className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              (isAdminUser && !selectedProfessorId) || Object.keys(groupedClasses).length === 0
-                ? "border-gray-200 bg-gray-100 cursor-not-allowed"
-                : "border-gray-300 bg-white"
+              isAdminUser && !selectedProfessorId
+                ? 'border-gray-200 bg-gray-100 cursor-not-allowed' 
+                : 'border-gray-300 bg-white'
             }`}
             required
           >
-            <option value="" disabled>
-              {isAdminUser && !selectedProfessorId 
-                ? "Zgjidhni profesorin fillimisht..." 
-                : "Zgjidhni klasën..."
-              }
+            <option value="">
+              {Object.keys(groupedClasses).length === 0 
+                ? 'Nuk ka klasa të disponueshme' 
+                : 'Zgjidhni klasën...'}
             </option>
             {Object.entries(groupedClasses).map(([programName, programClasses]) => (
               <optgroup key={programName} label={programName}>
-                {programClasses.map((cls: Class) => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.name}
+                {programClasses.map((classItem) => (
+                  <option key={classItem.id} value={classItem.id}>
+                    {classItem.name}
                   </option>
                 ))}
               </optgroup>
@@ -143,24 +142,24 @@ const FilterSection = memo(function FilterSection({
             Lënda *
           </label>
           <select
-            disabled={!selectedClassId}
+            disabled={!selectedClassId || subjects.length === 0}
             value={selectedSubjectId}
             onChange={(e) => onSubjectChange(e.target.value)}
             className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              selectedClassId
-                ? "border-gray-300 bg-white"
-                : "border-gray-200 bg-gray-100 cursor-not-allowed"
+              !selectedClassId || subjects.length === 0
+                ? 'border-gray-200 bg-gray-100 cursor-not-allowed' 
+                : 'border-gray-300 bg-white'
             }`}
             required
           >
             <option value="">
-              {!selectedClassId
-                ? "Zgjidhni klasën fillimisht"
-                : subjects.length === 0
-                ? "Nuk ka lëndë për këtë klasë"
-                : "Zgjidhni lëndën..."}
+              {!selectedClassId 
+                ? 'Zgjidhni klasën fillimisht' 
+                : subjects.length === 0 
+                  ? 'Nuk ka lëndë të disponueshme' 
+                  : 'Zgjidhni lëndën...'}
             </option>
-            {subjects.map((subject: Subject) => (
+            {subjects.map((subject) => (
               <option key={subject.id} value={subject.id}>
                 {subject.code} - {subject.name}
               </option>
@@ -174,24 +173,24 @@ const FilterSection = memo(function FilterSection({
             Tipi *
           </label>
           <select
-            disabled={!selectedSubjectId}
+            disabled={!selectedSubjectId || types.length === 0}
             value={selectedTypeId}
             onChange={(e) => onTypeChange(e.target.value)}
             className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              selectedSubjectId
-                ? "border-gray-300 bg-white"
-                : "border-gray-200 bg-gray-100 cursor-not-allowed"
+              !selectedSubjectId || types.length === 0
+                ? 'border-gray-200 bg-gray-100 cursor-not-allowed' 
+                : 'border-gray-300 bg-white'
             }`}
             required
           >
             <option value="">
-              {!selectedSubjectId
-                ? "Zgjidhni lëndën fillimisht"
-                : types.length === 0
-                ? "Nuk ka tip për këtë lëndë"
-                : "Zgjidhni tipin..."}
+              {!selectedSubjectId 
+                ? 'Zgjidhni lëndën fillimisht' 
+                : types.length === 0 
+                  ? 'Nuk ka tip të disponueshëm' 
+                  : 'Zgjidhni tipin...'}
             </option>
-            {types.map((type: TeachingType) => (
+            {types.map((type) => (
               <option key={type.id} value={type.id}>
                 {type.name}
               </option>
