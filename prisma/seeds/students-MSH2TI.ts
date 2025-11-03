@@ -5,7 +5,17 @@ async function seedStudentsMSH2TI() {
   console.log("🌱 Seeding students for MSH2TI...");
 
   const studentsMSH2TI = [
-    { firstName: "Mario", lastName: "Lipo", institutionEmail: "mlipo@uet.edu.al", father: "Gjergji", personalEmail: "mario92_ko@yahoo.com", phone: "0698380983", orderId: 1, classId: 16 },
+    { 
+      firstName: "Mario", 
+      father: "Gjergji", 
+      lastName: "Lipo", 
+      institutionEmail: "mlipo@uet.edu.al", 
+      personalEmail: "mario92_ko@yahoo.com", 
+      phone: "0698380983", 
+      memo: null, 
+      orderId: 1, 
+      classId: 16 
+    },
   ];
 
   await prisma.student.createMany({

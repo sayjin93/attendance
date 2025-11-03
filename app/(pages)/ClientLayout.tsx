@@ -2,14 +2,11 @@
 import { useState } from "react";
 
 import Image from "next/image";
-
 import { usePathname } from "next/navigation";
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-  TransitionChild,
-} from "@headlessui/react";
+
+import "@/lib/devextremeConfig";
+
+import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 //hooks

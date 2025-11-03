@@ -501,6 +501,12 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                 cellRender={renderFirstNameCell}
               />
               <Column
+                dataField="father"
+                caption="Atësia"
+                allowGrouping={false}
+                cellRender={(cellData) => cellData.value || "-"}
+              />
+              <Column
                 dataField="lastName"
                 caption="Mbiemri"
               />
@@ -508,12 +514,6 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                 dataField="institutionEmail"
                 caption="Email Institucional"
                 allowGrouping={false}
-              />
-              <Column
-                dataField="father"
-                caption="Atësia"
-                allowGrouping={false}
-                cellRender={(cellData) => cellData.value || "-"}
               />
               <Column
                 dataField="personalEmail"

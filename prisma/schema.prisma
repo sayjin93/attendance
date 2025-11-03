@@ -80,12 +80,12 @@ model Class {
 model Student {
   id               Int          @id @default(autoincrement())
   firstName        String
+  father           String?
   lastName         String
   institutionEmail String       @unique
-  memo             String?
-  father           String?
   personalEmail    String?
   phone            String?
+  memo             String?
   orderId          Int?
   classId          Int
   class            Class        @relation(fields: [classId], references: [id])

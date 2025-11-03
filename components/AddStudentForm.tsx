@@ -117,11 +117,29 @@ export default function AddStudentForm({
       />
 
       <input
+        name="student_father"
+        type="text"
+        placeholder="Emri i babait (opsionale)"
+        value={father}
+        onChange={(e) => setFather(e.target.value)}
+        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+      />
+
+      <input
         name="student_lastName"
         type="text"
         placeholder="Mbiemri"
         value={lastName}
         onChange={(e) => handleLastNameChange(e.target.value)}
+        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+      />
+
+      <input
+        name="student_orderId"
+        type="number"
+        placeholder="Numri i rendit (opsionale)"
+        value={orderId}
+        onChange={(e) => setOrderId(e.target.value)}
         className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
       />
 
@@ -141,35 +159,6 @@ export default function AddStudentForm({
         </div>
       </div>
 
-      <div className="col-span-1 sm:col-span-2">
-        <textarea
-          name="student_memo"
-          placeholder="Memo (opsionale) - Shënim i shkurtër për studentin"
-          value={memo}
-          onChange={(e) => setMemo(e.target.value)}
-          rows={2}
-          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 resize-none"
-        />
-      </div>
-
-      <input
-        name="student_father"
-        type="text"
-        placeholder="Emri i babait (opsionale)"
-        value={father}
-        onChange={(e) => setFather(e.target.value)}
-        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-      />
-
-      <input
-        name="student_orderId"
-        type="number"
-        placeholder="Numri i rendit (opsionale)"
-        value={orderId}
-        onChange={(e) => setOrderId(e.target.value)}
-        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-      />
-
       <input
         name="student_personalEmail"
         type="email"
@@ -179,14 +168,23 @@ export default function AddStudentForm({
         className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
       />
 
+      <input
+        name="student_phone"
+        type="tel"
+        placeholder="Numri i telefonit (opsionale)"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+      />
+
       <div className="col-span-1 sm:col-span-2">
-        <input
-          name="student_phone"
-          type="tel"
-          placeholder="Numri i telefonit (opsionale)"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+        <textarea
+          name="student_memo"
+          placeholder="Memo (opsionale) - Shënim i shkurtër për studentin"
+          value={memo}
+          onChange={(e) => setMemo(e.target.value)}
+          rows={2}
+          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 resize-none"
         />
       </div>
 

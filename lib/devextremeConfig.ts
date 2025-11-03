@@ -4,6 +4,7 @@ import config from "devextreme/core/config";
 // Configure DevExtreme license key
 const configureDevExtreme = () => {
   try {
+    debugger;
     const licenseKey = process.env.NEXT_PUBLIC_DEVEXTREME_KEY;
 
     if (licenseKey) {

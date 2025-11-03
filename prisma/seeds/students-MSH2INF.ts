@@ -5,8 +5,28 @@ async function seedStudentsMSH2INF() {
   console.log("🌱 Seeding students for MSH2INF...");
 
   const studentsMSH2INF = [
-    { firstName: "Elvis", lastName: "Dylgjeri", institutionEmail: "edylgjeri@uet.edu.al", father: "Ferit", personalEmail: "elvisdylgjeri1@gmail.com", phone: "0692175520", orderId: 1, classId: 15 },
-    { firstName: "Korab", lastName: "Kuçi", institutionEmail: "kkuci4@uet.edu.al", father: "Shpetim", personalEmail: "kucikorab05@gmail.com", phone: "0696330338", orderId: 2, classId: 15 },
+    { 
+      firstName: "Elvis", 
+      father: "Ferit", 
+      lastName: "Dylgjeri", 
+      institutionEmail: "edylgjeri@uet.edu.al", 
+      personalEmail: "elvisdylgjeri1@gmail.com", 
+      phone: "0692175520", 
+      memo: null, 
+      orderId: 1, 
+      classId: 15 
+    },
+    { 
+      firstName: "Korab", 
+      father: "Shpetim", 
+      lastName: "Kuçi", 
+      institutionEmail: "kkuci4@uet.edu.al", 
+      personalEmail: "kucikorab05@gmail.com", 
+      phone: "0696330338", 
+      memo: null, 
+      orderId: 2, 
+      classId: 15 
+    },
 
   ];
 
