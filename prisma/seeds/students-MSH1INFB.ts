@@ -5,7 +5,6 @@ async function seedStudentsMSH1INFB() {
   console.log("🌱 Seeding students for MSH1INFB...");
 
   const studentsMSH1INFB = [
-    { firstName: "Joana", lastName: "Alliu", email: "jalliu@uet.edu.al", classId: 13 },
     { firstName: "Stejsi", lastName: "Bala", email: "sbala@uet.edu.al", classId: 13 },
     { firstName: "Bora", lastName: "Leola", email: "bleola@uet.edu.al", classId: 13 },
     { firstName: "Mateo", lastName: "Dedolli", email: "mdedolli@uet.edu.al", classId: 13 },
@@ -21,13 +20,11 @@ async function seedStudentsMSH1INFB() {
     { firstName: "Irikli", lastName: "Karçini", email: "ikarcini@uet.edu.al", classId: 13 },
     { firstName: "Paskuel", lastName: "Katro", email: "pkatro@uet.edu.al", classId: 13 },
     { firstName: "Armond", lastName: "Koloshi", email: "akoloshi@uet.edu.al", classId: 13 },
-    { firstName: "Besmir", lastName: "Lamaj", email: "blamaj@uet.edu.al", classId: 13 },
     { firstName: "Alkida", lastName: "Lera", email: "alera@uet.edu.al", classId: 13 },
     { firstName: "Selena", lastName: "Mehmet", email: "smehmet@uet.edu.al", classId: 13 },
     { firstName: "Renea", lastName: "Musollari", email: "rmusollari@uet.edu.al", classId: 13 },
     { firstName: "Endrit", lastName: "Mustafaj", email: "emustafaj@uet.edu.al", classId: 13 },
     { firstName: "Martina", lastName: "Necaj", email: "mnecaj@uet.edu.al", classId: 13 },
-    { firstName: "Kristina", lastName: "Nicaj", email: "knicaj@uet.edu.al", classId: 13 },
     { firstName: "Mateo", lastName: "Nushi", email: "mnushi@uet.edu.al", classId: 13 },
     { firstName: "Dea", lastName: "Osmanaga", email: "dosmanaga@uet.edu.al", classId: 13 },
     { firstName: "Etna", lastName: "Paja", email: "epaja@uet.edu.al", classId: 13 },
@@ -50,7 +47,6 @@ async function seedStudentsMSH1INFB() {
     { firstName: "Renato", lastName: "Vezi", email: "rvezi@uet.edu.al", classId: 13 },
     { firstName: "Lorenca", lastName: "Vokrri", email: "lvokrri@uet.edu.al", classId: 13 },
     { firstName: "Dea", lastName: "Xhani", email: "dxhani@uet.edu.al", classId: 13 },
-    { firstName: "Uendi", lastName: "Zaimi", email: "uzaimi@uet.edu.al", classId: 13 },
     { firstName: "Era", lastName: "Zenelaj", email: "ezenelaj@uet.edu.al", classId: 13 },
     { firstName: "Indrit", lastName: "Zenelaj", email: "izenelaj@uet.edu.al", classId: 13 },
   ];
