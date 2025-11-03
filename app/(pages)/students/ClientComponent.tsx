@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import {
@@ -27,6 +27,7 @@ import DataGrid, {
   ColumnFixing,
   StateStoring,
   Selection,
+  DataGridTypes,
 } from "devextreme-react/data-grid";
 import { exportDataGrid } from "devextreme/pdf_exporter";
 import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
@@ -65,138 +66,23 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [deletingMultipleStudents, setDeletingMultipleStudents] = useState<boolean>(false);
   const [showAddStudentForm, setShowAddStudentForm] = useState(false);
-  //#endregion
 
-  //#region custom cell renderers
-  const renderFirstNameCell = (cellData: { data: Student; value: string }) => {
-    const student = cellData.data;
-    return (
-      <div className="flex items-center gap-2">
-        <span>{student.firstName}</span>
-        {student.memo && (
-          <div className="group relative inline-block">
-            <svg 
-              className="w-4 h-4 text-indigo-500 cursor-help" 
-              fill="currentColor" 
-              viewBox="0 0 20 20"
-            >
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none">
-              {student.memo}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
+  // Check localStorage for pre-selected program and class (from classes page navigation)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedProgramId = localStorage.getItem('selectedProgramId');
+      const savedClassId = localStorage.getItem('selectedClassId');
 
-  const renderActionsCell = (cellData: { data: Student }) => {
-    const student = cellData.data;
-    return (
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => setEditingStudent(student)}
-          className="inline-flex items-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-150 cursor-pointer"
-          title="Modifiko studentin"
-        >
-          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Ndrysho
-        </button>
-        <button
-          onClick={() => setDeletingStudent(student)}
-          className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
-          title="Fshi studentin"
-        >
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      </div>
-    );
-  };
-  //#endregion
+      if (savedProgramId && savedClassId) {
+        setProgramId(parseInt(savedProgramId));
+        setClassId(parseInt(savedClassId));
 
-  //#region export functions
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onExporting = (e: any) => {
-    if (e.format === 'pdf') {
-      const doc = new jsPDF();
-      
-      // Add header with class name and student count
-      const className = selectedClass?.name || 'Lista e studentëve';
-      const studentCount = studentsData?.length || 0;
-      
-      // Set font and add title
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text(className, 15, 20);
-      
-      // Add student count
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Gjithsej ${studentCount} student${studentCount !== 1 ? 'ë' : ''}`, 15, 30);
-      
-      // Add date
-      doc.setFontSize(10);
-      doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
-      
-      exportDataGrid({
-        jsPDFDocument: doc,
-        component: e.component,
-        indent: 5,
-        topLeft: { x: 10, y: 50 }, // Start the table below the header
-      }).then(() => {
-        // Add footer to all pages
-        const totalPages = doc.getNumberOfPages();
-        
-        for (let i = 1; i <= totalPages; i++) {
-          doc.setPage(i);
-          
-          // Footer positioning
-          const pageHeight = doc.internal.pageSize.height;
-          const footerY = pageHeight - 15;
-          
-          // Set footer font
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(100, 100, 100); // Gray color
-          
-          // Left side - Website attribution
-          doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
-          
-          // Center - Developer credit
-          const centerText = 'Developed by JK';
-          const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
-          doc.text(centerText, centerX, footerY);
-          
-          // Right side - Page numbering
-          const pageText = `${i}/${totalPages}`;
-          const pageWidth = doc.internal.pageSize.width;
-          const pageTextWidth = doc.getTextWidth(pageText);
-          doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
-        }
-        
-        doc.save(`Studentet_${selectedClass?.name || 'Lista'}.pdf`);
-      });
-    } else if (e.format === 'xlsx') {
-      const workbook = new Workbook();
-      const worksheet = workbook.addWorksheet('Studentet');
-      
-      exportDataGridToExcel({
-        component: e.component,
-        worksheet: worksheet,
-        autoFilterEnabled: true,
-      }).then(() => {
-        workbook.xlsx.writeBuffer().then((buffer) => {
-          saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `Studentet_${selectedClass?.name || 'Lista'}.xlsx`);
-        });
-      });
+        // Clear the saved values after using them
+        localStorage.removeItem('selectedProgramId');
+        localStorage.removeItem('selectedClassId');
+      }
     }
-  };
+  }, []);
   //#endregion
 
   //#region useQuery
@@ -255,13 +141,13 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
     onSuccess: (results) => {
       const failed = results.filter(result => result.status === 'rejected').length;
       const successful = results.filter(result => result.status === 'fulfilled').length;
-      
+
       if (failed > 0) {
         showMessage(`${successful} studentë u fshinë me sukses, ${failed} dështuan.`, "warning");
       } else {
         showMessage(`${successful} studentë u fshinë me sukses!`, "success");
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ["students", classId] });
       setDeletingMultipleStudents(false);
       setSelectedStudents([]);
@@ -273,14 +159,89 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   //#endregion
 
   //#region functions
+  const onExporting = (e: DataGridTypes.ExportingEvent) => {
+    if (e.format === 'pdf') {
+      const doc = new jsPDF();
+
+      // Add header with class name and student count
+      const className = selectedClass?.name || 'Lista e studentëve';
+      const studentCount = studentsData?.length || 0;
+
+      // Set font and add title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(className, 15, 20);
+
+      // Add student count
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Gjithsej ${studentCount} student${studentCount !== 1 ? 'ë' : ''}`, 15, 30);
+
+      // Add date
+      doc.setFontSize(10);
+      doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
+
+      exportDataGrid({
+        jsPDFDocument: doc,
+        component: e.component,
+        indent: 5,
+        topLeft: { x: 10, y: 50 }, // Start the table below the header
+      }).then(() => {
+        // Add footer to all pages
+        const totalPages = doc.getNumberOfPages();
+
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+
+          // Footer positioning
+          const pageHeight = doc.internal.pageSize.height;
+          const footerY = pageHeight - 15;
+
+          // Set footer font
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(100, 100, 100); // Gray color
+
+          // Left side - Website attribution
+          doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
+
+          // Center - Developer credit
+          const centerText = 'Developed by JK';
+          const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
+          doc.text(centerText, centerX, footerY);
+
+          // Right side - Page numbering
+          const pageText = `${i}/${totalPages}`;
+          const pageWidth = doc.internal.pageSize.width;
+          const pageTextWidth = doc.getTextWidth(pageText);
+          doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
+        }
+
+        doc.save(`Studentet_${selectedClass?.name || 'Lista'}.pdf`);
+      });
+    } else if (e.format === 'xlsx') {
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet('Studentet');
+
+      exportDataGridToExcel({
+        component: e.component,
+        worksheet: worksheet,
+        autoFilterEnabled: true,
+      }).then(() => {
+        workbook.xlsx.writeBuffer().then((buffer) => {
+          saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `Studentet_${selectedClass?.name || 'Lista'}.xlsx`);
+        });
+      });
+    }
+  };
+
   const handleDeleteStudent = () => {
     if (deletingStudent) {
       deleteStudentMutation.mutate(deletingStudent.id);
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSelectionChanged = (e: any) => {
+  const handleSelectionChanged = (e: DataGridTypes.SelectionChangedEvent) => {
     setSelectedStudents(e.selectedRowsData);
   };
 
@@ -300,6 +261,57 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   const clearSelection = () => {
     setSelectedStudents([]);
   };
+
+  const renderFirstNameCell = (cellData: { data: Student; value: string }) => {
+    const student = cellData.data;
+    return (
+      <div className="flex items-center gap-2">
+        <span>{student.firstName}</span>
+        {student.memo && (
+          <div className="group relative inline-block">
+            <svg
+              className="w-4 h-4 text-indigo-500 cursor-help"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none">
+              {student.memo}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderActionsCell = (cellData: { data: Student }) => {
+    const student = cellData.data;
+    return (
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setEditingStudent(student)}
+          className="inline-flex items-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-150 cursor-pointer"
+          title="Modifiko studentin"
+        >
+          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Ndrysho
+        </button>
+        <button
+          onClick={() => setDeletingStudent(student)}
+          className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+          title="Fshi studentin"
+        >
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    );
+  };
   //#endregion
 
   if (classesLoading) return <Loader />;
@@ -316,7 +328,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
         .map(c => [c.program!.id, c.program!]) // Non-null assertion
     ).values()
   ).sort((a, b) => a.name.localeCompare(b.name));
-  
+
   const selectedProgramm = programs?.find(
     (prog: Program) => prog.id === programId
   );
@@ -346,8 +358,8 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                   {programs?.length === 0
                     ? "Nuk ka programe aktive"
                     : programId === 0
-                    ? "Zgjidh një program"
-                    : selectedProgramm?.name}
+                      ? "Zgjidh një program"
+                      : selectedProgramm?.name}
                 </span>
                 <ChevronUpDownIcon
                   aria-hidden="true"
@@ -390,20 +402,19 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
             <div className="relative mt-2">
               <ListboxButton
                 className={`grid w-full grid-cols-1 rounded-md py-1.5 pr-2 pl-3 text-left sm:text-sm/6 
-  ${
-    programId === 0
-      ? "cursor-not-allowed bg-gray-200 text-gray-500"
-      : "cursor-default bg-white text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
-  }`}
+  ${programId === 0
+                    ? "cursor-not-allowed bg-gray-200 text-gray-500"
+                    : "cursor-default bg-white text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+                  }`}
               >
                 <span className="col-start-1 row-start-1 truncate pr-6">
                   {programId === 0
                     ? "Zgjidh një program fillimisht"
                     : classes?.length === 0
-                    ? "Nuk ka klasa aktive"
-                    : classId === 0
-                    ? "Zgjidh një klasë"
-                    : selectedClass?.name}
+                      ? "Nuk ka klasa aktive"
+                      : classId === 0
+                        ? "Zgjidh një klasë"
+                        : selectedClass?.name}
                 </span>
                 <ChevronUpDownIcon
                   aria-hidden="true"
@@ -452,7 +463,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               {showAddStudentForm ? 'Fshih' : 'Shfaq'}
             </button>
           </div>
-          
+
           {showAddStudentForm && (
             <div>
               {!classId ? (
@@ -502,7 +513,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                 </div>
               </div>
             )}
-            
+
             <DataGrid
               dataSource={studentsWithRowNumbers}
               allowColumnReordering={true}
@@ -518,6 +529,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
               noDataText="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!"
+              searchPanel={{ visible: true, placeholder: "Kërko..." }}
             >
               {/* Enable features */}
               <Selection mode="multiple" showCheckBoxesMode="always" />
@@ -530,13 +542,13 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               <ColumnChooser enabled={true} />
               <ColumnFixing enabled={true} />
               <Paging defaultPageSize={25} />
-              <Pager 
-                showPageSizeSelector={true} 
-                allowedPageSizes={[10, 25, 50, 100]} 
-                showInfo={true} 
+              <Pager
+                showPageSizeSelector={true}
+                allowedPageSizes={[10, 25, 50, 100]}
+                showInfo={true}
               />
               <StateStoring enabled={true} type="localStorage" storageKey="studentsDataGrid" />
-              
+
               {/* Export functionality */}
               <Export enabled={true} allowExportSelectedData={true} formats={["xlsx", "pdf"]} />
 
@@ -607,7 +619,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                 />
               )}
             </DataGrid>
-            
+
             {/* Student count footer */}
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 mt-4">
               <div className="flex justify-between items-center text-sm text-gray-600">
@@ -661,7 +673,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
             <p className="text-sm text-red-600">
               Ky veprim nuk mund të kthehet prapa. Studenti do të fshihet përgjithmonë.
             </p>
-            
+
             <div className="flex justify-end gap-2 pt-4">
               <button
                 onClick={() => setDeletingStudent(null)}
@@ -703,7 +715,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
           <p className="text-sm text-red-600">
             Ky veprim nuk mund të kthehet prapa. Studentët do të fshihen përgjithmonë.
           </p>
-          
+
           <div className="flex justify-end gap-2 pt-4">
             <button
               onClick={() => setDeletingMultipleStudents(false)}

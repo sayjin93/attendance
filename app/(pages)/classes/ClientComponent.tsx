@@ -1,6 +1,30 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+
+// DevExtreme imports
+import DataGrid, {
+  Column,
+  Grouping,
+  GroupPanel,
+  Paging,
+  Pager,
+  SearchPanel,
+  HeaderFilter,
+  FilterRow,
+  Export,
+  Sorting,
+  ColumnChooser,
+  ColumnFixing,
+  StateStoring,
+  DataGridTypes,
+} from "devextreme-react/data-grid";
+import { exportDataGrid } from "devextreme/pdf_exporter";
+import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
+import { jsPDF } from "jspdf";
+import { Workbook } from "exceljs";
+import { saveAs } from "file-saver";
 
 //types
 import { Class } from "@/types";
@@ -23,6 +47,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   // Color palette for courses - consistent colors based on course ID
   const courseColors = [
@@ -46,7 +71,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   };
   //#endregion
 
-  //#region state
+  //#region states
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [deletingClass, setDeletingClass] = useState<Class | null>(null);
   //#endregion
@@ -57,6 +82,33 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
     queryFn: () => fetchClasses(),
     enabled: isAdmin === "true",
   });
+
+  // Add row numbers to classes data
+  const classesWithRowNumbers = classes?.map((classItem: Class, index: number) => {
+    // Format subjects for export
+    const uniqueSubjects = classItem.teachingAssignments
+      ? Array.from(
+        new Map(
+          classItem.teachingAssignments
+            .filter((ta) => ta.subject)
+            .map((ta) => [ta.subject!.id, ta.subject!])
+        ).values()
+      )
+      : [];
+
+    const subjectsText = uniqueSubjects.length > 0
+      ? uniqueSubjects.map((subject) => subject.name).join(', ')
+      : 'Nuk ka kurse';
+
+    return {
+      ...classItem,
+      rowNumber: index + 1,
+      programName: classItem.program?.name || 'Nuk ka program',
+      subjectCount: classItem.teachingAssignments?.length || 0,
+      studentCount: classItem.students?.length || 0,
+      subjectsText: subjectsText,
+    };
+  }) || [];
   //#endregion
 
   //#region mutations
@@ -78,10 +130,187 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#endregion
 
   //#region functions
+  const onExporting = (e: DataGridTypes.ExportingEvent) => {
+    if (e.format === 'pdf') {
+      const doc = new jsPDF();
+
+      // Add header
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Lista e Klasave', 15, 20);
+
+      // Add total classes count
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Gjithsej ${classes?.length || 0} klas${classes?.length !== 1 ? 'a' : 'ë'}`, 15, 30);
+
+      // Add date
+      doc.setFontSize(10);
+      doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
+
+      exportDataGrid({
+        jsPDFDocument: doc,
+        component: e.component,
+        indent: 5,
+        topLeft: { x: 10, y: 50 },
+        columnWidths: [15, 30, 70, 20, 20], // Increased first column width for row number
+        customizeCell: (options) => {
+          // Remove borders by setting strokeColor to transparent
+          if (options.gridCell && options.pdfCell && 
+              (options.gridCell.rowType === 'data' || options.gridCell.rowType === 'header')) {
+            options.pdfCell.borderColor = '#FFFFFF';
+            // Set smaller font size for table content
+            if (options.gridCell.rowType === 'header') {
+              options.pdfCell.font = { size: 9 }; // Header font size
+            } else {
+              options.pdfCell.font = { size: 8 }; // Data font size
+            }
+          }
+        },
+      }).then(() => {
+        // Add footer to all pages
+        const totalPages = doc.getNumberOfPages();
+
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+
+          // Footer positioning
+          const pageHeight = doc.internal.pageSize.height;
+          const footerY = pageHeight - 15;
+
+          // Set footer font
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(100, 100, 100); // Gray color
+
+          // Left side - Website attribution
+          doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
+
+          // Center - Developer credit
+          const centerText = 'Developed by JK';
+          const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
+          doc.text(centerText, centerX, footerY);
+
+          // Right side - Page numbering
+          const pageText = `${i}/${totalPages}`;
+          const pageWidth = doc.internal.pageSize.width;
+          const pageTextWidth = doc.getTextWidth(pageText);
+          doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
+        }
+
+        doc.save('Klasat.pdf');
+      });
+    } else if (e.format === 'xlsx') {
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet('Klasat');
+
+      exportDataGridToExcel({
+        component: e.component,
+        worksheet: worksheet,
+        autoFilterEnabled: true,
+      }).then(() => {
+        workbook.xlsx.writeBuffer().then((buffer) => {
+          saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Klasat.xlsx');
+        });
+      });
+    }
+  };
+
   const handleDeleteClass = () => {
     if (deletingClass) {
       deleteClassMutation.mutate(deletingClass.id);
     }
+  };
+
+  const renderSubjectsCell = (cellData: { data: Class; value: string }) => {
+    const classItem = cellData.data;
+    const uniqueSubjects = classItem.teachingAssignments
+      ? Array.from(
+        new Map(
+          classItem.teachingAssignments
+            .filter((ta) => ta.subject)
+            .map((ta) => [ta.subject!.id, ta.subject!])
+        ).values()
+      )
+      : [];
+
+    if (uniqueSubjects.length === 0) {
+      return <span className="text-gray-400 italic text-sm">Nuk ka kurse</span>;
+    }
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {uniqueSubjects.slice(0, 2).map((subject) => {
+          const colors = getCourseColor(subject.id);
+          return (
+            <span
+              key={subject.id}
+              className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
+            >
+              {subject.name}
+            </span>
+          );
+        })}
+        {uniqueSubjects.length > 2 && (
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+            +{uniqueSubjects.length - 2} më shumë
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  const renderStudentsCell = (cellData: { data: Class; value: number }) => {
+    const classItem = cellData.data;
+    const studentCount = classItem.students?.length || 0;
+
+    return (
+      <button
+        onClick={() => {
+          // Store the selected program and class in localStorage for the students page
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('selectedProgramId', classItem.program?.id?.toString() || '');
+            localStorage.setItem('selectedClassId', classItem.id.toString());
+          }
+          // Navigate to students page
+          router.push('/students');
+        }}
+        className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150 cursor-pointer"
+        title="Shiko studentët e kësaj klase"
+      >
+        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+        </svg>
+        {studentCount} student{studentCount !== 1 ? 'ë' : ''}
+      </button>
+    );
+  };
+
+  const renderActionsCell = (cellData: { data: Class }) => {
+    const classItem = cellData.data;
+    return (
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setEditingClass(classItem)}
+          className="inline-flex items-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-150 cursor-pointer"
+          title="Modifiko klasën"
+        >
+          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Ndrysho
+        </button>
+        <button
+          onClick={() => setDeletingClass(classItem)}
+          className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+          title="Fshi klasën"
+        >
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    );
   };
   //#endregion
 
@@ -100,170 +329,144 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
     ).values()
   );
 
-  // Separate classes by program type and sort alphabetically by name
-  const bachelorClasses = (classes?.filter(c => c.program?.name === "Bachelor") || [])
-    .sort((a, b) => a.name.localeCompare(b.name));
-  const masterClasses = (classes?.filter(c => c.program?.name === "Master") || [])
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  // Function to render class cards
-  const renderClassCard = (classItem: Class) => {
-    // Extract unique subjects from teaching assignments
-    const uniqueSubjects = classItem.teachingAssignments
-      ? Array.from(
-        new Map(
-          classItem.teachingAssignments
-            .filter((ta) => ta.subject)
-            .map((ta) => [ta.subject!.id, ta.subject!])
-        ).values()
-      )
-      : [];
-
-    return (
-      <div
-        key={classItem.id}
-        className="group relative bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-indigo-300 hover:-translate-y-0.5"
-      >
-        {/* Header gradient */}
-        <div className="h-1 w-full bg-linear-to-r from-indigo-500 to-purple-600 rounded-t-xl"></div>
-
-        <div className="p-4">
-          {/* Class name */}
-          <h3 className="font-semibold text-gray-900 text-lg mb-3 line-clamp-1">
-            {classItem.name}
-          </h3>
-
-          {/* Subjects */}
-          <div className="mb-4 min-h-8">
-            {uniqueSubjects.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {uniqueSubjects.slice(0, 3).map((subject) => {
-                  const colors = getCourseColor(subject.id);
-                  return (
-                    <span
-                      key={subject.id}
-                      className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
-                    >
-                      {subject.name}
-                    </span>
-                  );
-                })}
-                {uniqueSubjects.length > 3 && (
-                  <div className="relative group">
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 cursor-help">
-                      +{uniqueSubjects.length - 3} më shumë
-                    </span>
-                    {/* Tooltip with remaining subjects */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
-                      <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs">
-                        <div className="flex flex-wrap gap-1">
-                          {uniqueSubjects.slice(3).map((subject) => {
-                            const colors = getCourseColor(subject.id);
-                            return (
-                              <span
-                                key={subject.id}
-                                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
-                              >
-                                {subject.name}
-                              </span>
-                            );
-                          })}
-                        </div>
-                        {/* Tooltip arrow */}
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center py-2">
-                <span className="text-xs text-gray-400 italic">Nuk ka kurse</span>
-              </div>
-            )}
-          </div>
-
-          {/* Statistics */}
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-1">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{uniqueSubjects.length} kurse</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                </svg>
-                <span>{classItem.students?.length || 0} studentë</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          {isAdmin === "true" && (
-            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <button
-                onClick={() => setEditingClass(classItem)}
-                className="flex-1 inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors duration-150 cursor-pointer"
-                title="Modifiko klasën"
-              >
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Ndrysho
-              </button>
-              <button
-                onClick={() => setDeletingClass(classItem)}
-                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors duration-150 cursor-pointer"
-                title="Fshi klasën"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }; return (
-    <div className="flex flex-col gap-6">
-      {/* Forma për shtimin e klasave */}
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Add Class Form */}
       <Card title="Shto klasë të re">
         <AddClassForm isAdmin={isAdmin} programs={programs} />
       </Card>
 
-      {/* Bachelor Classes */}
-      <Card title="Klasat e Bachelorit">
-        {bachelorClasses.length === 0 ? (
-          <Alert title="Nuk ka klasa të Bachelor. Shtoni një klasë Bachelor më sipër!" />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mt-6">
-            {bachelorClasses.map((classItem: Class) => renderClassCard(classItem))}
-          </div>
-        )}
-      </Card>
-
-      {/* Master Classes */}
-      <Card title="Klasat e Masterit">
-        {masterClasses.length === 0 ? (
-          <Alert title="Nuk ka klasa të Master. Shtoni një klasë Master më sipër!" />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mt-6">
-            {masterClasses.map((classItem: Class) => renderClassCard(classItem))}
-          </div>
-        )}
-      </Card>
-
-      {/* Show message when no classes exist at all */}
-      {classes?.length === 0 && (
-        <Card title="Lista e klasave">
+      {/* Classes List */}
+      <Card title="Lista e klasave">
+        {classes?.length === 0 ? (
           <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
-        </Card>
-      )}
+        ) : (
+          <div className="mt-6">
+            <DataGrid
+              dataSource={classesWithRowNumbers}
+              allowColumnReordering={true}
+              allowColumnResizing={true}
+              columnAutoWidth={true}
+              showBorders={true}
+              showRowLines={true}
+              showColumnLines={true}
+              rowAlternationEnabled={true}
+              hoverStateEnabled={true}
+              keyExpr="id"
+              className="dx-datagrid-borders"
+              onExporting={onExporting}
+              noDataText="Nuk ka klasa. Shtoni një klasë më sipër!"
+              searchPanel={{ visible: true, placeholder: "Kërko..." }}
+            >
+              {/* Enable features */}
+              <Grouping autoExpandAll={true} />
+              <GroupPanel visible={true} />
+              <SearchPanel visible={true} highlightCaseSensitive={true} />
+              <Sorting mode="multiple" />
+              <FilterRow visible={true} />
+              <HeaderFilter visible={true} />
+              <ColumnChooser enabled={true} />
+              <ColumnFixing enabled={true} />
+              <Paging defaultPageSize={25} />
+              <Pager
+                showPageSizeSelector={true}
+                allowedPageSizes={[10, 25, 50, 100]}
+                showInfo={true}
+              />
+              <StateStoring enabled={true} type="localStorage" storageKey="classesDataGrid" />
 
+              {/* Export functionality */}
+              <Export enabled={true} formats={["xlsx", "pdf"]} />
+
+              {/* Columns */}
+              <Column
+                dataField="rowNumber"
+                caption="#"
+                width={60}
+                visible={true}
+                allowSorting={false}
+                allowFiltering={false}
+                allowGrouping={false}
+                allowExporting={true}
+                dataType="number"
+              />
+              <Column
+                dataField="name"
+                caption="Emri i Klasës"
+                allowGrouping={false}
+              />
+              <Column
+                dataField="programName"
+                caption="Programi"
+                groupIndex={0}
+                allowSorting={true}
+                allowFiltering={true}
+              />
+              <Column
+                dataField="subjectsText"
+                caption="Kurset"
+                allowSorting={true}
+                allowFiltering={true}
+                allowGrouping={true}
+                allowExporting={true}
+                visible={true}
+                cellRender={renderSubjectsCell}
+              />
+              <Column
+                dataField="subjectCount"
+                caption="Nr. Kursesh"
+                width={120}
+                allowGrouping={false}
+                dataType="number"
+              />
+              <Column
+                dataField="studentCount"
+                caption="Studentët"
+                width={130}
+                allowGrouping={false}
+                allowSorting={true}
+                cellRender={renderStudentsCell}
+              />
+              {isAdmin === "true" && (
+                <Column
+                  caption="Veprime"
+                  width={150}
+                  allowSorting={false}
+                  allowFiltering={false}
+                  allowGrouping={false}
+                  allowExporting={false}
+                  cellRender={renderActionsCell}
+                />
+              )}
+            </DataGrid>
+
+            {/* Footer with stats */}
+            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 mt-4">
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <div className="flex items-center gap-4">
+                  <span>Gjithsej {classes?.length} klas{classes?.length !== 1 ? 'a' : 'ë'}</span>
+                  <span>
+                    {classes?.reduce((sum, cls) => sum + (cls.students?.length || 0), 0)} studentë total
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {programs.map(program => {
+                    const programClasses = classes?.filter(c => c.program?.id === program.id) || [];
+                    return (
+                      <span
+                        key={program.id}
+                        className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full"
+                      >
+                        {program.name}: {programClasses.length}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
 
 
       {/* Edit Class Modal */}
