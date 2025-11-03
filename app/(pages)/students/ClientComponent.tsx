@@ -125,11 +125,61 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   const onExporting = (e: any) => {
     if (e.format === 'pdf') {
       const doc = new jsPDF();
+      
+      // Add header with class name and student count
+      const className = selectedClass?.name || 'Lista e studentëve';
+      const studentCount = studentsData?.length || 0;
+      
+      // Set font and add title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(className, 15, 20);
+      
+      // Add student count
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Gjithsej ${studentCount} student${studentCount !== 1 ? 'ë' : ''}`, 15, 30);
+      
+      // Add date
+      doc.setFontSize(10);
+      doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
+      
       exportDataGrid({
         jsPDFDocument: doc,
         component: e.component,
         indent: 5,
+        topLeft: { x: 10, y: 50 }, // Start the table below the header
       }).then(() => {
+        // Add footer to all pages
+        const totalPages = doc.getNumberOfPages();
+        
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          
+          // Footer positioning
+          const pageHeight = doc.internal.pageSize.height;
+          const footerY = pageHeight - 15;
+          
+          // Set footer font
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(100, 100, 100); // Gray color
+          
+          // Left side - Website attribution
+          doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
+          
+          // Center - Developer credit
+          const centerText = 'Developed by JK';
+          const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
+          doc.text(centerText, centerX, footerY);
+          
+          // Right side - Page numbering
+          const pageText = `${i}/${totalPages}`;
+          const pageWidth = doc.internal.pageSize.width;
+          const pageTextWidth = doc.getTextWidth(pageText);
+          doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
+        }
+        
         doc.save(`Studentet_${selectedClass?.name || 'Lista'}.pdf`);
       });
     } else if (e.format === 'xlsx') {
@@ -169,6 +219,12 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
     queryFn: () => fetchStudents(classId),
     enabled: classId > 0, // Prevent fetch when classId is null
   });
+
+  // Add row numbers to students data
+  const studentsWithRowNumbers = studentsData?.map((student: Student, index: number) => ({
+    ...student,
+    rowNumber: index + 1
+  })) || [];
   //#endregion
 
   //#region mutations
@@ -414,11 +470,9 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
         {studentsLoading ? (
           <Loader />
         ) : studentsError ? (
-          <Alert title="Zgjidh një klasë për të parë studentët" />
+          <Alert title="Gabim gjatë leximit të listës së studentëve" />
         ) : !classId ? (
           <Alert title="Zgjidh një klasë për të parë studentët" />
-        ) : studentsData?.length === 0 ? (
-          <Alert title="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!" />
         ) : (
           <div className="mt-6">
             {/* Bulk Actions */}
@@ -450,7 +504,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
             )}
             
             <DataGrid
-              dataSource={studentsData}
+              dataSource={studentsWithRowNumbers}
               allowColumnReordering={true}
               allowColumnResizing={true}
               columnAutoWidth={true}
@@ -463,6 +517,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               className="dx-datagrid-borders"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
+              noDataText="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!"
             >
               {/* Enable features */}
               <Selection mode="multiple" showCheckBoxesMode="always" />
@@ -487,13 +542,14 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
 
               {/* Columns */}
               <Column
-                dataField="id"
+                dataField="rowNumber"
                 caption="#"
                 width={60}
+                visible={true}
                 allowSorting={false}
                 allowFiltering={false}
                 allowGrouping={false}
-                cellRender={(cellData) => cellData.rowIndex + 1}
+                allowExporting={true}
               />
               <Column
                 dataField="firstName"
@@ -519,12 +575,14 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                 dataField="personalEmail"
                 caption="Email Personal"
                 allowGrouping={false}
+                visible={false}
                 cellRender={(cellData) => cellData.value || "-"}
               />
               <Column
                 dataField="phone"
                 caption="Telefoni"
                 allowGrouping={false}
+                visible={false}
                 cellRender={(cellData) => cellData.value || "-"}
               />
               <Column
@@ -532,7 +590,10 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                 caption="Nr. Rendi"
                 width={100}
                 allowGrouping={false}
-                cellRender={(cellData) => cellData.value || "-"}
+                visible={false}
+                allowSorting={false}
+                allowFiltering={false}
+                cellRender={(cellData) => cellData.rowIndex + 1}
               />
               {isAdmin === "true" && (
                 <Column
