@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* DevExtreme CSS */
+@import "devextreme/dist/css/dx.light.css";
+
 body {
   font-family: Arial, Helvetica, sans-serif;
 }

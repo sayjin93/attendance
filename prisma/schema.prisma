@@ -78,14 +78,18 @@ model Class {
 }
 
 model Student {
-  id         Int          @id @default(autoincrement())
-  firstName  String
-  lastName   String
-  email      String       @unique
-  memo       String?
-  classId    Int
-  class      Class        @relation(fields: [classId], references: [id])
-  attendance Attendance[]
+  id               Int          @id @default(autoincrement())
+  firstName        String
+  lastName         String
+  institutionEmail String       @unique
+  memo             String?
+  father           String?
+  personalEmail    String?
+  phone            String?
+  orderId          Int?
+  classId          Int
+  class            Class        @relation(fields: [classId], references: [id])
+  attendance       Attendance[]
 }
 
 model Lecture {

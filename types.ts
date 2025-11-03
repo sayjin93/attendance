@@ -38,7 +38,12 @@ export interface Student {
   id: number;
   firstName: string;
   lastName: string;
+  institutionEmail: string;
   memo?: string | null;
+  father?: string | null;
+  personalEmail?: string | null;
+  phone?: string | null;
+  orderId?: number | null;
   classId: number;
   class?: Class;
   attendance?: Attendance[];

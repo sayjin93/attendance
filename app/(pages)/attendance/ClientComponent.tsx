@@ -77,8 +77,8 @@ export default function AttendancePageClient({
           status: student.status || AttendanceStatus.PRESENT, // Default status
         }))
         .sort((a, b) => {
-          const comparison = a.firstName.localeCompare(b.firstName);
-          return comparison === 0 ? a.lastName.localeCompare(b.lastName) : comparison;
+          const surnameComparison = a.lastName.localeCompare(b.lastName);
+          return surnameComparison === 0 ? a.firstName.localeCompare(b.firstName) : surnameComparison;
         });
       
       setStudents(sortedStudents);

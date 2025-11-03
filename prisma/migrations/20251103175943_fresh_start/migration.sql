@@ -7,9 +7,12 @@ CREATE TABLE `Professor` (
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `isAdmin` BOOLEAN NOT NULL DEFAULT false,
+    `passwordResetToken` VARCHAR(191) NULL,
+    `passwordResetExpires` DATETIME(3) NULL,
 
     UNIQUE INDEX `Professor_username_key`(`username`),
     UNIQUE INDEX `Professor_email_key`(`email`),
+    UNIQUE INDEX `Professor_passwordResetToken_key`(`passwordResetToken`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -68,11 +71,15 @@ CREATE TABLE `Student` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `firstName` VARCHAR(191) NOT NULL,
     `lastName` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(191) NOT NULL,
+    `institutionEmail` VARCHAR(191) NOT NULL,
     `memo` VARCHAR(191) NULL,
+    `father` VARCHAR(191) NULL,
+    `personalEmail` VARCHAR(191) NULL,
+    `phone` VARCHAR(191) NULL,
+    `orderId` INTEGER NULL,
     `classId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `Student_email_key`(`email`),
+    UNIQUE INDEX `Student_institutionEmail_key`(`institutionEmail`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

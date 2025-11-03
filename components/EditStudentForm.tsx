@@ -31,11 +31,25 @@ export default function EditStudentForm({ student, classes, onClose }: EditStude
   const [lastName, setLastName] = useState(student.lastName);
   const [classId, setClassId] = useState(student.classId);
   const [memo, setMemo] = useState(student.memo || "");
+  const [father, setFather] = useState(student.father || "");
+  const [personalEmail, setPersonalEmail] = useState(student.personalEmail || "");
+  const [phone, setPhone] = useState(student.phone || "");
+  const [orderId, setOrderId] = useState(student.orderId?.toString() || "");
   //#endregion
 
   //#region mutations
   const updateStudentMutation = useMutation({
-    mutationFn: () => updateStudent(student.id, firstName, lastName, classId, memo.trim() || null),
+    mutationFn: () => updateStudent(
+      student.id, 
+      firstName, 
+      lastName, 
+      classId, 
+      memo.trim() || null,
+      father.trim() || null,
+      personalEmail.trim() || null,
+      phone.trim() || null,
+      orderId.trim() ? parseInt(orderId.trim()) : null
+    ),
     onSuccess: (data) => {
       if (data.error) {
         showMessage(data.error, "error");
@@ -137,6 +151,62 @@ export default function EditStudentForm({ student, classes, onClose }: EditStude
           rows={2}
           className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
           placeholder="Shënim i shkurtër për studentin..."
+        />
+      </div>
+
+      <div>
+        <label htmlFor="father" className="block text-sm font-medium text-gray-700">
+          Atësia (opsionale)
+        </label>
+        <input
+          type="text"
+          id="father"
+          value={father}
+          onChange={(e) => setFather(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Shkruani emrin e babait..."
+        />
+      </div>
+
+      <div>
+        <label htmlFor="orderId" className="block text-sm font-medium text-gray-700">
+          Numri i rendit (opsionale)
+        </label>
+        <input
+          type="number"
+          id="orderId"
+          value={orderId}
+          onChange={(e) => setOrderId(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Shkruani numrin e rendit..."
+        />
+      </div>
+
+      <div>
+        <label htmlFor="personalEmail" className="block text-sm font-medium text-gray-700">
+          Emaili personal (opsionale)
+        </label>
+        <input
+          type="email"
+          id="personalEmail"
+          value={personalEmail}
+          onChange={(e) => setPersonalEmail(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Shkruani emailin personal..."
+        />
+      </div>
+
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+          Numri i telefonit (opsionale)
+        </label>
+        <input
+          type="tel"
+          id="phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Shkruani numrin e telefonit..."
         />
       </div>
 

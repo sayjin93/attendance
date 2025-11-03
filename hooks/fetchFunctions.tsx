@@ -206,13 +206,23 @@ export async function deleteClass(id: number) {
   return res.json();
 }
 
-export async function updateStudent(id: number, firstName: string, lastName: string, classId: number, memo?: string | null) {
+export async function updateStudent(
+  id: number, 
+  firstName: string, 
+  lastName: string, 
+  classId: number, 
+  memo?: string | null,
+  father?: string | null,
+  personalEmail?: string | null,
+  phone?: string | null,
+  orderId?: number | null
+) {
   const res = await fetch("/api/students", {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ id, firstName, lastName, classId, memo }),
+    body: JSON.stringify({ id, firstName, lastName, classId, memo, father, personalEmail, phone, orderId }),
   });
   return res.json();
 }

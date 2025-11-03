@@ -48,9 +48,9 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   try {
-    const { firstName, lastName, email, classId, memo } = await req.json();
+    const { firstName, lastName, institutionEmail, classId, memo, father, personalEmail, phone, orderId } = await req.json();
 
-    if (!classId || !firstName || !lastName || !email) {
+    if (!classId || !firstName || !lastName || !institutionEmail) {
       return NextResponse.json(
         { error: "❌ All fields are required!" },
         { status: 400 }
@@ -76,14 +76,14 @@ export async function POST(req: Request) {
     const formattedFirstName = formatName(firstName);
     const formattedLastName = formatName(lastName);
 
-    // ✅ Check if email already exists
+    // ✅ Check if institutionEmail already exists
     const existingStudent = await prisma.student.findUnique({
-      where: { email },
+      where: { institutionEmail },
     });
 
     if (existingStudent) {
       return NextResponse.json(
-        { error: "❌ A student with this email already exists!" },
+        { error: "❌ A student with this institution email already exists!" },
         { status: 409 }
       );
     }
@@ -92,9 +92,13 @@ export async function POST(req: Request) {
       data: {
         firstName: formattedFirstName,
         lastName: formattedLastName,
-        email: email.toLowerCase().trim(),
+        institutionEmail: institutionEmail.toLowerCase().trim(),
         classId: classId,
         memo: memo || null,
+        father: father || null,
+        personalEmail: personalEmail || null,
+        phone: phone || null,
+        orderId: orderId || null,
       },
     });
 
@@ -139,7 +143,7 @@ export async function PUT(req: Request) {
       );
     }
 
-    const { id, firstName, lastName, classId, memo } = await req.json();
+    const { id, firstName, lastName, classId, memo, father, personalEmail, phone, orderId } = await req.json();
 
     // Validate required fields
     if (!id || !firstName || !lastName || !classId) {
@@ -188,6 +192,10 @@ export async function PUT(req: Request) {
         lastName: formattedLastName,
         classId,
         memo: memo || null,
+        father: father || null,
+        personalEmail: personalEmail || null,
+        phone: phone || null,
+        orderId: orderId || null,
       },
     });
 

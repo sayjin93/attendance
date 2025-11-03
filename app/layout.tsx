@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
+import "@/lib/devextremeConfig";
 
 import TanstackProvider from "@/contexts/TanstackProvider";
 import NotifyProvider from "@/contexts/NotifyContext";

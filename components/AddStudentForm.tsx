@@ -19,6 +19,10 @@ export default function AddStudentForm({
   const [lastName, setLastName] = useState("");
   const [emailPrefix, setEmailPrefix] = useState("");
   const [memo, setMemo] = useState("");
+  const [father, setFather] = useState("");
+  const [personalEmail, setPersonalEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [orderId, setOrderId] = useState("");
 
   // Generate email prefix automatically based on first name and last name
   const generateEmailPrefix = (firstName: string, lastName: string) => {
@@ -65,7 +69,17 @@ export default function AddStudentForm({
 
       const res = await fetch("/api/students", {
         method: "POST",
-        body: JSON.stringify({ firstName, lastName, email: getFullEmail(), classId, memo: memo.trim() || null }),
+        body: JSON.stringify({ 
+          firstName, 
+          lastName, 
+          institutionEmail: getFullEmail(), 
+          classId, 
+          memo: memo.trim() || null,
+          father: father.trim() || null,
+          personalEmail: personalEmail.trim() || null,
+          phone: phone.trim() || null,
+          orderId: orderId.trim() ? parseInt(orderId.trim()) : null
+        }),
         headers: { "Content-Type": "application/json" },
       });
 
@@ -80,6 +94,10 @@ export default function AddStudentForm({
       setLastName("");
       setEmailPrefix("");
       setMemo("");
+      setFather("");
+      setPersonalEmail("");
+      setPhone("");
+      setOrderId("");
     },
     onError: () => {
       showMessage("Dështoi krijimi i studentit!", "error");
@@ -131,6 +149,44 @@ export default function AddStudentForm({
           onChange={(e) => setMemo(e.target.value)}
           rows={2}
           className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 resize-none"
+        />
+      </div>
+
+      <input
+        name="student_father"
+        type="text"
+        placeholder="Emri i babait (opsionale)"
+        value={father}
+        onChange={(e) => setFather(e.target.value)}
+        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+      />
+
+      <input
+        name="student_orderId"
+        type="number"
+        placeholder="Numri i rendit (opsionale)"
+        value={orderId}
+        onChange={(e) => setOrderId(e.target.value)}
+        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+      />
+
+      <input
+        name="student_personalEmail"
+        type="email"
+        placeholder="Emaili personal (opsionale)"
+        value={personalEmail}
+        onChange={(e) => setPersonalEmail(e.target.value)}
+        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+      />
+
+      <div className="col-span-1 sm:col-span-2">
+        <input
+          name="student_phone"
+          type="tel"
+          placeholder="Numri i telefonit (opsionale)"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
         />
       </div>
 
