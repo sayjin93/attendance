@@ -49,6 +49,7 @@ async function seedStudentsMSH1INFB() {
     { firstName: "Dea", lastName: "Xhani", email: "dxhani@uet.edu.al", classId: 13 },
     { firstName: "Era", lastName: "Zenelaj", email: "ezenelaj@uet.edu.al", classId: 13 },
     { firstName: "Indrit", lastName: "Zenelaj", email: "izenelaj@uet.edu.al", classId: 13 },
+    { firstName: "Joana", lastName: "Alliu", email: "jalliu@uet.edu.al", classId: 13 },
   ];
 
   await prisma.student.createMany({

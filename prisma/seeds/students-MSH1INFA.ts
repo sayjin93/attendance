@@ -6,7 +6,6 @@ async function seedStudentsMSH1INFA() {
 
   const studentsMSH1INFA = [
     { firstName: "Mario", lastName: "Aleksi", email: "amario@uet.edu.al", classId: 12 },
-    { firstName: "Joana", lastName: "Alliu", email: "jalliu@uet.edu.al", classId: 12 },
     { firstName: "Keris", lastName: "Babliku", email: "kbabliku@uet.edu.al", classId: 12 },
     { firstName: "Leticia", lastName: "Bitri", email: "lbitri@uet.edu.al", classId: 12 },
     { firstName: "Dorian", lastName: "Bozhiqi", email: "dbozhiqi@uet.edu.al", classId: 12 },
@@ -63,6 +62,7 @@ async function seedStudentsMSH1INFA() {
     { firstName: "Lorenca", lastName: "Vokrri", email: "lvokrri@uet.edu.al", classId: 12 },
     { firstName: "Kujtime", lastName: "Xhediku", email: "kxhediku@uet.edu.al", classId: 12 },
     { firstName: "Uendi", lastName: "Zaimi", email: "uzaimi@uet.edu.al", classId: 12 },
+    { firstName: "Rizart", lastName: "Belshaku", email: "rbelshaku@uet.edu.al", classId: 12 },
   ];
 
   await prisma.student.createMany({

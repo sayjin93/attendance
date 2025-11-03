@@ -15,6 +15,7 @@ async function seedStudentsMSH1TI() {
     { firstName: "Ermal", lastName: "Imeraj", email: "eimeraj10@uet.edu.al", classId: 14 },
     { firstName: "Horges", lastName: "Kaca", email: "hkaca@uet.edu.al", classId: 14 },
     { firstName: "Xhoalina", lastName: "Karasani", email: "xkarasani@uet.edu.al", classId: 14 },
+    { firstName: "Mario", lastName: "Lipo", email: "mlipo@uet.edu.al", classId: 14 },
     { firstName: "Redjon", lastName: "Lleshaj", email: "rlleshaj@uet.edu.al", classId: 14 },
     { firstName: "Ergi", lastName: "Mankollari", email: "emankollari@uet.edu.al", classId: 14 },
     { firstName: "Arsa", lastName: "Picari", email: "apicari1@uet.edu.al", classId: 14 },
