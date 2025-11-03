@@ -30,6 +30,8 @@ npx tsx prisma/seeds/students-MSH1IE.ts
 npx tsx prisma/seeds/students-MSH1TI.ts
 npx tsx prisma/seeds/students-MSH1INFA.ts
 npx tsx prisma/seeds/students-MSH1INFB.ts
+npx tsx prisma/seeds/students-MSH2INF.ts
+npx tsx prisma/seeds/students-MSH2TI.ts
 ```
 
 ## Run All Seeds
@@ -37,7 +39,7 @@ npx tsx prisma/seeds/students-MSH1INFB.ts
 To seed all students at once:
 
 ```bash
-npx tsx prisma/seeds/students-INF205.ts; npx tsx prisma/seeds/students-INF206.ts; npx tsx prisma/seeds/students-Infoek202.ts; npx tsx prisma/seeds/students-MSH1IE.ts; npx tsx prisma/seeds/students-MSH1TI.ts; npx tsx prisma/seeds/students-MSH1INFA.ts; npx tsx prisma/seeds/students-MSH1INFB.ts
+npx tsx prisma/seeds/students-INF205.ts; npx tsx prisma/seeds/students-INF206.ts; npx tsx prisma/seeds/students-Infoek202.ts; npx tsx prisma/seeds/students-MSH1IE.ts; npx tsx prisma/seeds/students-MSH1TI.ts; npx tsx prisma/seeds/students-MSH1INFA.ts; npx tsx prisma/seeds/students-MSH1INFB.ts; npx tsx prisma/seeds/students-MSH2INF.ts; npx tsx prisma/seeds/students-MSH2TI.ts
 ```
 
 ## Notes

@@ -116,6 +116,16 @@ async function main() {
       name: "MSH1TI",
       programId: 2,
     },
+    {
+      id: 15,
+      name: "MSH2INF",
+      programId: 2,
+    },
+    {
+      id: 16,
+      name: "MSH2TI",
+      programId: 2,
+    },
   ];
   await prisma.class.createMany({
     data: classes,
@@ -204,6 +214,18 @@ async function main() {
       professorId: 2,
       subjectId: 3, // Projektim dhe analizë e bazave të të dhënave
       classId: 14, // TI (Master)
+      typeId: 2, // Seminar
+    },
+    {
+      professorId: 2,
+      subjectId: 3, // Projektim dhe analizë e bazave të të dhënave
+      classId: 15, // MSH2INF (Master)
+      typeId: 2, // Seminar
+    },
+    {
+      professorId: 2,
+      subjectId: 3, // Projektim dhe analizë e bazave të të dhënave
+      classId: 16, // MSH2TI (Master)
       typeId: 2, // Seminar
     },
   ];
