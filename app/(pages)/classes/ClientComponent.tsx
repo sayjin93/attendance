@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
 import DataGrid, {
@@ -142,7 +143,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
     onSuccess: (results) => {
       const successCount = results.filter(result => result.status === 'fulfilled').length;
       const failCount = results.length - successCount;
-      
+
       if (failCount === 0) {
         showMessage(`${successCount} klas${successCount !== 1 ? 'a' : 'ë'} u fshinë me sukses!`, "success");
       } else if (successCount === 0) {
@@ -150,7 +151,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
       } else {
         showMessage(`${successCount} klas${successCount !== 1 ? 'a' : 'ë'} u fshinë, ${failCount} dështuan!`, "warning");
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ["classes"] });
       setSelectedClasses([]);
       setDeletingMultipleClasses(false);
@@ -189,8 +190,8 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
         columnWidths: [15, 30, 70, 20, 20], // Increased first column width for row number
         customizeCell: (options) => {
           // Remove borders by setting strokeColor to transparent
-          if (options.gridCell && options.pdfCell && 
-              (options.gridCell.rowType === 'data' || options.gridCell.rowType === 'header')) {
+          if (options.gridCell && options.pdfCell &&
+            (options.gridCell.rowType === 'data' || options.gridCell.rowType === 'header')) {
             options.pdfCell.borderColor = '#FFFFFF';
             // Set smaller font size for table content
             if (options.gridCell.rowType === 'header') {
@@ -325,22 +326,18 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
       <div className="flex justify-end gap-2">
         <button
           onClick={() => setEditingClass(classItem)}
-          className="inline-flex items-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-150 cursor-pointer"
+          className="text-blue-600 hover:text-blue-900 p-1 rounded cursor-pointer"
           title="Modifiko klasën"
         >
-          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Ndrysho
+          <PencilIcon className="w-4 h-4" />
+
         </button>
         <button
           onClick={() => setDeletingClass(classItem)}
-          className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+          className="text-red-600 hover:text-red-900 p-1 rounded cursor-pointer"
           title="Fshi klasën"
         >
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
+          <TrashIcon className="w-4 h-4" />
         </button>
       </div>
     );
@@ -393,13 +390,13 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
 
       {/* Classes List */}
       <Card title="Lista e klasave">
-                {isLoading ? (
-                    <div className="flex justify-center items-center py-8">
-                        <Loader />
-                    </div>
-                ) : error ? (
-                    <Alert title="Gabim gjatë leximit të listës së klasave" />
-                ) : (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader />
+          </div>
+        ) : error ? (
+          <Alert title="Gabim gjatë leximit të listës së klasave" />
+        ) : (
           <div className="mt-6">
             {/* Bulk Actions Bar */}
             {selectedClasses.length > 0 && (
@@ -445,6 +442,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
               onSelectionChanged={handleSelectionChanged}
               noDataText="Nuk ka klasa. Shtoni një klasë më sipër!"
               searchPanel={{ visible: true, placeholder: "Kërko..." }}
+              loadPanel={{ enabled: false }}
             >
               {/* Enable features */}
               <Selection mode="multiple" showCheckBoxesMode="always" />
@@ -519,7 +517,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
               {isAdmin === "true" && (
                 <Column
                   caption="Veprime"
-                  width={150}
+                  width={75}
                   allowSorting={false}
                   allowFiltering={false}
                   allowGrouping={false}
@@ -561,7 +559,6 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
           </div>
         )}
       </Card>
-
 
       {/* Edit Class Modal */}
       <Modal
@@ -623,9 +620,6 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
           title="Konfirmo fshirjen e shumë klasave"
         >
           <div className="p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Konfirmo fshirjen e shumë klasave
-            </h3>
             <p className="text-sm text-gray-500 mb-4">
               Jeni të sigurt që dëshironi të fshini {selectedClasses.length} klas{selectedClasses.length !== 1 ? 'a' : 'ë'}?
             </p>

@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import { EnvelopeIcon, UserPlusIcon } from "@heroicons/react/24/outline";
-import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
 import DataGrid, {
@@ -12,6 +12,7 @@ import DataGrid, {
     GroupPanel,
     Paging,
     Pager,
+    SearchPanel,
     HeaderFilter,
     FilterRow,
     Export,
@@ -275,20 +276,21 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     const renderActionsCell = (cellData: { data: Professor }) => {
         const professor = cellData.data;
         return (
-            <div className="flex space-x-2">
+            <div className="flex justify-end gap-2">
                 <button
                     onClick={() => setEditingProfessor(professor)}
                     className="text-blue-600 hover:text-blue-900 p-1 rounded cursor-pointer"
                     title="Modifiko profesor"
                 >
-                    <PencilIcon className="h-4 w-4" />
+                    <PencilIcon className="w-4 h-4" />
+
                 </button>
                 <button
                     onClick={() => setDeletingProfessor(professor)}
                     className="text-red-600 hover:text-red-900 p-1 rounded cursor-pointer"
                     title="Fshi profesor"
                 >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className="w-4 h-4" />
                 </button>
             </div>
         );
@@ -453,16 +455,16 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                             rowAlternationEnabled={true}
                             hoverStateEnabled={true}
                             keyExpr="id"
-                            className="dx-datagrid-borders custom-tooltip-grid"
+                            className="dx-datagrid-borders"
                             onExporting={onExporting}
                             onSelectionChanged={handleSelectionChanged}
                             noDataText="Nuk ka profesorë për të shfaqur."
-                            searchPanel={{ visible: true, placeholder: "Kërko..." }}
-
+                            loadPanel={{ enabled: false }}
                         >
                             {/* Enable features */}
                             <Selection mode="multiple" showCheckBoxesMode="always" />
-                            <Grouping autoExpandAll={false} />
+                            <SearchPanel visible={true} placeholder="Kërko..." />
+                            <Grouping autoExpandAll={true} />
                             <GroupPanel visible={true} />
                             <Sorting mode="multiple" />
                             <FilterRow visible={true} />
@@ -517,7 +519,7 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                             {isAdmin === "true" && (
                                 <Column
                                     caption="Veprime"
-                                    width={150}
+                                    width={75}
                                     allowSorting={false}
                                     allowFiltering={false}
                                     allowGrouping={false}
@@ -567,9 +569,6 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                     title="Konfirmo fshirjen"
                 >
                     <div className="p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Konfirmo fshirjen
-                        </h3>
                         <p className="text-sm text-gray-500 mb-6">
                             Jeni të sigurt që dëshironi të fshini profesorin{" "}
                             <span className="font-medium">
@@ -605,9 +604,6 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                     title="Konfirmo fshirjen e shumë profesorëve"
                 >
                     <div className="p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Konfirmo fshirjen e shumë profesorëve
-                        </h3>
                         <p className="text-sm text-gray-500 mb-4">
                             Jeni të sigurt që dëshironi të fshini {selectedProfessors.length} profesor(ë)?
                         </p>

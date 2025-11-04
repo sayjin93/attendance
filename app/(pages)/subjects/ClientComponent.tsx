@@ -179,12 +179,12 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
       // Extract unique classes from teaching assignments
       const uniqueClasses = subject.teachingAssignments
         ? Array.from(
-            new Map(
-              subject.teachingAssignments
-                .filter(ta => ta.class)
-                .map(ta => [ta.class!.id, ta.class!])
-            ).values()
-          )
+          new Map(
+            subject.teachingAssignments
+              .filter(ta => ta.class)
+              .map(ta => [ta.class!.id, ta.class!])
+          ).values()
+        )
         : [];
 
       return {
@@ -192,8 +192,8 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
         rowNumber: index + 1,
         programName: subject.program?.name || '-',
         codeDisplay: subject.code || '-',
-        classesText: uniqueClasses.length > 0 
-          ? uniqueClasses.map(cls => cls.name).join(', ') 
+        classesText: uniqueClasses.length > 0
+          ? uniqueClasses.map(cls => cls.name).join(', ')
           : 'Nuk ka klasa'
       };
     });
@@ -315,18 +315,17 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
       <div className="flex justify-end gap-2">
         <button
           onClick={() => setEditingSubject(subject)}
-          className="inline-flex items-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-150 cursor-pointer"
+          className="text-blue-600 hover:text-blue-900 p-1 rounded cursor-pointer"
           title="Modifiko lëndën"
         >
-          <PencilIcon className="w-3 h-3 mr-1" />
-          Ndrysho
+          <PencilIcon className="w-4 h-4" />
         </button>
         <button
           onClick={() => setDeletingSubject(subject)}
-          className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+          className="text-red-600 hover:text-red-900 p-1 rounded cursor-pointer"
           title="Fshi lëndën"
         >
-          <TrashIcon className="w-3 h-3" />
+          <TrashIcon className="w-4 h-4" />
         </button>
       </div>
     );
@@ -444,6 +443,8 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
               noDataText="Nuk ka lëndë për të shfaqur."
+              searchPanel={{ visible: true, placeholder: "Kërko..." }}
+              loadPanel={{ enabled: false }}
             >
               {/* Enable features */}
               <Selection mode="multiple" showCheckBoxesMode="always" />
@@ -502,7 +503,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
               {isAdmin === "true" && (
                 <Column
                   caption="Veprime"
-                  width={200}
+                  width={75}
                   allowSorting={false}
                   allowFiltering={false}
                   allowGrouping={false}

@@ -10,6 +10,7 @@ import {
 } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/16/solid";
 import { CheckIcon, UserPlusIcon } from "@heroicons/react/20/solid";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
 import DataGrid, {
@@ -232,8 +233,8 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
         customizeCell: (options) => {
           // Enable text wrapping for all cells
           if (options.excelCell) {
-            options.excelCell.alignment = { 
-              wrapText: true, 
+            options.excelCell.alignment = {
+              wrapText: true,
               vertical: 'top',
               horizontal: 'left'
             };
@@ -251,7 +252,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
           { width: 15 },  // Telefoni
           { width: 10 }   // Nr. rradhës
         ];
-        
+
         // Set minimum row height for data rows
         worksheet.eachRow((row, rowNumber) => {
           if (rowNumber > 1) { // Skip header row
@@ -300,7 +301,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
       <div className="flex items-center gap-2 w-full">
         <span className="text-left">{student.firstName}</span>
         {student.memo && (
-          <span 
+          <span
             className="inline-flex items-center justify-center w-4 h-4 text-indigo-500 cursor-help hover:text-indigo-700 transition-colors"
             title={student.memo}
           >
@@ -323,22 +324,17 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
       <div className="flex justify-end gap-2">
         <button
           onClick={() => setEditingStudent(student)}
-          className="inline-flex items-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-150 cursor-pointer"
+          className="text-blue-600 hover:text-blue-900 p-1 rounded cursor-pointer"
           title="Modifiko studentin"
         >
-          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Ndrysho
+          <PencilIcon className="w-4 h-4" />
         </button>
         <button
           onClick={() => setDeletingStudent(student)}
-          className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+          className="text-red-600 hover:text-red-900 p-1 rounded cursor-pointer"
           title="Fshi studentin"
         >
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
+          <TrashIcon className="w-4 h-4" />
         </button>
       </div>
     );
@@ -385,7 +381,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
             name={`program-select-${programSelectId}`}
           >
             <div className="relative mt-2">
-              <ListboxButton 
+              <ListboxButton
                 id={`program-select-button-${programSelectId}`}
                 className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
                 <span className="col-start-1 row-start-1 truncate pr-6">
@@ -568,6 +564,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               onSelectionChanged={handleSelectionChanged}
               noDataText="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!"
               searchPanel={{ visible: true, placeholder: "Kërko..." }}
+              loadPanel={{ enabled: false }}
             >
               {/* Enable features */}
               <Selection mode="multiple" showCheckBoxesMode="always" />
@@ -649,7 +646,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               {isAdmin === "true" && (
                 <Column
                   caption="Veprime"
-                  width={150}
+                  width={75}
                   allowSorting={false}
                   allowFiltering={false}
                   allowGrouping={false}

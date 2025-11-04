@@ -323,8 +323,6 @@ export default function LecturesPageClient() {
         </div>
       </div>
 
-
-
       {/* Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
