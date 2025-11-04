@@ -197,11 +197,61 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     const onExporting = (e: DataGridTypes.ExportingEvent) => {
         if (e.format === 'pdf') {
             const doc = new jsPDF();
+
+            // Add header with title and professor count
+            const professorCount = professorsWithRowNumbers?.length || 0;
+
+            // Set font and add title
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Lista e Profesorëve', 15, 20);
+
+            // Add professor count
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Gjithsej ${professorCount} profesor${professorCount !== 1 ? 'ë' : ''}`, 15, 30);
+
+            // Add date
+            doc.setFontSize(10);
+            doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
+
             exportDataGrid({
                 jsPDFDocument: doc,
                 component: e.component,
                 indent: 5,
+                topLeft: { x: 10, y: 50 }, // Start the table below the header
+                columnWidths: [15, 45, 50, 35, 20], // #, Emri i plotë, Email, Username, Caktime
             }).then(() => {
+                // Add footer to all pages
+                const totalPages = doc.getNumberOfPages();
+
+                for (let i = 1; i <= totalPages; i++) {
+                    doc.setPage(i);
+
+                    // Footer positioning
+                    const pageHeight = doc.internal.pageSize.height;
+                    const footerY = pageHeight - 15;
+
+                    // Set footer font
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(100, 100, 100); // Gray color
+
+                    // Left side - Website attribution
+                    doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
+
+                    // Center - Developer credit
+                    const centerText = 'Developed by JK';
+                    const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
+                    doc.text(centerText, centerX, footerY);
+
+                    // Right side - Page numbering
+                    const pageText = `${i}/${totalPages}`;
+                    const pageWidth = doc.internal.pageSize.width;
+                    const pageTextWidth = doc.getTextWidth(pageText);
+                    doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
+                }
+
                 doc.save('Profesoret.pdf');
             });
         } else if (e.format === 'xlsx') {

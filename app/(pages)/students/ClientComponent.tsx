@@ -227,6 +227,35 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
         component: e.component,
         worksheet: worksheet,
         autoFilterEnabled: true,
+        customizeCell: (options) => {
+          // Enable text wrapping for all cells
+          if (options.excelCell) {
+            options.excelCell.alignment = { 
+              wrapText: true, 
+              vertical: 'top',
+              horizontal: 'left'
+            };
+          }
+        }
+      }).then(() => {
+        // Set column widths and row heights after export
+        worksheet.columns = [
+          { width: 8 },   // # column
+          { width: 20 },  // Emri
+          { width: 20 },  // Atësia
+          { width: 20 },  // Mbiemri
+          { width: 30 },  // Email institucional
+          { width: 30 },  // Email personal
+          { width: 15 },  // Telefoni
+          { width: 10 }   // Nr. rradhës
+        ];
+        
+        // Set minimum row height for data rows
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber > 1) { // Skip header row
+            row.height = 25; // Minimum height for better text visibility
+          }
+        });
       }).then(() => {
         workbook.xlsx.writeBuffer().then((buffer) => {
           saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `Studentet_${selectedClass?.name || 'Lista'}.xlsx`);
