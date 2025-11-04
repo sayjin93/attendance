@@ -11,7 +11,8 @@ import {
   UsersIcon,
   CalendarIcon,
   DocumentDuplicateIcon,
-  ChartPieIcon
+  ChartPieIcon,
+  TableCellsIcon
 } from "@heroicons/react/24/outline";
 
 //components
@@ -153,6 +154,13 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
       href: "/attendance",
       icon: DocumentDuplicateIcon,
       color: "bg-orange-500 hover:bg-orange-600",
+    },
+    {
+      name: "Regjistri",
+      description: "Shiko regjistrin",
+      href: "/registry",
+      icon: TableCellsIcon,
+      color: "bg-slate-500 hover:bg-slate-600",
     },
     {
       name: "Raporte",
