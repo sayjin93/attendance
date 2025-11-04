@@ -2,9 +2,31 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
-import { MagnifyingGlassIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+import { EnvelopeIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
-import { ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
+
+// DevExtreme imports
+import DataGrid, {
+    Column,
+    Grouping,
+    GroupPanel,
+    Paging,
+    Pager,
+    HeaderFilter,
+    FilterRow,
+    Export,
+    Sorting,
+    ColumnChooser,
+    ColumnFixing,
+    StateStoring,
+    Selection,
+    DataGridTypes,
+} from "devextreme-react/data-grid";
+import { exportDataGrid } from "devextreme/pdf_exporter";
+import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
+import { jsPDF } from "jspdf";
+import { Workbook } from "exceljs";
+import { saveAs } from "file-saver";
 
 //types
 import { Professor } from "@/types";
@@ -30,15 +52,13 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     //#endregion
 
     //#region states
-    const [searchTerm, setSearchTerm] = useState("");
     const [editingProfessor, setEditingProfessor] = useState<Professor | null>(null);
     const [deletingProfessor, setDeletingProfessor] = useState<Professor | null>(null);
-    const [sortConfig, setSortConfig] = useState<{
-        key: keyof Professor | 'fullName' | 'assignments' | null;
-        direction: 'asc' | 'desc';
-    }>({ key: null, direction: 'asc' });
     const [testEmail, setTestEmail] = useState("");
     const [showEmailTest, setShowEmailTest] = useState(false);
+    const [showAddProfessorForm, setShowAddProfessorForm] = useState(false);
+    const [selectedProfessors, setSelectedProfessors] = useState<Professor[]>([]);
+    const [deletingMultipleProfessors, setDeletingMultipleProfessors] = useState<boolean>(false);
     //#endregion
 
     //#region useQuery
@@ -47,8 +67,8 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
         isLoading: professorsLoading,
         error: professorsError,
     } = useQuery<Professor[]>({
-        queryKey: ["professors", searchTerm],
-        queryFn: () => fetchProfessors(searchTerm),
+        queryKey: ["professors"],
+        queryFn: () => fetchProfessors(),
         enabled: isAdmin === "true",
     });
     //#endregion
@@ -67,6 +87,36 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
         },
         onError: () => {
             showMessage("Dështoi fshirja e profesorit!", "error");
+        },
+    });
+
+    // Bulk delete mutation
+    const bulkDeleteProfessorsMutation = useMutation({
+        mutationFn: async (professorIds: number[]) => {
+            const results = await Promise.allSettled(
+                professorIds.map(id => deleteProfessor(id))
+            );
+            return results;
+        },
+        onSuccess: (results) => {
+            const successCount = results.filter(result => result.status === 'fulfilled').length;
+            const failCount = results.length - successCount;
+
+            if (failCount === 0) {
+                showMessage(`${successCount} profesor(ë) u fshinë me sukses!`, "success");
+            } else if (successCount === 0) {
+                showMessage("Dështoi fshirja e profesorëve!", "error");
+            } else {
+                showMessage(`${successCount} profesor(ë) u fshinë, ${failCount} dështuan!`, "warning");
+            }
+
+            queryClient.invalidateQueries({ queryKey: ["professors"] });
+            setSelectedProfessors([]);
+            setDeletingMultipleProfessors(false);
+        },
+        onError: () => {
+            showMessage("Dështoi fshirja e profesorëve!", "error");
+            setDeletingMultipleProfessors(false);
         },
     });
 
@@ -102,31 +152,10 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     //#endregion
 
     //#region functions
-    const handleSort = (key: keyof Professor | 'fullName' | 'assignments') => {
-        let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-    };
-
-    const getSortIcon = (columnKey: keyof Professor | 'fullName' | 'assignments') => {
-        if (sortConfig.key !== columnKey) {
-            return <ChevronUpDownIcon className="w-4 h-4 inline ml-1 text-gray-400" />;
-        }
-        return sortConfig.direction === 'asc'
-            ? <ChevronUpIcon className="w-4 h-4 inline ml-1 text-indigo-600" />
-            : <ChevronDownIcon className="w-4 h-4 inline ml-1 text-indigo-600" />;
-    };
-
     const handleDeleteProfessor = () => {
         if (deletingProfessor) {
             deleteProfessorMutation.mutate(deletingProfessor.id);
         }
-    };
-
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
     };
 
     const handleTestEmail = (e: React.FormEvent) => {
@@ -136,55 +165,136 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
         }
     };
 
-    // Sort professors based on sortConfig
-    const sortedProfessors = useMemo(() => {
-        if (!sortConfig.key) return professors;
+    // Handle selection changes in DataGrid
+    const handleSelectionChanged = (e: DataGridTypes.SelectionChangedEvent) => {
+        setSelectedProfessors(e.selectedRowsData);
+    };
 
-        const sorted = [...professors].sort((a, b) => {
-            let aValue: string | number | boolean;
-            let bValue: string | number | boolean;
+    // Handle bulk delete
+    const handleBulkDeleteClick = () => {
+        if (selectedProfessors.length > 0) {
+            setDeletingMultipleProfessors(true);
+        }
+    };
 
-            if (sortConfig.key === 'fullName') {
-                aValue = `${a.firstName} ${a.lastName}`;
-                bValue = `${b.firstName} ${b.lastName}`;
-            } else if (sortConfig.key === 'assignments') {
-                aValue = a.teachingAssignments?.length || 0;
-                bValue = b.teachingAssignments?.length || 0;
-            } else {
-                aValue = a[sortConfig.key as keyof Professor] as string | number | boolean;
-                bValue = b[sortConfig.key as keyof Professor] as string | number | boolean;
-            }
+    const handleBulkDeleteConfirm = () => {
+        if (selectedProfessors.length > 0) {
+            const professorIds = selectedProfessors.map(professor => professor.id);
+            bulkDeleteProfessorsMutation.mutate(professorIds);
+        }
+    };
 
-            // Handle string values
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                const comparison = aValue.localeCompare(bValue);
-                return sortConfig.direction === 'asc' ? comparison : -comparison;
-            }
+    const handleBulkDeleteCancel = () => {
+        setDeletingMultipleProfessors(false);
+    };
 
-            // Handle numeric and boolean values
-            if (aValue < bValue) {
-                return sortConfig.direction === 'asc' ? -1 : 1;
-            }
-            if (aValue > bValue) {
-                return sortConfig.direction === 'asc' ? 1 : -1;
-            }
-            return 0;
-        });
+    // Clear selection
+    const handleClearSelection = () => {
+        setSelectedProfessors([]);
+    };
 
-        return sorted;
-    }, [professors, sortConfig]);
+    // Export functions for DevExtreme
+    const onExporting = (e: DataGridTypes.ExportingEvent) => {
+        if (e.format === 'pdf') {
+            const doc = new jsPDF();
+            exportDataGrid({
+                jsPDFDocument: doc,
+                component: e.component,
+                indent: 5,
+            }).then(() => {
+                doc.save('Profesoret.pdf');
+            });
+        } else if (e.format === 'xlsx') {
+            const workbook = new Workbook();
+            const worksheet = workbook.addWorksheet('Profesoret');
+
+            exportDataGridToExcel({
+                component: e.component,
+                worksheet: worksheet,
+                autoFilterEnabled: true
+            }).then(() => {
+                workbook.xlsx.writeBuffer().then((buffer: ArrayBuffer) => {
+                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Profesoret.xlsx');
+                });
+            });
+        }
+        e.cancel = true;
+    };
+
+    // Render action buttons for each row
+    const renderActionsCell = (cellData: { data: Professor }) => {
+        const professor = cellData.data;
+        return (
+            <div className="flex space-x-2">
+                <button
+                    onClick={() => setEditingProfessor(professor)}
+                    className="text-blue-600 hover:text-blue-900 p-1 rounded cursor-pointer"
+                    title="Modifiko profesor"
+                >
+                    <PencilIcon className="h-4 w-4" />
+                </button>
+                <button
+                    onClick={() => setDeletingProfessor(professor)}
+                    className="text-red-600 hover:text-red-900 p-1 rounded cursor-pointer"
+                    title="Fshi profesor"
+                >
+                    <TrashIcon className="h-4 w-4" />
+                </button>
+            </div>
+        );
+    };
+
+    // Render full name with admin badge
+    const renderFullNameCell = (cellData: { data: Professor }) => {
+        const professor = cellData.data;
+        return (
+            <div>
+                <div className="text-sm font-medium text-gray-900">
+                    {professor.firstName} {professor.lastName}
+                </div>
+                {professor.isAdmin && (
+                    <div className="text-xs text-blue-600 font-medium">
+                        Administrator
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Prepare data with row numbers
+    const professorsWithRowNumbers = useMemo(() => {
+        return professors.map((professor, index) => ({
+            ...professor,
+            rowNumber: index + 1,
+            fullName: `${professor.firstName} ${professor.lastName}`,
+            assignmentsCount: professor.teachingAssignments?.length || 0
+        }));
+    }, [professors]);
     //#endregion
-
-    if (professorsError) {
-        showMessage("Error loading professors.", "error");
-        return null;
-    }
 
     return (
         <div className="space-y-6">
             {/* Add Professor Form */}
             <Card>
-                <AddProfessorForm />
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                            <UserPlusIcon className="h-5 w-5 text-blue-600" />
+                            <h3 className="text-lg font-medium text-gray-900">Shto Profesor të ri</h3>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowAddProfessorForm(!showAddProfessorForm)}
+                            className="text-sm text-blue-600 hover:text-blue-700"
+                        >
+                            {showAddProfessorForm ? 'Fshih' : 'Shfaq'}
+                        </button>
+                    </div>
+
+                    {showAddProfessorForm && (
+                        <AddProfessorForm />
+                    )}
+                </div>
             </Card>
 
             {/* Test Email Form */}
@@ -203,7 +313,7 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                             {showEmailTest ? 'Fshih' : 'Shfaq'}
                         </button>
                     </div>
-                    
+
                     {showEmailTest && (
                         <form onSubmit={handleTestEmail} className="space-y-4">
                             <div>
@@ -242,110 +352,144 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
             <Card>
                 <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <h2 className="text-lg font-medium text-gray-900">
-                        Lista e Profesorëve {!professorsLoading && `(${sortedProfessors.length})`}
+                        Lista e Profesorëve {!professorsLoading && `(${professors.length})`}
                     </h2>
-                    
-                    {/* Search Bar */}
-                    <div className="relative w-full md:w-96">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Kërko profesor..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        />
-                    </div>
                 </div>
 
                 {professorsLoading ? (
                     <div className="flex justify-center items-center py-8">
                         <Loader />
                     </div>
-                ) : sortedProfessors.length === 0 ? (
-                    <Alert type="default" title="Nuk ka profesorë për të shfaqur." />
+                ) : professorsError ? (
+                    <Alert title="Gabim gjatë leximit të listës së profesorëve" />
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th 
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                                        onClick={() => handleSort('fullName')}
-                                    >
-                                        Emri i plotë{getSortIcon('fullName')}
-                                    </th>
-                                    <th 
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                                        onClick={() => handleSort('email')}
-                                    >
-                                        Email{getSortIcon('email')}
-                                    </th>
-                                    <th 
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                                        onClick={() => handleSort('username')}
-                                    >
-                                        Username{getSortIcon('username')}
-                                    </th>
-                                    <th 
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                                        onClick={() => handleSort('assignments')}
-                                    >
-                                        Caktime{getSortIcon('assignments')}
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Veprime
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {sortedProfessors.map((professor) => (
-                                    <tr key={professor.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {professor.firstName} {professor.lastName}
-                                            </div>
-                                            {professor.isAdmin && (
-                                                <div className="text-xs text-blue-600 font-medium">
-                                                    Administrator
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{professor.email}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{professor.username}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                {professor.teachingAssignments?.length || 0} kurs(e)
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex space-x-2">
-                                                <button
-                                                    onClick={() => setEditingProfessor(professor)}
-                                                    className="text-blue-600 hover:text-blue-900 p-1 rounded cursor-pointer"
-                                                    title="Modifiko profesor"
-                                                >
-                                                    <PencilIcon className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeletingProfessor(professor)}
-                                                    className="text-red-600 hover:text-red-900 p-1 rounded cursor-pointer"
-                                                    title="Fshi profesor"
-                                                >
-                                                    <TrashIcon className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div>
+                        {/* Bulk Actions Bar */}
+                        {selectedProfessors.length > 0 && (
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-blue-800">
+                                        {selectedProfessors.length} profesor{selectedProfessors.length !== 1 ? 'ë' : ''} të zgjedhur
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleClearSelection}
+                                            className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-white border border-blue-200 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150 cursor-pointer"
+                                        >
+                                            Pastro zgjedhjen
+                                        </button>
+                                        <button
+                                            onClick={handleBulkDeleteClick}
+                                            className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+                                        >
+                                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Fshi të zgjedhurit ({selectedProfessors.length})
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <DataGrid
+                            dataSource={professorsWithRowNumbers}
+                            allowColumnReordering={true}
+                            allowColumnResizing={true}
+                            columnAutoWidth={true}
+                            showBorders={true}
+                            showRowLines={true}
+                            showColumnLines={true}
+                            rowAlternationEnabled={true}
+                            hoverStateEnabled={true}
+                            keyExpr="id"
+                            className="dx-datagrid-borders custom-tooltip-grid"
+                            onExporting={onExporting}
+                            onSelectionChanged={handleSelectionChanged}
+                            noDataText="Nuk ka profesorë për të shfaqur."
+                            searchPanel={{ visible: true, placeholder: "Kërko..." }}
+
+                        >
+                            {/* Enable features */}
+                            <Selection mode="multiple" showCheckBoxesMode="always" />
+                            <Grouping autoExpandAll={false} />
+                            <GroupPanel visible={true} />
+                            <Sorting mode="multiple" />
+                            <FilterRow visible={true} />
+                            <HeaderFilter visible={true} />
+                            <ColumnChooser enabled={true} />
+                            <ColumnFixing enabled={true} />
+                            <Paging defaultPageSize={25} />
+                            <Pager
+                                showPageSizeSelector={true}
+                                allowedPageSizes={[10, 25, 50, 100]}
+                                showInfo={true}
+                            />
+                            <StateStoring enabled={true} type="localStorage" storageKey="professorsDataGrid" />
+
+                            {/* Export functionality */}
+                            <Export enabled={true} allowExportSelectedData={true} formats={["xlsx", "pdf"]} />
+
+                            {/* Columns */}
+                            <Column
+                                dataField="rowNumber"
+                                caption="#"
+                                width={60}
+                                visible={true}
+                                allowSorting={false}
+                                allowFiltering={false}
+                                allowGrouping={false}
+                                allowExporting={true}
+                            />
+                            <Column
+                                dataField="fullName"
+                                caption="Emri i plotë"
+                                cellRender={renderFullNameCell}
+                                alignment="left"
+                            />
+                            <Column
+                                dataField="email"
+                                caption="Email"
+                                allowGrouping={false}
+                            />
+                            <Column
+                                dataField="username"
+                                caption="Username"
+                                allowGrouping={false}
+                            />
+                            <Column
+                                dataField="assignmentsCount"
+                                caption="Caktime"
+                                width={100}
+                                allowGrouping={false}
+                                cellRender={(cellData) => `${cellData.value} kurs(e)`}
+                            />
+                            {isAdmin === "true" && (
+                                <Column
+                                    caption="Veprime"
+                                    width={150}
+                                    allowSorting={false}
+                                    allowFiltering={false}
+                                    allowGrouping={false}
+                                    allowExporting={false}
+                                    cellRender={renderActionsCell}
+                                />
+                            )}
+                        </DataGrid>
+
+                        {/* Professor count footer */}
+                        <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 mt-4">
+                            <div className="flex justify-between items-center text-sm text-gray-600">
+                                <div className="flex items-center gap-4">
+                                    <span>Gjithsej {professors.length} profesor{professors.length !== 1 ? 'ë' : ''}</span>
+                                    {selectedProfessors.length > 0 && (
+                                        <span className="text-blue-600 font-medium">
+                                            ({selectedProfessors.length} të zgjedhur)
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </Card>
@@ -397,6 +541,58 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {deleteProfessorMutation.isPending ? "Duke fshirë..." : "Fshi"}
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
+            {/* Bulk Delete Confirmation Modal */}
+            {deletingMultipleProfessors && (
+                <Modal
+                    isOpen={true}
+                    onClose={handleBulkDeleteCancel}
+                    title="Konfirmo fshirjen e shumë profesorëve"
+                >
+                    <div className="p-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">
+                            Konfirmo fshirjen e shumë profesorëve
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Jeni të sigurt që dëshironi të fshini {selectedProfessors.length} profesor(ë)?
+                        </p>
+                        <div className="bg-gray-50 rounded-md p-3 mb-6 max-h-40 overflow-y-auto">
+                            <ul className="text-sm text-gray-700 space-y-1">
+                                {selectedProfessors.map(professor => (
+                                    <li key={professor.id} className="flex items-center space-x-2">
+                                        <span>•</span>
+                                        <span>{professor.firstName} {professor.lastName}</span>
+                                        {professor.isAdmin && (
+                                            <span className="text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">
+                                                Admin
+                                            </span>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <p className="text-sm text-red-600 mb-6">
+                            Ky veprim nuk mund të zhbëhet.
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={handleBulkDeleteCancel}
+                                disabled={bulkDeleteProfessorsMutation.isPending}
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Anulo
+                            </button>
+                            <button
+                                onClick={handleBulkDeleteConfirm}
+                                disabled={bulkDeleteProfessorsMutation.isPending}
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {bulkDeleteProfessorsMutation.isPending ? "Duke fshirë..." : `Fshi ${selectedProfessors.length} profesor(ë)`}
                             </button>
                         </div>
                     </div>

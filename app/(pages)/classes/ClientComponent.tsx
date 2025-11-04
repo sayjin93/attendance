@@ -18,6 +18,7 @@ import DataGrid, {
   ColumnChooser,
   ColumnFixing,
   StateStoring,
+  Selection,
   DataGridTypes,
 } from "devextreme-react/data-grid";
 import { exportDataGrid } from "devextreme/pdf_exporter";
@@ -74,6 +75,8 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#region states
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [deletingClass, setDeletingClass] = useState<Class | null>(null);
+  const [selectedClasses, setSelectedClasses] = useState<Class[]>([]);
+  const [deletingMultipleClasses, setDeletingMultipleClasses] = useState<boolean>(false);
   //#endregion
 
   //#region useQuery
@@ -125,6 +128,36 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
     },
     onError: () => {
       showMessage("Dështoi fshirja e klasës!", "error");
+    },
+  });
+
+  // Bulk delete mutation
+  const bulkDeleteClassesMutation = useMutation({
+    mutationFn: async (classIds: number[]) => {
+      const results = await Promise.allSettled(
+        classIds.map(id => deleteClass(id))
+      );
+      return results;
+    },
+    onSuccess: (results) => {
+      const successCount = results.filter(result => result.status === 'fulfilled').length;
+      const failCount = results.length - successCount;
+      
+      if (failCount === 0) {
+        showMessage(`${successCount} klas${successCount !== 1 ? 'a' : 'ë'} u fshinë me sukses!`, "success");
+      } else if (successCount === 0) {
+        showMessage("Dështoi fshirja e klasave!", "error");
+      } else {
+        showMessage(`${successCount} klas${successCount !== 1 ? 'a' : 'ë'} u fshinë, ${failCount} dështuan!`, "warning");
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      setSelectedClasses([]);
+      setDeletingMultipleClasses(false);
+    },
+    onError: () => {
+      showMessage("Dështoi fshirja e klasave!", "error");
+      setDeletingMultipleClasses(false);
     },
   });
   //#endregion
@@ -312,13 +345,35 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
       </div>
     );
   };
-  //#endregion
 
-  if (isLoading) return <Loader />;
-  if (error) {
-    showMessage("Error loading classes.", "error");
-    return null;
-  }
+  // Handle selection changes in DataGrid
+  const handleSelectionChanged = (e: DataGridTypes.SelectionChangedEvent) => {
+    setSelectedClasses(e.selectedRowsData);
+  };
+
+  // Handle bulk delete
+  const handleBulkDeleteClick = () => {
+    if (selectedClasses.length > 0) {
+      setDeletingMultipleClasses(true);
+    }
+  };
+
+  const handleBulkDeleteConfirm = () => {
+    if (selectedClasses.length > 0) {
+      const classIds = selectedClasses.map(classItem => classItem.id);
+      bulkDeleteClassesMutation.mutate(classIds);
+    }
+  };
+
+  const handleBulkDeleteCancel = () => {
+    setDeletingMultipleClasses(false);
+  };
+
+  // Clear selection
+  const handleClearSelection = () => {
+    setSelectedClasses([]);
+  };
+  //#endregion
 
   // Filter programs from classes
   const programs = Array.from(
@@ -338,10 +393,42 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
 
       {/* Classes List */}
       <Card title="Lista e klasave">
-        {classes?.length === 0 ? (
-          <Alert title="Nuk keni ende klasa. Shtoni një klasë më sipër!" />
-        ) : (
+                {isLoading ? (
+                    <div className="flex justify-center items-center py-8">
+                        <Loader />
+                    </div>
+                ) : error ? (
+                    <Alert title="Gabim gjatë leximit të listës së klasave" />
+                ) : (
           <div className="mt-6">
+            {/* Bulk Actions Bar */}
+            {selectedClasses.length > 0 && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-blue-800">
+                    {selectedClasses.length} klas{selectedClasses.length !== 1 ? 'a' : 'ë'} të zgjedhura
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleClearSelection}
+                      className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-white border border-blue-200 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150 cursor-pointer"
+                    >
+                      Pastro zgjedhjen
+                    </button>
+                    <button
+                      onClick={handleBulkDeleteClick}
+                      className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer"
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Fshi të zgjedhurat ({selectedClasses.length})
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <DataGrid
               dataSource={classesWithRowNumbers}
               allowColumnReordering={true}
@@ -355,10 +442,12 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
               keyExpr="id"
               className="dx-datagrid-borders"
               onExporting={onExporting}
+              onSelectionChanged={handleSelectionChanged}
               noDataText="Nuk ka klasa. Shtoni një klasë më sipër!"
               searchPanel={{ visible: true, placeholder: "Kërko..." }}
             >
               {/* Enable features */}
+              <Selection mode="multiple" showCheckBoxesMode="always" />
               <Grouping autoExpandAll={true} />
               <GroupPanel visible={true} />
               <SearchPanel visible={true} highlightCaseSensitive={true} />
@@ -376,7 +465,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
               <StateStoring enabled={true} type="localStorage" storageKey="classesDataGrid" />
 
               {/* Export functionality */}
-              <Export enabled={true} formats={["xlsx", "pdf"]} />
+              <Export enabled={true} allowExportSelectedData={true} formats={["xlsx", "pdf"]} />
 
               {/* Columns */}
               <Column
@@ -448,6 +537,11 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
                   <span>
                     {classes?.reduce((sum, cls) => sum + (cls.students?.length || 0), 0)} studentë total
                   </span>
+                  {selectedClasses.length > 0 && (
+                    <span className="text-blue-600 font-medium">
+                      ({selectedClasses.length} të zgjedhura)
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   {programs.map(program => {
@@ -520,6 +614,56 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
           </div>
         )}
       </Modal>
+
+      {/* Bulk Delete Confirmation Modal */}
+      {deletingMultipleClasses && (
+        <Modal
+          isOpen={true}
+          onClose={handleBulkDeleteCancel}
+          title="Konfirmo fshirjen e shumë klasave"
+        >
+          <div className="p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Konfirmo fshirjen e shumë klasave
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Jeni të sigurt që dëshironi të fshini {selectedClasses.length} klas{selectedClasses.length !== 1 ? 'a' : 'ë'}?
+            </p>
+            <div className="bg-gray-50 rounded-md p-3 mb-6 max-h-40 overflow-y-auto">
+              <ul className="text-sm text-gray-700 space-y-1">
+                {selectedClasses.map(classItem => (
+                  <li key={classItem.id} className="flex items-center space-x-2">
+                    <span>•</span>
+                    <span>{classItem.name}</span>
+                    <span className="text-xs text-gray-500">
+                      ({classItem.program?.name})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <p className="text-sm text-red-600 mb-6">
+              Ky veprim nuk mund të zhbëhet.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleBulkDeleteCancel}
+                disabled={bulkDeleteClassesMutation.isPending}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anulo
+              </button>
+              <button
+                onClick={handleBulkDeleteConfirm}
+                disabled={bulkDeleteClassesMutation.isPending}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {bulkDeleteClassesMutation.isPending ? "Duke fshirë..." : `Fshi ${selectedClasses.length} klas${selectedClasses.length !== 1 ? 'a' : 'ë'}`}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
