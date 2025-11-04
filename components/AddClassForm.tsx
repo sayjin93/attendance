@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -25,6 +25,7 @@ export default function AddClassForm({ isAdmin, programs }: AddClassFormProps) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
+  const programSelectId = useId();
   //#endregion
 
   //#region states
@@ -85,9 +86,12 @@ export default function AddClassForm({ isAdmin, programs }: AddClassFormProps) {
       {/* Dropdown for Program Selection */}
       <Listbox
         value={programId}
-        onChange={(value) => setProgramId(Number(value))}>
+        onChange={(value) => setProgramId(Number(value))}
+        name={`program-select-${programSelectId}`}>
         <div className="relative">
-          <ListboxButton className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+          <ListboxButton 
+            id={`program-select-button-${programSelectId}`}
+            className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
             <span className="col-start-1 row-start-1 truncate pr-6">
               {programs?.length === 0
                 ? "Nuk ka programe aktive"
@@ -102,6 +106,7 @@ export default function AddClassForm({ isAdmin, programs }: AddClassFormProps) {
           </ListboxButton>
 
           <ListboxOptions
+            id={`program-select-options-${programSelectId}`}
             transition
             className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
           >

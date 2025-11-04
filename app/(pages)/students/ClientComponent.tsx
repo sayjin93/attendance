@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import {
@@ -56,6 +56,8 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
+  const programSelectId = useId();
+  const classSelectId = useId();
   //#endregion
 
   //#region states
@@ -380,9 +382,12 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               setClassId(0);
               setSelectedStudents([]); // Clear selection when program changes
             }}
+            name={`program-select-${programSelectId}`}
           >
             <div className="relative mt-2">
-              <ListboxButton className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+              <ListboxButton 
+                id={`program-select-button-${programSelectId}`}
+                className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
                 <span className="col-start-1 row-start-1 truncate pr-6">
                   {programs?.length === 0
                     ? "Nuk ka programe aktive"
@@ -397,6 +402,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               </ListboxButton>
 
               <ListboxOptions
+                id={`program-select-options-${programSelectId}`}
                 transition
                 className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
               >
@@ -427,9 +433,11 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               setClassId(value);
               setSelectedStudents([]); // Clear selection when class changes
             }}
+            name={`class-select-${classSelectId}`}
           >
             <div className="relative mt-2">
               <ListboxButton
+                id={`class-select-button-${classSelectId}`}
                 className={`grid w-full grid-cols-1 rounded-md py-1.5 pr-2 pl-3 text-left sm:text-sm/6 
   ${programId === 0
                     ? "cursor-not-allowed bg-gray-200 text-gray-500"
@@ -452,6 +460,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               </ListboxButton>
 
               <ListboxOptions
+                id={`class-select-options-${classSelectId}`}
                 transition
                 className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
               >
