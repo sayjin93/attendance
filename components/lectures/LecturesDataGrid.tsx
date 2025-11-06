@@ -243,7 +243,7 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
   const handleDelete = (lecture: Lecture) => {
     const subjectName = lecture.teachingAssignment?.subject?.name || 'Lëndë të panjohur';
     const className = lecture.teachingAssignment?.class?.name || 'Klasë të panjohur';
-    
+
     if (
       window.confirm(
         `A jeni të sigurt që dëshironi të fshini leksionin për ${subjectName} në ${className}?`
@@ -331,8 +331,8 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
 
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${type === 'Leksion'
-          ? 'bg-blue-100 text-blue-800'
-          : 'bg-green-100 text-green-800'
+        ? 'bg-blue-100 text-blue-800'
+        : 'bg-green-100 text-green-800'
         }`}>
         {type}
       </span>
@@ -494,7 +494,15 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
               <StateStoring enabled={true} type="localStorage" storageKey="lecturesDataGrid" />
 
               {/* Export functionality */}
-              <Export enabled={true} allowExportSelectedData={true} formats={["xlsx", "pdf"]} />
+              <Export
+                enabled={true}
+                allowExportSelectedData={true}
+                formats={["xlsx", "pdf"]}
+                texts={{
+                  // exportAll: "Eksporto të gjitha",
+                  // exportSelectedRows: "Eksporto të zgjedhurat",
+                  // exportTo: "Eksporto në"
+                }} />
 
               {/* Columns */}
               <Column

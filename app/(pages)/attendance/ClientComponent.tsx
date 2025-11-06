@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
+//devextreme
+import DateBox from "devextreme-react/date-box";
+import { locale } from "devextreme/localization";
+
 //types
 import { AttendanceRecord, AttendanceStatus, Class, Lecture } from "@/types";
 
@@ -56,7 +60,13 @@ export default function AttendancePageClient({
   const [classId, setClassId] = useState<number | null>(null);
   const [lectureId, setLectureId] = useState<number | null>(null);
   const [students, setStudents] = useState<AttendanceRecord[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   //#endregion
+
+  // Configure locale for DateBox
+  useEffect(() => {
+    locale("sq");
+  }, []);
 
   //#region useQuery
   const {
@@ -124,6 +134,7 @@ export default function AttendancePageClient({
   // Reset lecture when class changes
   useEffect(() => {
     setLectureId(null);
+    setSelectedDate(null);
     setStudents([]);
   }, [classId]);
 
@@ -157,13 +168,27 @@ export default function AttendancePageClient({
             const lectureExists = classExists.lectures?.find(l => l.id === parsedLectureId);
             if (lectureExists && lectureId !== parsedLectureId) {
               setLectureId(parsedLectureId);
+              setSelectedDate(new Date(lectureExists.date));
             }
           }
         }
       }
     }
+
+    // Sync selectedDate when lectureId changes (after component updates)
+    if (lectureId && classes) {
+      const currentClass = classes.find(c => c.id === classId);
+      if (currentClass?.lectures) {
+        const lecture = currentClass.lectures.find(l => l.id === lectureId);
+        if (lecture) {
+          setSelectedDate(new Date(lecture.date));
+        }
+      }
+    } else if (!lectureId) {
+      setSelectedDate(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classes, searchParams]);
+  }, [classes, searchParams, lectureId]);
   //#endregion
 
   //#region mutations
@@ -206,6 +231,21 @@ export default function AttendancePageClient({
   // Group classes by program
   const bachelorClasses = classesArray.filter(cls => cls.program?.name === "Bachelor") || [];
   const masterClasses = classesArray.filter(cls => cls.program?.name === "Master") || [];
+
+  // Get available lecture dates for the selected class
+  const availableDates = selectedClass?.lectures?.map(lecture => new Date(lecture.date)) || [];
+  
+  // Find lecture by date
+  const findLectureByDate = (date: Date) => {
+    if (!selectedClass?.lectures) return null;
+    return selectedClass.lectures.find(lecture => {
+      const lectureDate = new Date(lecture.date);
+      return lectureDate.toDateString() === date.toDateString();
+    });
+  };
+
+  // Get current selected date for the DateBox (derived from selectedDate or current lecture)
+  const currentSelectedDate = selectedDate || (selectedLecture ? new Date(selectedLecture.date) : null);
 
   const handleStatusChange = (studentId: number, status: AttendanceStatus) => {
     setStudents((prev) =>
@@ -255,37 +295,54 @@ export default function AttendancePageClient({
             </select>
           </div>
 
-          {/* Lecture Selector */}
+          {/* Lecture Date Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Leksioni *
             </label>
-            <select
-              disabled={!classId}
-              value={lectureId || ""}
-              onChange={(e) => setLectureId(e.target.value ? parseInt(e.target.value) : null)}
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                classId
-                  ? "border-gray-300 bg-white"
-                  : "border-gray-200 bg-gray-100 cursor-not-allowed"
-              }`}
-              required
-            >
-              <option value="">
-                {!classId
+            <DateBox
+              value={currentSelectedDate}
+              disabled={!classId || !selectedClass?.lectures?.length}
+              placeholder={
+                !classId
                   ? "Zgjidhni një klasë fillimisht"
                   : !selectedClass?.lectures?.length
                   ? "Nuk ka leksione për këtë klasë"
-                  : "Zgjidhni një leksion..."}
-              </option>
-              {classId && selectedClass?.lectures && selectedClass.lectures.length > 0 && 
-                selectedClass.lectures.map((lecture) => (
-                  <option key={lecture.id} value={lecture.id}>
-                    {formatDate(lecture.date.toString())}
-                  </option>
-                ))
+                  : "Zgjidhni datën e leksionit..."
               }
-            </select>
+              displayFormat="dd/MM/yyyy"
+              onValueChanged={(e) => {
+                if (e.value) {
+                  const date = e.value instanceof Date ? e.value : new Date(e.value);
+                  if (!isNaN(date.getTime())) {
+                    setSelectedDate(date);
+                    const lecture = findLectureByDate(date);
+                    if (lecture) {
+                      setLectureId(lecture.id);
+                    }
+                  }
+                } else {
+                  setSelectedDate(null);
+                  setLectureId(null);
+                }
+              }}
+              stylingMode="outlined"
+              width="100%"
+              height={40}
+              showClearButton={true}
+              pickerType="calendar"
+              openOnFieldClick={true}
+              showDropDownButton={true}
+              acceptCustomValue={false}
+              dateSerializationFormat="yyyy-MM-dd"
+              min={availableDates.length > 0 ? new Date(Math.min(...availableDates.map(d => d.getTime()))) : undefined}
+              max={availableDates.length > 0 ? new Date(Math.max(...availableDates.map(d => d.getTime()))) : undefined}
+              disabledDates={availableDates.length > 0 ? (data: { date: Date }) => {
+                return !availableDates.some(availableDate => 
+                  availableDate.toDateString() === data.date.toDateString()
+                );
+              } : undefined}
+            />
           </div>
         </div>
       </Card>
