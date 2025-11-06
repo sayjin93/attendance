@@ -163,10 +163,18 @@ export async function GET(request: Request) {
       // Get all lectures for these assignments
       const lectures = await prisma.lecture.findMany({
         where: {
-          classId: parseInt(classId),
-          subjectId: parseInt(subjectId)
+          teachingAssignment: {
+            classId: parseInt(classId),
+            subjectId: parseInt(subjectId)
+          }
         },
         include: {
+          teachingAssignment: {
+            select: {
+              professorId: true,
+              type: { select: { name: true } }
+            }
+          },
           attendance: {
             select: {
               studentId: true,
@@ -192,7 +200,7 @@ export async function GET(request: Request) {
 
           // Find lectures for this assignment's professor
           const assignmentLectures = lectures.filter(
-            lecture => lecture.professorId === assignment.professorId
+            lecture => lecture.teachingAssignment.professorId === assignment.professorId
           );
 
           assignmentLectures.forEach(lecture => {

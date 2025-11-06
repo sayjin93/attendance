@@ -83,13 +83,17 @@ export async function GET() {
         // Count lectures given by this professor
         prisma.lecture.count({
           where: {
-            professorId: professorId,
+            teachingAssignment: {
+              professorId: professorId,
+            },
           },
         }),
         // Count lectures with attendance records for this professor
         prisma.lecture.count({
           where: {
-            professorId: professorId,
+            teachingAssignment: {
+              professorId: professorId,
+            },
             attendance: {
               some: {},
             },
