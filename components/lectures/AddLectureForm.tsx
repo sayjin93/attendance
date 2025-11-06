@@ -144,8 +144,12 @@ const AddLectureForm: React.FC<AddLectureFormProps> = ({
               placeholder="Zgjidhni datën..."
               onValueChanged={(e) => {
                 if (e.value) {
-                  const dateString = e.value.toISOString().split('T')[0];
-                  setFormData({ ...formData, date: dateString });
+                  // Ensure e.value is a Date object
+                  const date = e.value instanceof Date ? e.value : new Date(e.value);
+                  if (!isNaN(date.getTime())) {
+                    const dateString = date.toISOString().split('T')[0];
+                    setFormData({ ...formData, date: dateString });
+                  }
                 }
               }}
               stylingMode="outlined"

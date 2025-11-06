@@ -30,23 +30,15 @@ import { Workbook } from "exceljs";
 import { saveAs } from "file-saver";
 
 //types
-import { TeachingAssignmentWithDetails } from "@/types";
+import { Lecture, LecturesResponse, TeachingAssignmentWithDetails } from "@/types";
 
-//components
-import Loader from "@/components/ui/Loader";
-import Alert from "@/components/ui/Alert";
-import Card from "@/components/ui/Card";
-import Modal from "@/components/ui/Modal";
-import EditLectureForm from "@/components/lectures/EditLectureForm";
-
-//contexts
-import { useNotify } from "@/contexts/NotifyContext";
-
-
-interface Lecture {
+// Extended type for DataGrid rows
+interface LectureWithRowData {
   id: number;
   date: string;
+  teachingAssignmentId: number;
   teachingAssignment: {
+    id: number;
     professor: {
       id: number;
       firstName: string;
@@ -66,18 +58,49 @@ interface Lecture {
       name: string;
     };
   };
-  attendance: Array<{
+  attendance?: Array<{ status: string }>;
+  rowNumber: number;
+  professorName: string;
+  subjectName: string;
+  subjectCode: string;
+  className: string;
+  typeName: string;
+  dateFormatted: string;
+  attendanceCount: number;
+  presentCount: number;
+  participatedCount: number;
+  absentCount: number;
+  hasAttendance: boolean;
+  // Keep the original flat structure for compatibility with EditLectureForm
+  professor: {
     id: number;
-    status: string;
-  }>;
+    firstName: string;
+    lastName: string;
+  };
+  subject: {
+    id: number;
+    name: string;
+    code: string;
+  };
+  class: {
+    id: number;
+    name: string;
+  };
+  type: {
+    id: number;
+    name: string;
+  };
 }
 
-interface LecturesResponse {
-  assignments: TeachingAssignmentWithDetails[];
-  lectures: Lecture[];
-  isAdmin: boolean;
-  professorId: number;
-}
+//components
+import Loader from "@/components/ui/Loader";
+import Alert from "@/components/ui/Alert";
+import Card from "@/components/ui/Card";
+import Modal from "@/components/ui/Modal";
+import EditLectureForm from "@/components/lectures/EditLectureForm";
+
+//contexts
+import { useNotify } from "@/contexts/NotifyContext";
 
 interface LecturesDataGridProps {
   assignments: TeachingAssignmentWithDetails[];
@@ -105,24 +128,31 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
   });
 
   // Prepare data for DataGrid
-  const lecturesWithRowNumbers = useMemo(() => {
+  const lecturesWithRowNumbers = useMemo((): LectureWithRowData[] => {
     if (!data?.lectures) return [];
 
     return data.lectures.map((lecture, index) => {
       return {
         ...lecture,
+        date: typeof lecture.date === 'string' ? lecture.date : lecture.date.toISOString(),
         rowNumber: index + 1,
         professorName: `${lecture.teachingAssignment.professor.firstName} ${lecture.teachingAssignment.professor.lastName}`,
         subjectName: lecture.teachingAssignment.subject.name,
         subjectCode: lecture.teachingAssignment.subject.code,
         className: lecture.teachingAssignment.class.name,
         typeName: lecture.teachingAssignment.type.name,
-        dateFormatted: new Date(lecture.date).toLocaleDateString("sq-AL"),
-        attendanceCount: lecture.attendance.length,
-        presentCount: lecture.attendance.filter((a: { status: string }) => a.status === "PRESENT").length,
-        participatedCount: lecture.attendance.filter((a: { status: string }) => a.status === "PARTICIPATED").length,
-        absentCount: lecture.attendance.filter((a: { status: string }) => a.status === "ABSENT").length,
-        hasAttendance: lecture.attendance.length > 0,
+        dateFormatted: (() => {
+          const date = new Date(lecture.date);
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        })(),
+        attendanceCount: lecture.attendance?.length || 0,
+        presentCount: lecture.attendance?.filter((a: { status: string }) => a.status === "PRESENT").length || 0,
+        participatedCount: lecture.attendance?.filter((a: { status: string }) => a.status === "PARTICIPATED").length || 0,
+        absentCount: lecture.attendance?.filter((a: { status: string }) => a.status === "ABSENT").length || 0,
+        hasAttendance: (lecture.attendance?.length || 0) > 0,
         // Keep the original flat structure for compatibility with EditLectureForm
         professor: lecture.teachingAssignment.professor,
         subject: lecture.teachingAssignment.subject,
@@ -211,9 +241,12 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
   };
 
   const handleDelete = (lecture: Lecture) => {
+    const subjectName = lecture.teachingAssignment?.subject?.name || 'Lëndë të panjohur';
+    const className = lecture.teachingAssignment?.class?.name || 'Klasë të panjohur';
+    
     if (
       window.confirm(
-        `A jeni të sigurt që dëshironi të fshini leksionin për ${lecture.teachingAssignment.subject.name} në ${lecture.teachingAssignment.class.name}?`
+        `A jeni të sigurt që dëshironi të fshini leksionin për ${subjectName} në ${className}?`
       )
     ) {
       deleteLectureMutation.mutate(lecture.id);
@@ -426,7 +459,7 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
             )}
 
             <DataGrid
-              dataSource={lecturesWithRowNumbers}
+              dataSource={lecturesWithRowNumbers as unknown as Lecture[]}
               allowColumnReordering={true}
               allowColumnResizing={false}
               columnAutoWidth={true}
@@ -446,11 +479,11 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
               {/* Enable features */}
               <Selection mode="multiple" showCheckBoxesMode="always" />
               <Grouping autoExpandAll={true} />
-              <GroupPanel visible={true} />
+              <GroupPanel visible={true} emptyPanelText="Bëji drag një header kolone këtu për ta grupuar sipas asaj kolone" />
               <SearchPanel visible={true} highlightCaseSensitive={true} />
               <Sorting mode="multiple" />
               <HeaderFilter visible={true} />
-              <ColumnChooser enabled={true} />
+              <ColumnChooser enabled={true} title="Zgjidh Kolonat" emptyPanelText="Shtoni kolona këtu për ta fshehur atë" />
               <ColumnFixing enabled={true} />
               <Paging defaultPageSize={25} />
               <Pager
@@ -556,7 +589,7 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
       </Card>
 
       {/* Edit Lecture Modal */}
-      {editingLecture && (
+      {editingLecture && editingLecture.teachingAssignment && (
         <Modal
           isOpen={isEditModalOpen}
           onClose={() => {
@@ -569,9 +602,9 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
             lecture={{
               id: editingLecture.id,
               date: editingLecture.date,
-              professor: editingLecture.teachingAssignment.professor,
-              subject: editingLecture.teachingAssignment.subject,
-              class: editingLecture.teachingAssignment.class,
+              professor: editingLecture.teachingAssignment.professor!,
+              subject: editingLecture.teachingAssignment.subject!,
+              class: editingLecture.teachingAssignment.class!,
             }}
             assignments={assignments}
             onClose={() => {

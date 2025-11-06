@@ -212,9 +212,7 @@ export async function DELETE(
     // ✅ Check if there are any lectures associated with this assignment
     const relatedLectures = await prisma.lecture.findFirst({
       where: {
-        professorId: existingAssignment.professorId,
-        subjectId: existingAssignment.subjectId,
-        classId: existingAssignment.classId,
+        teachingAssignmentId: assignmentId,
       },
     });
 
