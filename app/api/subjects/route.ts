@@ -275,8 +275,11 @@ export async function DELETE(req: Request) {
     const existingSubject = await prisma.subject.findUnique({
       where: { id },
       include: {
-        teachingAssignments: true,
-        Lecture: true,
+        teachingAssignments: {
+          include: {
+            lectures: true, // Include lectures through teaching assignments
+          },
+        },
       },
     });
 
@@ -288,8 +291,12 @@ export async function DELETE(req: Request) {
     }
 
     // Check if subject has teaching assignments or lectures
-    if ((existingSubject.teachingAssignments && existingSubject.teachingAssignments.length > 0) ||
-        (existingSubject.Lecture && existingSubject.Lecture.length > 0)) {
+    const hasTeachingAssignments = existingSubject.teachingAssignments && existingSubject.teachingAssignments.length > 0;
+    const hasLectures = existingSubject.teachingAssignments.some(assignment => 
+      assignment.lectures && assignment.lectures.length > 0
+    );
+
+    if (hasTeachingAssignments || hasLectures) {
       return NextResponse.json(
         { error: "Nuk mund të fshihet lënda sepse ka caktime mësimore ose leksione!" },
         { status: 400 }

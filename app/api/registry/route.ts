@@ -204,43 +204,33 @@ export async function GET(request: Request) {
       });
       
       // First try to get lectures that match the teaching assignment
-      let lecturesData = await prisma.lecture.findMany({
+      const lecturesData = await prisma.lecture.findMany({
         where: {
-          classId: parseInt(classId),
-          subjectId: parseInt(subjectId),
-          professorId: parseInt(finalProfessorId),
+          teachingAssignment: {
+            classId: parseInt(classId),
+            subjectId: parseInt(subjectId),
+            professorId: parseInt(finalProfessorId),
+            typeId: parseInt(typeId)
+          }
+        },
+        include: {
+          teachingAssignment: {
+            select: {
+              typeId: true,
+              type: { select: { id: true, name: true } }
+            }
+          }
         },
         orderBy: { date: 'asc' }
       });
       
-      // If lectures exist, filter by typeId if available, otherwise include all
-      if (lecturesData.length > 0) {
-        // Only filter by typeId if lectures have typeId set
-        const lecturesWithTypeId = lecturesData.filter(l => l.typeId === parseInt(typeId));
-        
-        if (lecturesWithTypeId.length > 0) {
-          lecturesData = lecturesWithTypeId;
-        }
-      }
-
-      // Get the teaching assignment to get type information
-      const assignment = await prisma.teachingAssignment.findFirst({
-        where: {
-          classId: parseInt(classId),
-          subjectId: parseInt(subjectId),
-          professorId: parseInt(finalProfessorId),
-          typeId: parseInt(typeId)
-        },
-        include: {
-          type: { select: { id: true, name: true } }
-        }
-      });
+      // Remove the typeId filtering since we're already filtering by typeId in the query above
 
       lectures = lecturesData.map(l => ({
         id: l.id.toString(),
         date: l.date.toISOString(),
         typeId: typeId,
-        typeName: assignment?.type.name || ''
+        typeName: l.teachingAssignment.type.name || ''
       }));
 
       // Get all attendance records for these lectures
