@@ -39,12 +39,12 @@ import { fetchProfessors, deleteProfessor } from "@/hooks/fetchFunctions";
 import { useNotify } from "@/contexts/NotifyContext";
 
 //components
-import Loader from "@/components/Loader";
-import Alert from "@/components/Alert";
-import Card from "@/components/Card";
-import AddProfessorForm from "@/components/AddProfessorForm";
-import EditProfessorForm from "@/components/EditProfessorForm";
-import Modal from "@/components/Modal";
+import Loader from "@/components/ui/Loader";
+import Alert from "@/components/ui/Alert";
+import Card from "@/components/ui/Card";
+import AddProfessorForm from "@/components/professors/AddProfessorForm";
+import EditProfessorForm from "@/components/professors/EditProfessorForm";
+import Modal from "@/components/ui/Modal";
 
 export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     //#region constants
@@ -337,7 +337,7 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                         <button
                             type="button"
                             onClick={() => setShowAddProfessorForm(!showAddProfessorForm)}
-                            className="text-sm text-blue-600 hover:text-blue-700"
+                            className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
                         >
                             {showAddProfessorForm ? 'Fshih' : 'Shfaq'}
                         </button>
@@ -360,7 +360,7 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                         <button
                             type="button"
                             onClick={() => setShowEmailTest(!showEmailTest)}
-                            className="text-sm text-blue-600 hover:text-blue-700"
+                            className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
                         >
                             {showEmailTest ? 'Fshih' : 'Shfaq'}
                         </button>

@@ -32,26 +32,32 @@ export async function GET(req: Request) {
       teachingAssignments: {
         include: {
           subject: true, // Include subject info for each assignment
+          ...(includeLectures && {
+            lectures: {
+              where: professorId && !decoded.isAdmin ? {
+                teachingAssignment: {
+                  professorId: parseInt(professorId, 10)
+                }
+              } : {},
+              include: {
+                teachingAssignment: {
+                  include: {
+                    professor: true,
+                    subject: true,
+                  }
+                },
+                attendance: true,
+              },
+              orderBy: {
+                date: 'desc' as const
+              }
+            }
+          })
         },
       },
       students: {
         orderBy: [{ firstName: 'asc' as const }, { lastName: 'asc' as const }]
       }, // Always include students to count them
-      ...(includeLectures && {
-        lectures: {
-          where: professorId && !decoded.isAdmin ? {
-            professorId: parseInt(professorId, 10)
-          } : {},
-          include: {
-            professor: true,
-            subject: true,
-            attendance: true,
-          },
-          orderBy: {
-            date: 'desc' as const
-          }
-        }
-      }),
     };
 
     let classes;

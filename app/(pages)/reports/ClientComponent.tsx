@@ -5,68 +5,17 @@ import { useQuery } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState, useMemo, useCallback } from "react";
-import Alert from "../../../components/Alert";
-import Card from "../../../components/Card";
-import Skeleton from "../../../components/Skeleton";
+import Alert from "../../../components/ui/Alert";
+import Card from "../../../components/ui/Card";
+import Skeleton from "../../../components/ui/Skeleton";
 import { useNotify } from "../../../contexts/NotifyContext";
 import { fetchReportData, fetchClassesByProfessor } from "../../../hooks/fetchFunctions";
-
-// New interfaces for the reports module
-interface Program {
-  id: string;
-  name: string;
-}
-
-interface Class {
-  id: string;
-  name: string;
-  programId: string;
-  program?: {
-    id: string;
-    name: string;
-  };
-}
-
-interface Subject {
-  id: string;
-  name: string;
-}
-
-interface StudentReport {
-  id: string;
-  firstName: string;
-  lastName: string;
-  memo?: string | null;
-  totalLectures: number;
-  attendedLectures: number;
-  participatedLectures: number;
-  attendancePercentage: number;
-  passedLectures: boolean;
-  totalSeminars: number;
-  attendedSeminars: number;
-  participatedSeminars: number;
-  seminarPercentage: number;
-  passedSeminars: boolean;
-  overallPassed: boolean;
-}
-
-interface ReportData {
-  students: StudentReport[];
-  summary: {
-    totalStudents: number;
-    passedStudents: number;
-    failedStudents: number;
-    averageAttendance: number;
-  };
-  metadata: {
-    program: string;
-    class: string;
-    subject: string;
-  };
-  programs: Program[];
-  classes: Class[];
-  subjects: Subject[];
-}
+import { 
+  RegistryClass as Class, 
+  RegistrySubject as Subject, 
+  StudentReport,
+  ReportData 
+} from "@/types";
 
 export default function ReportsPageClient({
   professorId,

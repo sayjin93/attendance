@@ -5,15 +5,17 @@ import {
     CheckCircleIcon,
     InformationCircleIcon,
 } from "@heroicons/react/20/solid";
-
-interface AlertProps {
-    type?: "default" | "warning" | "error" | "success";
-    title: string;
-    desc?: string;
-}
+import { AlertProps } from "@/types";
 
 const alertStyles = {
     default: {
+        bg: "bg-blue-50",
+        iconColor: "text-blue-400",
+        titleColor: "text-blue-800",
+        descColor: "text-blue-700",
+        Icon: InformationCircleIcon,
+    },
+    info: {
         bg: "bg-blue-50",
         iconColor: "text-blue-400",
         titleColor: "text-blue-800",

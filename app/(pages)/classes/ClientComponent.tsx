@@ -38,12 +38,12 @@ import { fetchClasses, deleteClass } from "@/hooks/fetchFunctions";
 import { useNotify } from "@/contexts/NotifyContext";
 
 //components
-import Loader from "@/components/Loader";
-import Card from "@/components/Card";
-import Alert from "@/components/Alert";
-import AddClassForm from "@/components/AddClassForm";
-import EditClassForm from "@/components/EditClassForm";
-import Modal from "@/components/Modal";
+import Loader from "@/components/ui/Loader";
+import Card from "@/components/ui/Card";
+import Alert from "@/components/ui/Alert";
+import AddClassForm from "@/components/classes/AddClassForm";
+import EditClassForm from "@/components/classes/EditClassForm";
+import Modal from "@/components/ui/Modal";
 
 export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants

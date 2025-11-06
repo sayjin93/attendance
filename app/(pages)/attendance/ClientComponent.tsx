@@ -18,12 +18,27 @@ import {
 import { useNotify } from "@/contexts/NotifyContext";
 
 // components
-import Loader from "@/components/Loader";
-import Alert from "@/components/Alert";
-import Card from "@/components/Card";
+import Loader from "@/components/ui/Loader";
+import Alert from "@/components/ui/Alert";
+import Card from "@/components/ui/Card";
 
-interface ClassWithLectures extends Class {
+interface TeachingAssignmentWithLectures {
+  id: number;
+  professorId: number;
+  subjectId: number;
+  classId: number;
+  typeId: number;
+  subject: {
+    id: number;
+    name: string;
+    code: string;
+  };
   lectures: Lecture[];
+}
+
+interface ClassWithLectures extends Omit<Class, 'teachingAssignments'> {
+  teachingAssignments: TeachingAssignmentWithLectures[];
+  lectures?: Lecture[]; // Computed property we'll add
 }
 
 export default function AttendancePageClient({
@@ -52,7 +67,28 @@ export default function AttendancePageClient({
     queryKey: ["classes", professorId],
     queryFn: async () => {
       const result = await fetchClassesIncludesLecturesAndStudents(professorId);
-      return result;
+      
+      // Check if the result is an error object
+      if (result && typeof result === 'object' && 'error' in result) {
+        throw new Error(result.error);
+      }
+      
+      if (!Array.isArray(result)) {
+        return [];
+      }
+      
+      // Transform the data to flatten lectures from teachingAssignments
+      const transformedClasses = result.map((classItem: ClassWithLectures) => ({
+        ...classItem,
+        lectures: classItem.teachingAssignments?.flatMap((assignment: TeachingAssignmentWithLectures) => 
+          assignment.lectures?.map((lecture: Lecture) => ({
+            ...lecture,
+            subject: assignment.subject
+          })) || []
+        ) || []
+      }));
+      
+      return transformedClasses;
     },
     enabled: !!professorId,
   });
@@ -106,11 +142,11 @@ export default function AttendancePageClient({
 
   // Ensure selections are valid when classes load
   useEffect(() => {
-    if (classes && classes.length > 0) {
+    if (Array.isArray(classes) && classes.length > 0) {
       const urlClassId = searchParams.get("classId");
       const urlLectureId = searchParams.get("lectureId");
 
-      if (urlClassId) {
+      if (urlClassId && classes) {
         const parsedClassId = parseInt(urlClassId, 10);
         const classExists = classes.find(c => c.id === parsedClassId);
         if (classExists && classId !== parsedClassId) {
@@ -156,17 +192,20 @@ export default function AttendancePageClient({
 
   if (classesLoading) return <Loader />;
   if (classesError) {
-    return <Alert type="error" title="Gabim në ngarkimin e klasave" />;
+    return <Alert type="error" title="Gabim në ngarkimin e klasave" message={classesError.message || "Një gabim ka ndodhur gjatë ngarkimit të klasave."} />;
   }
 
-  const selectedClass = classes?.find((cls: ClassWithLectures) => cls.id === classId);
+  // Ensure classes is an array before using array methods
+  const classesArray = Array.isArray(classes) ? classes : [];
+  
+  const selectedClass = classesArray.find((cls: ClassWithLectures) => cls.id === classId);
   const selectedLecture = selectedClass?.lectures?.find(
     (lecture: Lecture) => lecture.id === lectureId
   );
 
   // Group classes by program
-  const bachelorClasses = classes?.filter(cls => cls.program?.name === "Bachelor") || [];
-  const masterClasses = classes?.filter(cls => cls.program?.name === "Master") || [];
+  const bachelorClasses = classesArray.filter(cls => cls.program?.name === "Bachelor") || [];
+  const masterClasses = classesArray.filter(cls => cls.program?.name === "Master") || [];
 
   const handleStatusChange = (studentId: number, status: AttendanceStatus) => {
     setStudents((prev) =>

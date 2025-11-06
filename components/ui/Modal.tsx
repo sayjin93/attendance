@@ -1,13 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  maxWidth?: string;
-}
+import { ModalProps } from "@/types";
 
 export default function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-md" }: ModalProps) {
   // Close modal on Escape key

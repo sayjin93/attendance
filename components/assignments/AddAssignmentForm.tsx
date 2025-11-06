@@ -37,12 +37,12 @@ export default function AddAssignmentForm({
 
   //#region computed values
   // Filter subjects by selected program
-  const filteredSubjects = subjects.filter(subject => 
+  const filteredSubjects = subjects.filter(subject =>
     programId === 0 || subject.programId === programId
   );
 
   // Filter classes by selected program
-  const filteredClasses = classes.filter(classItem => 
+  const filteredClasses = classes.filter(classItem =>
     programId === 0 || classItem.programId === programId
   );
   //#endregion
@@ -94,8 +94,6 @@ export default function AddAssignmentForm({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-gray-900">Cakto Profesor në Lëndë për Klasë</h3>
-      
       {/* Rreshti i parë: Profesor, Program, Lëndë */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Dropdown për zgjedhjen e profesorëve */}

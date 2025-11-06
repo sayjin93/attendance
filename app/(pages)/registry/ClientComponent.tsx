@@ -2,88 +2,19 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Alert from "../../../components/Alert";
-import Skeleton from "../../../components/Skeleton";
+import Alert from "../../../components/ui/Alert";
+import Skeleton from "../../../components/ui/Skeleton";
 import FilterSection from "./components/FilterSection";
 import RegistryTable from "./components/RegistryTable";
 import EmptyState from "./components/EmptyState";
-
-// Interfaces
-interface Program {
-    id: string;
-    name: string;
-}
-
-interface Class {
-    id: string;
-    name: string;
-    programId: string;
-}
-
-interface Subject {
-    id: string;
-    name: string;
-    code: string;
-}
-
-interface TeachingType {
-    id: string;
-    name: string;
-}
-
-interface Professor {
-    id: string;
-    firstName: string;
-    lastName: string;
-}
-
-interface Lecture {
-    id: string;
-    date: string;
-    typeId: string;
-    typeName: string;
-}
-
-interface Student {
-    id: string;
-    firstName: string;
-    lastName: string;
-    memo?: string | null;
-}
-
-interface AttendanceRecord {
-    studentId: string;
-    lectureId: string;
-    status: 'PRESENT' | 'ABSENT' | 'PARTICIPATED';
-}
-
-interface StudentRegistryRow {
-    student: Student;
-    attendanceByLecture: { [lectureId: string]: 'PRESENT' | 'ABSENT' | 'PARTICIPATED' | null };
-    absenceCount: number;
-    totalLectures: number;
-    absencePercentage: number;
-    status: 'NK' | 'OK';
-}
-
-interface RegistryData {
-    programs: Program[];
-    classes: Class[];
-    subjects: Subject[];
-    types: TeachingType[];
-    professors?: Professor[];
-    lectures: Lecture[];
-    students: Student[];
-    attendance: AttendanceRecord[];
-    registryRows: StudentRegistryRow[];
-}
+import { RegistryData, RegistryClass, RegistrySubject, RegistryTeachingType, RegistryProfessor } from "@/types";
 
 export default function RegistryPageClient({
     professorId,
     isAdmin,
 }: {
     professorId: string;
-    isAdmin: string;
+    isAdmin: boolean;
 }) {
 
     //#region states
@@ -93,7 +24,7 @@ export default function RegistryPageClient({
     const [selectedProfessorId, setSelectedProfessorId] = useState("");
     //#endregion
 
-    const isAdminUser = isAdmin === "true";
+    const isAdminUser = isAdmin === true;
 
     // Check if all required filters are selected - memoized
     const canShowTable = useMemo(() => 
@@ -127,7 +58,7 @@ export default function RegistryPageClient({
         staleTime: 5 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
-        placeholderData: (previousData) => previousData, // CRITICAL: Keep previous data to prevent flicker
+        placeholderData: (previousData) => previousData,
     });
 
     //#region useQuery for registry table data
@@ -144,7 +75,6 @@ export default function RegistryPageClient({
             if (selectedClassId) params.append('classId', selectedClassId);
             if (selectedSubjectId) params.append('subjectId', selectedSubjectId);
             if (selectedTypeId) params.append('typeId', selectedTypeId);
-            // Remove the duplicate professorId append since we're already using effectiveProfessorId as the main one
 
             const response = await fetch(`/api/registry?${params.toString()}`);
             if (!response.ok) {
@@ -153,10 +83,10 @@ export default function RegistryPageClient({
             return response.json();
         },
         enabled: !!canShowTable,
-        staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
-        refetchOnWindowFocus: false, // Prevent refetch on window focus
-        refetchOnMount: false, // Prevent refetch on component mount if data exists
-        placeholderData: (previousData) => previousData, // Keep previous data while loading new data
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        placeholderData: (previousData) => previousData,
     });
     //#endregion
 
@@ -205,10 +135,10 @@ export default function RegistryPageClient({
     const registryRows = registryData?.registryRows || [];
 
     // Selected items
-    const selectedClass = classes.find((c: Class) => c.id === selectedClassId);
-    const selectedSubject = subjects.find((s: Subject) => s.id === selectedSubjectId);
-    const selectedType = types.find((t: TeachingType) => t.id === selectedTypeId);
-    const selectedProfessor = professors.find((p: Professor) => p.id === selectedProfessorId);
+    const selectedClass = classes.find((c: RegistryClass) => c.id === selectedClassId);
+    const selectedSubject = subjects.find((s: RegistrySubject) => s.id === selectedSubjectId);
+    const selectedType = types.find((t: RegistryTeachingType) => t.id === selectedTypeId);
+    const selectedProfessor = professors.find((p: RegistryProfessor) => p.id === selectedProfessorId);
 
     // Show error if there's an error, but don't block rendering for loading state
     if (errorFilters) {

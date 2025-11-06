@@ -1,8 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import Card from "../../../../components/Card";
-import Alert from "../../../../components/Alert";
+import Card from "../../../../components/ui/Card";
+import Alert from "../../../../components/ui/Alert";
 
 interface EmptyStateProps {
   canShowTable: boolean;

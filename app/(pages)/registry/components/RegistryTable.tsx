@@ -3,7 +3,7 @@
 import { memo, useCallback } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import Card from "../../../../components/Card";
+import Card from "../../../../components/ui/Card";
 
 interface Program {
   id: string;

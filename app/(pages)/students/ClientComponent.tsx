@@ -46,12 +46,12 @@ import { fetchClasses, fetchStudents, deleteStudent } from "@/hooks/fetchFunctio
 import { useNotify } from "@/contexts/NotifyContext";
 
 //components
-import Loader from "@/components/Loader";
-import Alert from "@/components/Alert";
-import Card from "@/components/Card";
-import AddStudentForm from "@/components/AddStudentForm";
-import EditStudentForm from "@/components/EditStudentForm";
-import Modal from "@/components/Modal";
+import Loader from "@/components/ui/Loader";
+import Alert from "@/components/ui/Alert";
+import Card from "@/components/ui/Card";
+import AddStudentForm from "@/components/students/AddStudentForm";
+import EditStudentForm from "@/components/students/EditStudentForm";
+import Modal from "@/components/ui/Modal";
 
 export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
@@ -492,7 +492,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
             <button
               type="button"
               onClick={() => setShowAddStudentForm(!showAddStudentForm)}
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
             >
               {showAddStudentForm ? 'Fshih' : 'Shfaq'}
             </button>

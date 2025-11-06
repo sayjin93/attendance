@@ -7,5 +7,5 @@ export default async function RegistryPage() {
 
   if (!professorId) return redirect("/login");
 
-  return <RegistryPageClient professorId={professorId} isAdmin={isAdmin} />;
+  return <RegistryPageClient professorId={professorId} isAdmin={isAdmin === "true"} />;
 }

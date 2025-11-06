@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 //types
-import { Student, Class } from "@/types";
+import { EditStudentFormProps } from "@/types";
 
 //hooks
 import { updateStudent } from "@/hooks/fetchFunctions";
@@ -12,13 +12,7 @@ import { updateStudent } from "@/hooks/fetchFunctions";
 import { useNotify } from "@/contexts/NotifyContext";
 
 //components
-import Loader from "./Loader";
-
-interface EditStudentFormProps {
-  student: Student;
-  classes: Class[];
-  onClose: () => void;
-}
+import Loader from "../ui/Loader";
 
 export default function EditStudentForm({ student, classes, onClose }: EditStudentFormProps) {
   //#region constants

@@ -24,7 +24,15 @@ export async function fetchClassesIncludesLecturesAndStudents(
   const res = await fetch(
     `/api/classes?professorId=${professorId}&includeLectures=true&includeStudents=true`
   );
-  return res.json();
+  
+  const data = await res.json();
+  
+  // If the response is not ok, throw an error
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to fetch classes');
+  }
+  
+  return data;
 }
 
 export async function fetchStudents(classId: number | null) {

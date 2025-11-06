@@ -2,15 +2,10 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 //types
-import { Professor } from "@/types";
+import { EditProfessorFormProps } from "@/types";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
-
-interface EditProfessorFormProps {
-  professor: Professor;
-  onClose: () => void;
-}
 
 export default function EditProfessorForm({ professor, onClose }: EditProfessorFormProps) {
   //#region constants

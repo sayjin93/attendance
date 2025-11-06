@@ -6,16 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNotify } from "@/contexts/NotifyContext";
 import { updateAssignment } from "@/hooks/functions";
 
-import { Professor, Subject, Class, TeachingType, TeachingAssignment } from "@/types";
-
-interface EditAssignmentFormProps {
-  assignment: TeachingAssignment;
-  professors: Professor[];
-  subjects: Subject[];
-  classes: Class[];
-  teachingTypes: TeachingType[];
-  onClose: () => void;
-}
+import { EditAssignmentFormProps } from "@/types";
 
 export default function EditAssignmentForm({
   assignment,

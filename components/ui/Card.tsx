@@ -1,9 +1,5 @@
 import { FC } from "react";
-
-interface CardProps {
-    title?: string;
-    children: React.ReactNode;
-}
+import { CardProps } from "@/types";
 
 const Card: FC<CardProps> = ({ title, children }) => {
     return (

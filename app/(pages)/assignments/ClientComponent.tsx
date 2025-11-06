@@ -41,12 +41,12 @@ import { deleteAssignment } from "@/hooks/functions";
 import { useNotify } from "@/contexts/NotifyContext";
 
 //components
-import Loader from "@/components/Loader";
-import Card from "@/components/Card";
-import Alert from "@/components/Alert";
-import Modal from "@/components/Modal";
-import AddAssignmentForm from "@/components/AddAssignmentForm";
-import EditAssignmentForm from "@/components/EditAssignmentForm";
+import Loader from "@/components/ui/Loader";
+import Card from "@/components/ui/Card";
+import Alert from "@/components/ui/Alert";
+import Modal from "@/components/ui/Modal";
+import AddAssignmentForm from "@/components/assignments/AddAssignmentForm";
+import EditAssignmentForm from "@/components/assignments/EditAssignmentForm";
 
 export default function AssignmentsPageClient({
   isAdmin,
@@ -305,12 +305,12 @@ export default function AssignmentsPageClient({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <UserPlusIcon className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-medium text-gray-900">Cakto Profesor në Lëndë për Klasë</h3>
+              <h3 className="text-lg font-medium text-gray-900">Shto caktim të ri</h3>
             </div>
             <button
               type="button"
               onClick={() => setShowAddAssignmentForm(!showAddAssignmentForm)}
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
             >
               {showAddAssignmentForm ? 'Fshih' : 'Shfaq'}
             </button>

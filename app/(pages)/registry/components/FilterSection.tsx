@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import Card from "../../../../components/Card";
+import Card from "../../../../components/ui/Card";
 
 interface Program {
   id: string;

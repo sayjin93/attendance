@@ -26,7 +26,6 @@ model Professor {
   passwordResetToken   String?              @unique
   passwordResetExpires DateTime?
   teachingAssignments  TeachingAssignment[]
-  Lecture              Lecture[]
 }
 
 model Program {
@@ -43,7 +42,6 @@ model Subject {
   programId           Int
   program             Program              @relation(fields: [programId], references: [id])
   teachingAssignments TeachingAssignment[]
-  Lecture             Lecture[]
 }
 
 model TeachingAssignment {
@@ -56,6 +54,7 @@ model TeachingAssignment {
   class       Class        @relation(fields: [classId], references: [id])
   typeId      Int
   type        TeachingType @relation(fields: [typeId], references: [id])
+  lectures    Lecture[]
 
   @@unique([professorId, subjectId, classId]) // Prevent duplicate assignments for same professor-subject-class combination
 }
@@ -64,7 +63,6 @@ model TeachingType {
   id          Int                  @id @default(autoincrement())
   name        String               @unique
   assignments TeachingAssignment[]
-  lectures    Lecture[]
 }
 
 model Class {
@@ -73,7 +71,6 @@ model Class {
   programId           Int
   program             Program              @relation(fields: [programId], references: [id])
   students            Student[]
-  lectures            Lecture[]
   teachingAssignments TeachingAssignment[]
 }
 
@@ -93,17 +90,13 @@ model Student {
 }
 
 model Lecture {
-  id          Int           @id @default(autoincrement())
-  date        DateTime
-  professorId Int
-  professor   Professor     @relation(fields: [professorId], references: [id])
-  classId     Int
-  class       Class         @relation(fields: [classId], references: [id])
-  subjectId   Int
-  subject     Subject       @relation(fields: [subjectId], references: [id])
-  typeId      Int?
-  type        TeachingType? @relation(fields: [typeId], references: [id])
-  attendance  Attendance[]
+  id                   Int                @id @default(autoincrement())
+  date                 DateTime
+  teachingAssignmentId Int
+  teachingAssignment   TeachingAssignment @relation(fields: [teachingAssignmentId], references: [id])
+  attendance           Attendance[]
+
+  @@unique([teachingAssignmentId, date]) // Një leksion për caktim për datë
 }
 
 model Attendance {

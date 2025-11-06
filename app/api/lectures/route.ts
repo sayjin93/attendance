@@ -59,21 +59,33 @@ export async function GET() {
     if (isAdmin) {
       lectures = await prisma.lecture.findMany({
         include: {
-          professor: { select: { id: true, firstName: true, lastName: true } },
-          subject: { select: { id: true, name: true, code: true } },
-          class: { select: { id: true, name: true } },
-          type: { select: { id: true, name: true } },
+          teachingAssignment: {
+            include: {
+              professor: { select: { id: true, firstName: true, lastName: true } },
+              subject: { select: { id: true, name: true, code: true } },
+              class: { select: { id: true, name: true } },
+              type: { select: { id: true, name: true } },
+            }
+          },
           attendance: { select: { id: true, status: true } },
         },
         orderBy: [{ date: 'desc' }],
       });
     } else {
       lectures = await prisma.lecture.findMany({
-        where: { professorId },
+        where: { 
+          teachingAssignment: {
+            professorId: professorId
+          }
+        },
         include: {
-          subject: { select: { id: true, name: true, code: true } },
-          class: { select: { id: true, name: true } },
-          type: { select: { id: true, name: true } },
+          teachingAssignment: {
+            include: {
+              subject: { select: { id: true, name: true, code: true } },
+              class: { select: { id: true, name: true } },
+              type: { select: { id: true, name: true } },
+            }
+          },
           attendance: { select: { id: true, status: true } },
         },
         orderBy: [{ date: 'desc' }],
@@ -132,8 +144,7 @@ export async function POST(req: Request) {
     const existingLecture = await prisma.lecture.findFirst({
       where: {
         date: new Date(date),
-        classId: assignment.classId,
-        subjectId: assignment.subjectId,
+        teachingAssignmentId: assignmentId,
       },
     });
 
@@ -147,14 +158,17 @@ export async function POST(req: Request) {
     const newLecture = await prisma.lecture.create({
       data: {
         date: new Date(date),
-        professorId: decoded.isAdmin ? assignment.professorId : professorId,
-        classId: assignment.classId,
-        subjectId: assignment.subjectId,
+        teachingAssignmentId: assignmentId,
       },
       include: {
-        professor: { select: { id: true, firstName: true, lastName: true } },
-        subject: { select: { id: true, name: true, code: true } },
-        class: { select: { id: true, name: true } },
+        teachingAssignment: {
+          include: {
+            professor: { select: { id: true, firstName: true, lastName: true } },
+            subject: { select: { id: true, name: true, code: true } },
+            class: { select: { id: true, name: true } },
+            type: { select: { id: true, name: true } },
+          }
+        },
       },
     });
 
@@ -217,14 +231,17 @@ export async function PUT(req: Request) {
       where: { id },
       data: {
         date: new Date(date),
-        professorId: assignment.professorId,
-        classId: assignment.classId,
-        subjectId: assignment.subjectId,
+        teachingAssignmentId: assignmentId,
       },
       include: {
-        professor: { select: { id: true, firstName: true, lastName: true } },
-        subject: { select: { id: true, name: true, code: true } },
-        class: { select: { id: true, name: true } },
+        teachingAssignment: {
+          include: {
+            professor: { select: { id: true, firstName: true, lastName: true } },
+            subject: { select: { id: true, name: true, code: true } },
+            class: { select: { id: true, name: true } },
+            type: { select: { id: true, name: true } },
+          }
+        },
       },
     });
 

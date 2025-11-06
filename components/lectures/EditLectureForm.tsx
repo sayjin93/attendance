@@ -1,59 +1,9 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNotify } from "@/contexts/NotifyContext";
-import Alert from "./Alert";
-import Loader from "./Loader";
-
-interface Assignment {
-  id: number;
-  professor: {
-    id: number;
-    firstName: string;
-    lastName: string;
-  };
-  subject: {
-    id: number;
-    name: string;
-    code: string;
-  };
-  class: {
-    id: number;
-    name: string;
-    program: {
-      id: number;
-      name: string;
-    };
-  };
-  type: {
-    id: number;
-    name: string;
-  };
-}
-
-interface Lecture {
-  id: number;
-  date: string;
-  professor: {
-    id: number;
-    firstName: string;
-    lastName: string;
-  };
-  subject: {
-    id: number;
-    name: string;
-    code: string;
-  };
-  class: {
-    id: number;
-    name: string;
-  };
-}
-
-interface EditLectureFormProps {
-  lecture: Lecture;
-  assignments: Assignment[];
-  onClose: () => void;
-}
+import Alert from "@/components/ui/Alert";
+import Loader from "@/components/ui/Loader";
+import { EditLectureFormProps } from "@/types";
 
 const EditLectureForm: React.FC<EditLectureFormProps> = ({
   lecture,
@@ -70,7 +20,7 @@ const EditLectureForm: React.FC<EditLectureFormProps> = ({
 
   const [formData, setFormData] = useState({
     assignmentId: currentAssignment?.id?.toString() || "",
-    date: lecture.date.split("T")[0], // Extract date part
+    date: typeof lecture.date === 'string' ? lecture.date.split("T")[0] : lecture.date.toISOString().split("T")[0],
   });
 
   const [error, setError] = useState<string | null>(null);

@@ -16,12 +16,9 @@ import {
 } from "@heroicons/react/24/outline";
 
 //components
-import Card from "@/components/Card";
+import Card from "@/components/ui/Card";
 
-interface TeachingType {
-  id: number;
-  name: string;
-}
+import { TeachingType, DashboardClientProps } from "@/types";
 
 interface DashboardStats {
   classes: number;
@@ -33,11 +30,6 @@ interface DashboardStats {
   attendance?: number;
   assignmentClasses?: Array<{ id: number; name: string; types: TeachingType[] }>;
   subjectList?: Array<{ id: number; name: string; code: string; types: TeachingType[] }>;
-}
-
-interface DashboardClientProps {
-  fullName: string;
-  isAdmin: boolean;
 }
 
 export default function DashboardClient({ fullName, isAdmin }: DashboardClientProps) {

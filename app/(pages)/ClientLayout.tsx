@@ -17,8 +17,8 @@ import { useSessionRefresh } from "@/hooks/useSessionRefresh";
 import navigationItems from "@/constants/navigation";
 
 //components
-import Header from "@/components/Header";
-import Skeleton from "@/components/Skeleton";
+import Header from "@/components/ui/Header";
+import Skeleton from "@/components/ui/Skeleton";
 
 export default function ClientLayout({
   children,

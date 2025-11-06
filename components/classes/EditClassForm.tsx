@@ -3,49 +3,42 @@ import React, { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 //types
-import { Subject, Program } from "@/types";
+import { EditClassFormProps } from "@/types";
 
 //hooks
-import { updateSubject } from "@/hooks/fetchFunctions";
+import { updateClass } from "@/hooks/fetchFunctions";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
 
 //components
-import Loader from "./Loader";
+import Loader from "../ui/Loader";
 
-interface EditSubjectFormProps {
-  subject: Subject;
-  programs: Program[];
-  onClose: () => void;
-}
-
-export default function EditSubjectForm({ subject, programs, onClose }: EditSubjectFormProps) {
+export default function EditClassForm({ classItem, programs, onClose }: EditClassFormProps) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
   //#endregion
 
   //#region state
-  const [code, setCode] = useState(subject.code || "");
-  const [name, setName] = useState(subject.name);
-  const [programId, setProgramId] = useState(subject.programId);
+  const [name, setName] = useState(classItem.name);
+  const [programId, setProgramId] = useState(classItem.programId);
   //#endregion
 
   //#region mutations
-  const updateSubjectMutation = useMutation({
-    mutationFn: () => updateSubject(subject.id, code, name, programId),
+  const updateClassMutation = useMutation({
+    mutationFn: () => updateClass(classItem.id, name, programId),
     onSuccess: (data) => {
       if (data.error) {
         showMessage(data.error, "error");
       } else {
-        showMessage("Lënda u modifikua me sukses!", "success");
-        queryClient.invalidateQueries({ queryKey: ["subjects"] });
+        showMessage("Klasa u modifikua me sukses!", "success");
+        queryClient.invalidateQueries({ queryKey: ["classes"] });
         onClose();
       }
     },
     onError: () => {
-      showMessage("Dështoi modifikimi i lëndës!", "error");
+      showMessage("Dështoi modifikimi i klasës!", "error");
     },
   });
   //#endregion
@@ -55,7 +48,7 @@ export default function EditSubjectForm({ subject, programs, onClose }: EditSubj
     e.preventDefault();
     
     if (!name.trim()) {
-      showMessage("Emri i lëndës është i detyrueshëm!", "error");
+      showMessage("Emri i klasës është i detyrueshëm!", "error");
       return;
     }
 
@@ -64,29 +57,15 @@ export default function EditSubjectForm({ subject, programs, onClose }: EditSubj
       return;
     }
 
-    updateSubjectMutation.mutate();
+    updateClassMutation.mutate();
   };
   //#endregion
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-          Kodi i lëndës (opsional)
-        </label>
-        <input
-          type="text"
-          id="code"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Shkruani kodin e lëndës..."
-        />
-      </div>
-
-      <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Emri i lëndës
+          Emri i klasës
         </label>
         <input
           type="text"
@@ -94,7 +73,7 @@ export default function EditSubjectForm({ subject, programs, onClose }: EditSubj
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Shkruani emrin e lëndës..."
+          placeholder="Shkruani emrin e klasës..."
           required
         />
       </div>
@@ -124,16 +103,16 @@ export default function EditSubjectForm({ subject, programs, onClose }: EditSubj
           type="button"
           onClick={onClose}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          disabled={updateSubjectMutation.isPending}
+          disabled={updateClassMutation.isPending}
         >
           Anulo
         </button>
         <button
           type="submit"
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-          disabled={updateSubjectMutation.isPending}
+          disabled={updateClassMutation.isPending}
         >
-          {updateSubjectMutation.isPending ? <Loader /> : "Ruaj ndryshimet"}
+          {updateClassMutation.isPending ? <Loader /> : "Ruaj ndryshimet"}
         </button>
       </div>
     </form>

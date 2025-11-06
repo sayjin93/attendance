@@ -5,12 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
-import { Program } from "@/types";
-
-interface AddSubjectFormProps {
-  isAdmin: string;
-  programs: Program[];
-}
+import { AddSubjectFormProps } from "@/types";
 
 export default function AddSubjectForm({
   isAdmin,
