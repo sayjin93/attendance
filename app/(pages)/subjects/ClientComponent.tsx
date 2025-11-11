@@ -418,7 +418,6 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
               storageKey="subjectsDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
-              keyExpr="id"
             >
               <Column
                 dataField="name"
@@ -455,33 +454,6 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
                 />
               )}
             </CommonDataGrid>
-
-            {/* Bulk Actions Bar */}
-            {selectedSubjects.length > 0 && (
-              <div className="bg-blue-50 border-t border-blue-200 px-6 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-blue-700">
-                    <span className="text-sm font-medium">
-                      {selectedSubjects.length} lëndë të zgjedhura
-                    </span>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={handleClearSelection}
-                      className="text-sm text-blue-600 hover:text-blue-500 cursor-pointer"
-                    >
-                      Pastroj zgjedhjen
-                    </button>
-                    <button
-                      onClick={handleBulkDeleteClick}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
-                    >
-                      Fshi të zgjedhurit
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Subject count footer */}
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">

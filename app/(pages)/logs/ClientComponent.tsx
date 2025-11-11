@@ -1,22 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import DataGrid, {
-    Column,
-    Paging,
-    FilterRow,
-    HeaderFilter,
-    SearchPanel,
-    Export,
-    Toolbar,
-    Item,
-} from "devextreme-react/data-grid";
+import { Column } from "devextreme-react/data-grid";
 import type { ExportingEvent } from "devextreme/ui/data_grid";
 import { SelectBox } from "devextreme-react/select-box";
 import { DateBox } from "devextreme-react/date-box";
 import { Button } from "devextreme-react/button";
 import Card from "@/components/ui/Card";
 import Loader from "@/components/ui/Loader";
+import CommonDataGrid from "@/components/ui/CommonDataGrid";
 import { useNotify } from "@/contexts/NotifyContext";
 import { Workbook } from "exceljs";
 import saveAs from "file-saver";
@@ -274,30 +266,12 @@ export default function ClientComponent() {
             </Card>
 
             <Card title="Regjistri i Aktivitetit">
-                <DataGrid
-                    width="100%"
-                    rowAlternationEnabled={true}
+                <CommonDataGrid
                     dataSource={logs}
-                    showBorders={true}
-                    columnAutoWidth={true}
-                    wordWrapEnabled={true}
                     onExporting={onExporting}
+                    wordWrapEnabled={true}
+                    showRowNumber={false}
                 >
-                    <SearchPanel visible={true} width={240} placeholder="Kërko..." />
-                    <FilterRow visible={true} />
-                    <HeaderFilter visible={true} />
-                    <Export enabled={true} allowExportSelectedData={false} />
-                    <Paging
-                        enabled={true}
-                        defaultPageSize={pagination.limit}
-                        pageSize={pagination.limit}
-                    />
-
-                    <Toolbar>
-                        <Item name="searchPanel" />
-                        <Item name="exportButton" />
-                    </Toolbar>
-
                     <Column dataField="id" caption="ID" width={70} />
                     <Column
                         dataField="createdAt"
@@ -326,7 +300,7 @@ export default function ClientComponent() {
                         cellRender={renderDetailsCell}
                         width={400}
                     />
-                </DataGrid>
+                </CommonDataGrid>
 
                 <div className="p-4 border-t flex justify-between items-center">
                     <div className="text-sm text-gray-600">

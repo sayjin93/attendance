@@ -434,7 +434,6 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                             storageKey="professorsDataGrid"
                             onExporting={onExporting}
                             onSelectionChanged={handleSelectionChanged}
-                            keyExpr="id"
                         >
                             <Column
                                 dataField="fullName"

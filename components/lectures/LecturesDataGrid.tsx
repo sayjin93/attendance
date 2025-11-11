@@ -450,7 +450,6 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
               storageKey="lecturesDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
-              keyExpr="id"
             >
               <Column
                 dataField="dateFormatted"

@@ -314,7 +314,6 @@ export default function AssignmentsDataGrid({
               storageKey="assignmentsDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
-              keyExpr="id"
             >
               <Column
                 dataField="professorName"
