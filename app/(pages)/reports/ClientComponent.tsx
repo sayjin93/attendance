@@ -1,10 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState, useMemo, useCallback } from "react";
-import { Column } from "devextreme-react/data-grid";
+import { Column, DataGridTypes } from "devextreme-react/data-grid";
+import { jsPDF } from "jspdf";
+import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
+import { Workbook } from "exceljs";
+import { saveAs } from "file-saver";
+
 import Alert from "../../../components/ui/Alert";
 import Card from "../../../components/ui/Card";
 import CommonDataGrid from "../../../components/ui/CommonDataGrid";
@@ -95,48 +99,99 @@ export default function ReportsPageClient({
   }, []);
   //#endregion
 
-  //#region functions - memoized
-  const downloadPDF = useCallback(() => {
-    if (!reportData?.students || !reportData?.metadata) return;
+  //#region functions
+  const onExporting = (e: DataGridTypes.ExportingEvent) => {
+    if (e.format === 'pdf') {
+      const doc = new jsPDF();
+      const { program, class: className, subject } = reportData?.metadata || {};
 
-    const doc = new jsPDF();
-    const { program, class: className, subject } = reportData.metadata;
+      // Title
+      doc.setFontSize(16);
+      doc.text(`Raporti i Prezencës`, 20, 20);
 
-    // Title
-    doc.setFontSize(16);
-    doc.text(`Raporti i Prezencës`, 20, 20);
+      // Metadata - Combined class and program
+      doc.setFontSize(12);
+      doc.text(`Klasa: ${className || 'Të gjitha'}${program ? ` (${program})` : ''}`, 20, 35);
+      doc.text(`Lënda: ${subject || 'Të gjitha'}`, 20, 45);
 
-    // Metadata
-    doc.setFontSize(12);
-    doc.text(`Program: ${program || 'Të gjitha'}`, 20, 35);
-    doc.text(`Klasa: ${className || 'Të gjitha'}`, 20, 45);
-    doc.text(`Lënda: ${subject || 'Të gjitha'}`, 20, 55);
+      // Summary - Two columns
+      if (reportData?.summary) {
+        // Left column
+        doc.text(`Total Studentë: ${reportData.summary.totalStudents}`, 20, 60);
+        doc.text(`Prezenca Mesatare: ${reportData.summary.averageAttendance.toFixed(1)}%`, 20, 70);
+        
+        // Right column
+        const pageWidth = doc.internal.pageSize.width;
+        const rightColumnX = pageWidth / 2 + 10;
+        doc.text(`Studentë të Kaluar: ${reportData.summary.passedStudents}`, rightColumnX, 60);
+        doc.text(`Studentë NK: ${reportData.summary.failedStudents}`, rightColumnX, 70);
+      }
 
-    // Summary
-    if (reportData.summary) {
-      doc.text(`Total Studentë: ${reportData.summary.totalStudents}`, 20, 70);
-      doc.text(`Studentë të Kaluar: ${reportData.summary.passedStudents}`, 20, 80);
-      doc.text(`Studentë NK: ${reportData.summary.failedStudents}`, 20, 90);
-      doc.text(`Prezenca Mesatare: ${reportData.summary.averageAttendance.toFixed(1)}%`, 20, 100);
+      // Table
+      autoTable(doc, {
+        startY: 85,
+        head: [["Studenti", "Leksione (%)", "Aktiv.(L)", "Seminare (%)", "Aktiv.(S)", "Statusi"]],
+        body: students.map((s: StudentReport) => [
+          `${s.firstName} ${s.lastName}`,
+          `${s.attendancePercentage.toFixed(1)}%`,
+          s.participatedLectures.toString(),
+          `${s.seminarPercentage.toFixed(1)}%`,
+          s.participatedSeminars.toString(),
+          s.overallPassed ? "KALOI" : "NK"
+        ]),
+      });
+
+      const fileName = `Raporti_${program || 'TeGjitha'}_${className || 'TeGjitha'}_${subject || 'TeGjitha'}.pdf`;
+      doc.save(fileName);
+    } else if (e.format === 'xlsx') {
+      const { program, class: className, subject } = reportData?.metadata || {};
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet('Raporti i Studenteve');
+
+      // Add title row
+      worksheet.mergeCells('A1:G1');
+      const titleRow = worksheet.getCell('A1');
+      titleRow.value = 'Raporti i Prezencës';
+      titleRow.font = { size: 16, bold: true };
+      titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
+      
+      // Add metadata
+      worksheet.getCell('A3').value = `Klasa: ${className || 'Të gjitha'}${program ? ` (${program})` : ''}`;
+      worksheet.getCell('A4').value = `Lënda: ${subject || 'Të gjitha'}`;
+      
+      // Add summary in two columns
+      if (reportData?.summary) {
+        worksheet.getCell('A6').value = `Total Studentë: ${reportData.summary.totalStudents}`;
+        worksheet.getCell('A7').value = `Prezenca Mesatare: ${reportData.summary.averageAttendance.toFixed(1)}%`;
+        worksheet.getCell('D6').value = `Studentë të Kaluar: ${reportData.summary.passedStudents}`;
+        worksheet.getCell('D7').value = `Studentë NK: ${reportData.summary.failedStudents}`;
+      }
+
+      exportDataGridToExcel({
+        component: e.component,
+        worksheet: worksheet,
+        topLeftCell: { row: 9, column: 1 },
+        autoFilterEnabled: true,
+      }).then(() => {
+        // Auto-fit columns
+        worksheet.columns.forEach((column) => {
+          if (column) {
+            let maxLength = 0;
+            column.eachCell?.({ includeEmpty: true }, (cell) => {
+              const cellValue = cell.value ? cell.value.toString() : '';
+              maxLength = Math.max(maxLength, cellValue.length);
+            });
+            column.width = maxLength < 10 ? 10 : maxLength + 2;
+          }
+        });
+
+        workbook.xlsx.writeBuffer().then((buffer) => {
+          const excelFileName = `Raporti_${program || 'TeGjitha'}_${className || 'TeGjitha'}_${subject || 'TeGjitha'}.xlsx`;
+          saveAs(new Blob([buffer], { type: 'application/octet-stream' }), excelFileName);
+        });
+      });
     }
-
-    // Table
-    autoTable(doc, {
-      startY: 110,
-      head: [["Studenti", "Leksione (%)", "Aktiv.(L)", "Seminare (%)", "Aktiv.(S)", "Statusi"]],
-      body: reportData.students.map((s: StudentReport) => [
-        `${s.firstName} ${s.lastName}`,
-        `${s.attendancePercentage.toFixed(1)}%`,
-        s.participatedLectures.toString(),
-        `${s.seminarPercentage.toFixed(1)}%`,
-        s.participatedSeminars.toString(),
-        s.overallPassed ? "KALOI" : "NK"
-      ]),
-    });
-
-    const fileName = `Raporti_${program || 'TeGjitha'}_${className || 'TeGjitha'}_${subject || 'TeGjitha'}.pdf`;
-    doc.save(fileName);
-  }, [reportData]);
+  };
   //#endregion
 
   if (errorClasses) {
@@ -279,136 +334,108 @@ export default function ReportsPageClient({
         ) : students.length === 0 ? (
           <Alert title="Zgjidh programin, klasën dhe lëndën për të parë raportin e studentëve." />
         ) : (
-          <div className="flex flex-1 flex-col gap-6">
-            <div className="flex justify-end">
-              <button
-                onClick={downloadPDF}
-                className="cursor-pointer inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="-ml-0.5 size-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"
-                  />
-                </svg>
-                Shkarko raportin në PDF
-              </button>
-            </div>
-
-            <CommonDataGrid
-              dataSource={students}
-              storageKey="reports-students-grid"
-              keyExpr="id"
-            >
-              <Column
-                dataField="firstName"
-                caption="👤 Student"
-                width={200}
-                cellRender={(data) => (
-                  <div className="flex items-center gap-2">
-                    <span>{data.data.firstName} {data.data.lastName}</span>
-                    {data.data.memo && (
-                      <div className="group relative inline-block">
-                        <svg
-                          className="w-4 h-4 text-indigo-500 cursor-help"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none print:hidden">
-                          {data.data.memo}
-                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                        </div>
+          <CommonDataGrid
+            dataSource={students}
+            onExporting={onExporting}
+            storageKey="reports-students-grid"
+            keyExpr="id"
+            columnsAutoWidth={true}
+            selection={{ mode: "none" }}
+          >
+            <Column
+              dataField="firstName"
+              caption="👤 Student"
+              cellRender={(data) => (
+                <div className="flex items-center gap-2">
+                  <span>{data.data.firstName} {data.data.lastName}</span>
+                  {data.data.memo && (
+                    <div className="group relative inline-block">
+                      <svg
+                        className="w-4 h-4 text-indigo-500 cursor-help"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none print:hidden">
+                        {data.data.memo}
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
                       </div>
-                    )}
-                  </div>
-                )}
-              />
-              <Column
-                dataField="attendancePercentage"
-                caption="📚 Leksione"
-                width={150}
-                alignment="center"
-                cellRender={(data) => (
-                  <div className="flex flex-col items-center">
-                    <span className={`px-2 py-1 rounded text-sm ${data.data.attendancePercentage >= 50
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                      }`}>
-                      {data.data.attendancePercentage.toFixed(1)}%
-                    </span>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {data.data.attendedLectures}/{data.data.totalLectures}
                     </div>
-                  </div>
-                )}
-              />
-              <Column
-                dataField="participatedLectures"
-                caption="⭐ Aktivizime (L)"
-                width={150}
-                alignment="center"
-                cellRender={(data) => (
-                  <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
-                    {data.data.participatedLectures}
-                  </span>
-                )}
-              />
-              <Column
-                dataField="seminarPercentage"
-                caption="🎓 Seminare"
-                width={150}
-                alignment="center"
-                cellRender={(data) => (
-                  <div className="flex flex-col items-center">
-                    <span className={`px-2 py-1 rounded text-sm ${data.data.seminarPercentage >= 75
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                      }`}>
-                      {data.data.seminarPercentage.toFixed(1)}%
-                    </span>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {data.data.attendedSeminars}/{data.data.totalSeminars}
-                    </div>
-                  </div>
-                )}
-              />
-              <Column
-                dataField="participatedSeminars"
-                caption="⭐ Aktivizime (S)"
-                width={150}
-                alignment="center"
-                cellRender={(data) => (
-                  <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
-                    {data.data.participatedSeminars}
-                  </span>
-                )}
-              />
-              <Column
-                dataField="overallPassed"
-                caption="🏆 Statusi"
-                width={120}
-                alignment="center"
-                cellRender={(data) => (
-                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${data.data.overallPassed
+                  )}
+                </div>
+              )}
+            />
+            <Column
+              dataField="attendancePercentage"
+              caption="📚 Leksione"
+              alignment="center"
+              cellRender={(data) => (
+                <div className="flex flex-col items-center">
+                  <span className={`px-2 py-1 rounded text-sm ${data.data.attendancePercentage >= 50
                     ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
                     }`}>
-                    {data.data.overallPassed ? 'KALOI' : 'NK'}
+                    {data.data.attendancePercentage.toFixed(1)}%
                   </span>
-                )}
-              />
-            </CommonDataGrid>
-          </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {data.data.attendedLectures}/{data.data.totalLectures}
+                  </div>
+                </div>
+              )}
+            />
+            <Column
+              dataField="participatedLectures"
+              caption="⭐ Aktivizime (L)"
+              alignment="center"
+              cellRender={(data) => (
+                <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
+                  {data.data.participatedLectures}
+                </span>
+              )}
+            />
+            <Column
+              dataField="seminarPercentage"
+              caption="🎓 Seminare"
+              alignment="center"
+              cellRender={(data) => (
+                <div className="flex flex-col items-center">
+                  <span className={`px-2 py-1 rounded text-sm ${data.data.seminarPercentage >= 75
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                    }`}>
+                    {data.data.seminarPercentage.toFixed(1)}%
+                  </span>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {data.data.attendedSeminars}/{data.data.totalSeminars}
+                  </div>
+                </div>
+              )}
+            />
+            <Column
+              dataField="participatedSeminars"
+              caption="⭐ Aktivizime (S)"
+              alignment="center"
+              cellRender={(data) => (
+                <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
+                  {data.data.participatedSeminars}
+                </span>
+              )}
+            />
+            <Column
+              dataField="overallPassed"
+              caption="🏆 Statusi"
+              alignment="center"
+              cellRender={(data) => (
+                <span className={`px-3 py-1 rounded-full text-sm font-bold ${data.data.overallPassed
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+                  }`}>
+                  {data.data.overallPassed ? 'KALOI' : 'NK'}
+                </span>
+              )}
+            />
+          </CommonDataGrid>
         )}
       </Card>
     </div>

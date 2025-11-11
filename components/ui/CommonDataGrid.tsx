@@ -31,6 +31,7 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
 
     return (
         <DataGrid
+            width="100%"
             className="dx-datagrid-borders"
             // columnAutoWidth={true}
             columnChooser={{ enabled: true, title: "Zgjidh Kolonat", emptyPanelText: "Shtoni kolona këtu për ta fshehur atë" }}
@@ -45,7 +46,7 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
                 }
             }}
             dataSource={dataSource}
-            export={{ enabled: true, allowExportSelectedData: true, formats: ["xlsx", "pdf"] }}
+            {...(onExporting && { export: { enabled: true, allowExportSelectedData: true, formats: ["xlsx", "pdf"] } })}
             grouping={{
                 texts: {
                     groupByThisColumn: "Grupo sipas kësaj kolone",

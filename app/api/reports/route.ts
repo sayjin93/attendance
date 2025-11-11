@@ -111,9 +111,13 @@ export async function GET(request: Request) {
     if (classId) {
       const classData = await prisma.class.findUnique({
         where: { id: parseInt(classId) },
-        select: { name: true }
+        select: { 
+          name: true,
+          program: { select: { name: true } }
+        }
       });
       metadata.class = classData?.name || "";
+      metadata.program = classData?.program?.name || "";
 
       // Get unique subjects from teaching assignments for this class
       const assignments = await prisma.teachingAssignment.findMany({
@@ -185,7 +189,7 @@ export async function GET(request: Request) {
       });
 
       // Calculate statistics for each student
-      students = studentsData.map(student => {
+      students = studentsData.map((student, index) => {
         let totalLectures = 0;
         let attendedLectures = 0;
         let participatedLectures = 0;
@@ -245,6 +249,7 @@ export async function GET(request: Request) {
 
         return {
           id: student.id.toString(),
+          rowNumber: index + 1,
           firstName: student.firstName,
           lastName: student.lastName,
           memo: student.memo,
