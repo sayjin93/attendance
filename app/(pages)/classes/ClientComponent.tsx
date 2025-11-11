@@ -538,7 +538,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                 disabled={deleteClassMutation.isPending}
               >
-                {deleteClassMutation.isPending ? <Loader /> : "Fshi klasën"}
+                {deleteClassMutation.isPending ? <Loader size="w-4 h-4" /> : "Fshi klasën"}
               </button>
             </div>
           </div>

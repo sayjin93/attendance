@@ -649,7 +649,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                 disabled={deleteStudentMutation.isPending}
               >
-                {deleteStudentMutation.isPending ? <Loader /> : "Fshi studentin"}
+                {deleteStudentMutation.isPending ? <Loader size="w-4 h-4" /> : "Fshi studentin"}
               </button>
             </div>
           </div>
@@ -691,7 +691,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
               disabled={deleteMultipleStudentsMutation.isPending}
             >
-              {deleteMultipleStudentsMutation.isPending ? <Loader /> : `Fshi ${selectedStudents.length} studentët`}
+              {deleteMultipleStudentsMutation.isPending ? <Loader size="w-4 h-4" /> : `Fshi ${selectedStudents.length} studentët`}
             </button>
           </div>
         </div>

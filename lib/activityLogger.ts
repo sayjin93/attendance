@@ -1,4 +1,5 @@
 import { prisma } from "@/prisma/prisma";
+import { NextRequest } from "next/server";
 
 export type ActivityAction = "CREATE" | "UPDATE" | "DELETE";
 export type ActivityEntity =
@@ -20,6 +21,33 @@ interface LogActivityParams {
     entityId?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details?: any; // Object containing changes or relevant information
+    ipAddress?: string; // IP address of the user
+}
+
+/**
+ * Helper function to get IP address from request
+ */
+export function getIpAddress(request: NextRequest): string {
+    // Try to get IP from various headers (in order of preference)
+    const forwarded = request.headers.get('x-forwarded-for');
+    const real = request.headers.get('x-real-ip');
+    const cfConnecting = request.headers.get('cf-connecting-ip');
+    
+    if (forwarded) {
+        // x-forwarded-for can contain multiple IPs, get the first one
+        return forwarded.split(',')[0].trim();
+    }
+    
+    if (real) {
+        return real;
+    }
+    
+    if (cfConnecting) {
+        return cfConnecting;
+    }
+    
+    // Fallback
+    return 'unknown';
 }
 
 /**
@@ -28,7 +56,7 @@ interface LogActivityParams {
  */
 export async function logActivity(params: LogActivityParams): Promise<void> {
     try {
-        const { userId, userName, action, entity, entityId, details } = params;
+        const { userId, userName, action, entity, entityId, details, ipAddress } = params;
 
         await prisma.activityLog.create({
             data: {
@@ -38,6 +66,7 @@ export async function logActivity(params: LogActivityParams): Promise<void> {
                 entity,
                 entityId,
                 details: details ? JSON.stringify(details) : null,
+                ipAddress: ipAddress || null,
             },
         });
     } catch (error) {

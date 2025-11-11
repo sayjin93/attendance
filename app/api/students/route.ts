@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
-import { logActivity, getChangedFields } from "@/lib/activityLogger";
+import { logActivity, getChangedFields, getIpAddress } from "@/lib/activityLogger";
 
 // ✅ GET: Fetch students for a specific class
 export async function GET(req: Request) {
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
     await prisma.$disconnect();
   }
 }
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const auth = await authenticateRequest();
     if ("error" in auth) {
@@ -129,6 +129,7 @@ export async function POST(req: Request) {
         institutionEmail: institutionEmail.toLowerCase().trim(),
         classId,
       },
+      ipAddress: getIpAddress(req),
     });
 
     return NextResponse.json(newStudent, { status: 201 });
@@ -144,7 +145,7 @@ export async function POST(req: Request) {
 }
 
 // PUT: Update a student (Only Admins)
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
     const auth = await authenticateRequest();
 
@@ -260,6 +261,7 @@ export async function PUT(req: Request) {
         entity: "students",
         entityId: id,
         details: { changes },
+        ipAddress: getIpAddress(req),
       });
     }
 
@@ -276,7 +278,7 @@ export async function PUT(req: Request) {
 }
 
 // DELETE: Delete a student (Only Admins)
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
     const auth = await authenticateRequest();
 
@@ -354,6 +356,7 @@ export async function DELETE(req: Request) {
         lastName: existingStudent.lastName,
         institutionEmail: existingStudent.institutionEmail,
       },
+      ipAddress: getIpAddress(req),
     });
 
     return NextResponse.json({ message: "Studenti u fshi me sukses!" }, { status: 200 });

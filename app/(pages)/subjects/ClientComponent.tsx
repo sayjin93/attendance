@@ -520,7 +520,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                 disabled={deleteSubjectMutation.isPending}
               >
-                {deleteSubjectMutation.isPending ? <Loader /> : "Fshi lëndën"}
+                {deleteSubjectMutation.isPending ? <Loader size="w-4 h-4" /> : "Fshi lëndën"}
               </button>
             </div>
           </div>

@@ -122,6 +122,7 @@ model ActivityLog {
   entity      String    // students, professors, classes, subjects, lectures, attendance, assignments
   entityId    Int?      // ID of the affected entity
   details     String?   @db.Text // JSON string with details of what changed
+  ipAddress   String?   // IP address of the user
   createdAt   DateTime  @default(now())
   
   @@index([userId])

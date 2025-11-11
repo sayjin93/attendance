@@ -218,7 +218,7 @@ export default function EditStudentForm({ student, classes, onClose }: EditStude
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           disabled={updateStudentMutation.isPending}
         >
-          {updateStudentMutation.isPending ? <Loader /> : "Ruaj ndryshimet"}
+          {updateStudentMutation.isPending ? <Loader size="w-4 h-4" /> : "Ruaj ndryshimet"}
         </button>
       </div>
     </form>

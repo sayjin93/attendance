@@ -22,6 +22,7 @@ interface ActivityLog {
     entity: string;
     entityId: number | null;
     details: string | null;
+    ipAddress: string | null;
     createdAt: string;
 }
 
@@ -294,6 +295,7 @@ export default function ClientComponent() {
                         width={150}
                     />
                     <Column dataField="entityId" caption="Entity ID" width={100} />
+                    <Column dataField="ipAddress" caption="IP Address" width={140} />
                     <Column
                         dataField="details"
                         caption="Detajet"
