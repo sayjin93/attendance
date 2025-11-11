@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
 import { logActivity } from "@/lib/activityLogger";
@@ -98,8 +98,6 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching lectures:", error);
     return NextResponse.json({ error: "Failed to fetch lectures!" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -193,8 +191,6 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error creating lecture:", error);
     return NextResponse.json({ error: "Dështoi krijimi i leksionit!" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -281,8 +277,6 @@ export async function PUT(req: Request) {
   } catch (error) {
     console.error("Error updating lecture:", error);
     return NextResponse.json({ error: "Dështoi përditësimi i leksionit!" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -356,7 +350,5 @@ export async function DELETE(req: Request) {
   } catch (error) {
     console.error("Error deleting lecture:", error);
     return NextResponse.json({ error: "Dështoi fshirja e leksionit!" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

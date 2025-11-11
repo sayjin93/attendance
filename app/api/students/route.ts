@@ -43,8 +43,6 @@ export async function GET(req: Request) {
       { error: "Failed to fetch students!" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 export async function POST(req: NextRequest) {
@@ -139,8 +137,6 @@ export async function POST(req: NextRequest) {
       { error: "⚠️ Failed to create student" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -272,8 +268,6 @@ export async function PUT(req: NextRequest) {
       { error: "Dështoi modifikimi i studentit" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -366,7 +360,5 @@ export async function DELETE(req: NextRequest) {
       { error: "Dështoi fshirja e studentit" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

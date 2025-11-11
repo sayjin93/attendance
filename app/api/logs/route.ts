@@ -85,7 +85,5 @@ export async function GET(req: Request) {
       { error: "Dështoi marrja e logs!" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

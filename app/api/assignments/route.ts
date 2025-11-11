@@ -187,8 +187,6 @@ export async function GET() {
       { error: "Failed to fetch teaching assignments" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -328,7 +326,5 @@ export async function POST(req: Request) {
       { error: "Dështoi caktimi i lëndës për profesorin" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -1,20 +1,21 @@
 "use client";
 
-import { ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useQuery } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState, useMemo, useCallback } from "react";
+import { Column } from "devextreme-react/data-grid";
 import Alert from "../../../components/ui/Alert";
 import Card from "../../../components/ui/Card";
+import CommonDataGrid from "../../../components/ui/CommonDataGrid";
 import Skeleton from "../../../components/ui/Skeleton";
 import { useNotify } from "../../../contexts/NotifyContext";
 import { fetchReportData, fetchClassesByProfessor } from "../../../hooks/fetchFunctions";
-import { 
-  RegistryClass as Class, 
-  RegistrySubject as Subject, 
+import {
+  RegistryClass as Class,
+  RegistrySubject as Subject,
   StudentReport,
-  ReportData 
+  ReportData
 } from "@/types";
 
 export default function ReportsPageClient({
@@ -27,10 +28,6 @@ export default function ReportsPageClient({
   //#region states
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof StudentReport | null;
-    direction: 'asc' | 'desc';
-  }>({ key: 'firstName', direction: 'asc' });
   //#endregion
 
   //#region useQuery
@@ -76,39 +73,7 @@ export default function ReportsPageClient({
   //#region computed values
   // Extract data from queries
   const subjects = subjectsData?.subjects || [];
-
-  // Sort students based on sortConfig
-  const students = useMemo(() => {
-    const studentsRaw = reportData?.students || [];
-    if (!sortConfig.key) return studentsRaw;
-
-    const sorted = [...studentsRaw].sort((a, b) => {
-      const aValue = a[sortConfig.key as keyof StudentReport];
-      const bValue = b[sortConfig.key as keyof StudentReport];
-
-      // Handle null/undefined values
-      if (aValue == null && bValue == null) return 0;
-      if (aValue == null) return 1;
-      if (bValue == null) return -1;
-
-      // Handle string values (firstName, lastName, memo)
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        const comparison = aValue.localeCompare(bValue);
-        return sortConfig.direction === 'asc' ? comparison : -comparison;
-      }
-
-      // Handle numeric and boolean values
-      if (aValue < bValue) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-
-    return sorted;
-  }, [reportData?.students, sortConfig]);
+  const students = reportData?.students || [];
 
   // Group classes by program for the dropdown - memoized
   const groupedClasses = useMemo(() => {
@@ -131,23 +96,6 @@ export default function ReportsPageClient({
   //#endregion
 
   //#region functions - memoized
-  const handleSort = useCallback((key: keyof StudentReport) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  }, [sortConfig.key, sortConfig.direction]);
-
-  const getSortIcon = useCallback((columnKey: keyof StudentReport) => {
-    if (sortConfig.key !== columnKey) {
-      return <ChevronUpDownIcon className="w-4 h-4 inline ml-1 text-gray-400" />;
-    }
-    return sortConfig.direction === 'asc'
-      ? <ChevronUpIcon className="w-4 h-4 inline ml-1 text-indigo-600" />
-      : <ChevronDownIcon className="w-4 h-4 inline ml-1 text-indigo-600" />;
-  }, [sortConfig.key, sortConfig.direction]);
-
   const downloadPDF = useCallback(() => {
     if (!reportData?.students || !reportData?.metadata) return;
 
@@ -257,8 +205,8 @@ export default function ReportsPageClient({
               value={selectedSubjectId || ""}
               onChange={(e) => setSelectedSubjectId(e.target.value)}
               className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${selectedClassId
-                  ? "border-gray-300 bg-white"
-                  : "border-gray-200 bg-gray-100 cursor-not-allowed"
+                ? "border-gray-300 bg-white"
+                : "border-gray-200 bg-gray-100 cursor-not-allowed"
                 }`}
               required
             >
@@ -295,7 +243,7 @@ export default function ReportsPageClient({
             ))}
           </div>
         </Card>
-      ) : reportData?.summary && students.length > 0 ? (
+      ) : reportData?.summary && students?.length > 0 ? (
         <Card title="Përmbledhja">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg text-center">
@@ -325,34 +273,8 @@ export default function ReportsPageClient({
             <div className="flex justify-end">
               <Skeleton times={1} rootCls="h-9 w-48" />
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full bg-white shadow-md rounded-lg">
-                <thead className="bg-gray-200">
-                  <tr>
-                    <th className="p-3 text-left">👤 Student</th>
-                    <th className="p-3 text-center">📚 Leksione</th>
-                    <th className="p-3 text-center">⭐ Aktivizime (L)</th>
-                    <th className="p-3 text-center">🎓 Seminare</th>
-                    <th className="p-3 text-center">⭐ Aktivizime (S)</th>
-                    <th className="p-3 text-center">🏆 Statusi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <tr key={i} className="border-b">
-                      <td className="p-3"><Skeleton times={1} rootCls="h-5 w-32" /></td>
-                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-16 mx-auto" /></td>
-                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-10 mx-auto" /></td>
-                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-12 mx-auto" /></td>
-                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-16 mx-auto" /></td>
-                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-10 mx-auto" /></td>
-                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-12 mx-auto" /></td>
-                      <td className="p-3"><Skeleton times={1} rootCls="h-8 w-16 mx-auto" /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Skeleton times={1} rootCls="h-8 w-16 mx-auto mb-2" />
+
           </div>
         ) : students.length === 0 ? (
           <Alert title="Zgjidh programin, klasën dhe lëndën për të parë raportin e studentëve." />
@@ -381,116 +303,111 @@ export default function ReportsPageClient({
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full bg-white shadow-md rounded-lg">
-                <thead className="bg-gray-200">
-                  <tr>
-                    <th
-                      className="p-3 text-left cursor-pointer hover:bg-gray-300 transition-colors select-none"
-                      onClick={() => handleSort('firstName')}
-                    >
-                      👤 Student{getSortIcon('firstName')}
-                    </th>
-                    <th
-                      className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
-                      onClick={() => handleSort('attendancePercentage')}
-                    >
-                      📚 Leksione{getSortIcon('attendancePercentage')}
-                    </th>
-                    <th
-                      className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
-                      onClick={() => handleSort('participatedLectures')}
-                    >
-                      ⭐ Aktivizime (L){getSortIcon('participatedLectures')}
-                    </th>
-                    <th
-                      className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
-                      onClick={() => handleSort('seminarPercentage')}
-                    >
-                      🎓 Seminare{getSortIcon('seminarPercentage')}
-                    </th>
-                    <th
-                      className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
-                      onClick={() => handleSort('participatedSeminars')}
-                    >
-                      ⭐ Aktivizime (S){getSortIcon('participatedSeminars')}
-                    </th>
-                    <th
-                      className="p-3 text-center cursor-pointer hover:bg-gray-300 transition-colors select-none"
-                      onClick={() => handleSort('overallPassed')}
-                    >
-                      🏆 Statusi{getSortIcon('overallPassed')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((student: StudentReport) => (
-                    <tr key={student.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-medium">
-                        <div className="flex items-center gap-2">
-                          <span>{student.firstName} {student.lastName}</span>
-                          {student.memo && (
-                            <div className="group relative inline-block">
-                              <svg 
-                                className="w-4 h-4 text-indigo-500 cursor-help" 
-                                fill="currentColor" 
-                                viewBox="0 0 20 20"
-                              >
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                              </svg>
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none print:hidden">
-                                {student.memo}
-                                <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                              </div>
-                            </div>
-                          )}
+            <CommonDataGrid
+              dataSource={students}
+              storageKey="reports-students-grid"
+              keyExpr="id"
+            >
+              <Column
+                dataField="firstName"
+                caption="👤 Student"
+                width={200}
+                cellRender={(data) => (
+                  <div className="flex items-center gap-2">
+                    <span>{data.data.firstName} {data.data.lastName}</span>
+                    {data.data.memo && (
+                      <div className="group relative inline-block">
+                        <svg
+                          className="w-4 h-4 text-indigo-500 cursor-help"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none print:hidden">
+                          {data.data.memo}
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
                         </div>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className={`px-2 py-1 rounded text-sm ${student.attendancePercentage >= 50
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                          }`}>
-                          {student.attendancePercentage.toFixed(1)}%
-                        </span>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {student.attendedLectures}/{student.totalLectures}
-                        </div>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
-                          {student.participatedLectures}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className={`px-2 py-1 rounded text-sm ${student.seminarPercentage >= 75
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                          }`}>
-                          {student.seminarPercentage.toFixed(1)}%
-                        </span>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {student.attendedSeminars}/{student.totalSeminars}
-                        </div>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
-                          {student.participatedSeminars}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${student.overallPassed
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                          }`}>
-                          {student.overallPassed ? 'KALOI' : 'NK'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              />
+              <Column
+                dataField="attendancePercentage"
+                caption="📚 Leksione"
+                width={150}
+                alignment="center"
+                cellRender={(data) => (
+                  <div className="flex flex-col items-center">
+                    <span className={`px-2 py-1 rounded text-sm ${data.data.attendancePercentage >= 50
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      }`}>
+                      {data.data.attendancePercentage.toFixed(1)}%
+                    </span>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {data.data.attendedLectures}/{data.data.totalLectures}
+                    </div>
+                  </div>
+                )}
+              />
+              <Column
+                dataField="participatedLectures"
+                caption="⭐ Aktivizime (L)"
+                width={150}
+                alignment="center"
+                cellRender={(data) => (
+                  <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
+                    {data.data.participatedLectures}
+                  </span>
+                )}
+              />
+              <Column
+                dataField="seminarPercentage"
+                caption="🎓 Seminare"
+                width={150}
+                alignment="center"
+                cellRender={(data) => (
+                  <div className="flex flex-col items-center">
+                    <span className={`px-2 py-1 rounded text-sm ${data.data.seminarPercentage >= 75
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      }`}>
+                      {data.data.seminarPercentage.toFixed(1)}%
+                    </span>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {data.data.attendedSeminars}/{data.data.totalSeminars}
+                    </div>
+                  </div>
+                )}
+              />
+              <Column
+                dataField="participatedSeminars"
+                caption="⭐ Aktivizime (S)"
+                width={150}
+                alignment="center"
+                cellRender={(data) => (
+                  <span className="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">
+                    {data.data.participatedSeminars}
+                  </span>
+                )}
+              />
+              <Column
+                dataField="overallPassed"
+                caption="🏆 Statusi"
+                width={120}
+                alignment="center"
+                cellRender={(data) => (
+                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${data.data.overallPassed
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                    }`}>
+                    {data.data.overallPassed ? 'KALOI' : 'NK'}
+                  </span>
+                )}
+              />
+            </CommonDataGrid>
           </div>
         )}
       </Card>

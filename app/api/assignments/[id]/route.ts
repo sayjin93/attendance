@@ -169,8 +169,6 @@ export async function PUT(
       { error: "Dështoi modifikimi i caktimit" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -238,7 +236,5 @@ export async function DELETE(
       { error: "Dështoi fshirja e caktimit" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

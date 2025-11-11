@@ -75,7 +75,5 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json({ error: "Login failed" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -82,8 +82,6 @@ export async function GET(req: Request) {
       { error: "Dështoi marrja e profesorëve!" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -206,8 +204,6 @@ export async function POST(req: Request) {
       { error: "Dështoi krijimi i profesorit!" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -347,8 +343,6 @@ export async function PUT(req: Request) {
       { error: "Dështoi përditësimi i profesorit!" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -433,7 +427,5 @@ export async function DELETE(req: Request) {
       { error: "Dështoi fshirja e profesorit!" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -97,8 +97,6 @@ export async function GET(req: Request) {
       { error: "Failed to fetch classes" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -190,8 +188,6 @@ export async function POST(req: Request) {
       { error: "Dështoi krijimi i klasës" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -310,8 +306,6 @@ export async function PUT(req: Request) {
       { error: "Dështoi modifikimi i klasës" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -402,7 +396,5 @@ export async function DELETE(req: Request) {
       { error: "Dështoi fshirja e klasës" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

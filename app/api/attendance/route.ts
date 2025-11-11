@@ -56,8 +56,6 @@ export async function GET(req: Request) {
       { error: "⚠️ Failed to fetch attendance" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -210,7 +208,5 @@ export async function PUT(req: Request) {
       { error: "⚠️ Gabim në server, provo përsëri!" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

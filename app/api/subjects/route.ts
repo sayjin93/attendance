@@ -42,8 +42,6 @@ export async function GET() {
       { error: "Failed to fetch subjects" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -134,8 +132,6 @@ export async function POST(req: Request) {
       { error: "Dështoi krijimi i lëndës" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -259,8 +255,6 @@ export async function PUT(req: Request) {
       { error: "Dështoi modifikimi i lëndës" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -361,7 +355,5 @@ export async function DELETE(req: Request) {
       { error: "Dështoi fshirja e lëndës" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

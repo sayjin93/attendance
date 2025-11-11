@@ -62,7 +62,5 @@ export async function GET(req: Request, context: { params: Promise<{ id?: string
       { error: "Dështoi marrja e të dhënave të profesorit!" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
