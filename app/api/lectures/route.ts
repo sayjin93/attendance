@@ -82,6 +82,7 @@ export async function GET() {
         include: {
           teachingAssignment: {
             include: {
+              professor: { select: { id: true, firstName: true, lastName: true } },
               subject: { select: { id: true, name: true, code: true } },
               class: { select: { id: true, name: true } },
               type: { select: { id: true, name: true } },
