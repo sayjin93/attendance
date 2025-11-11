@@ -5,23 +5,7 @@ import { useRouter } from "next/navigation";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
-import DataGrid, {
-  Column,
-  Grouping,
-  GroupPanel,
-  Paging,
-  Pager,
-  SearchPanel,
-  HeaderFilter,
-  FilterRow,
-  Export,
-  Sorting,
-  ColumnChooser,
-  ColumnFixing,
-  StateStoring,
-  Selection,
-  DataGridTypes,
-} from "devextreme-react/data-grid";
+import { Column, DataGridTypes } from "devextreme-react/data-grid";
 import { exportDataGrid } from "devextreme/pdf_exporter";
 import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
 import { jsPDF } from "jspdf";
@@ -44,6 +28,7 @@ import Alert from "@/components/ui/Alert";
 import AddClassForm from "@/components/classes/AddClassForm";
 import EditClassForm from "@/components/classes/EditClassForm";
 import Modal from "@/components/ui/Modal";
+import CommonDataGrid from "@/components/ui/CommonDataGrid";
 
 export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
@@ -426,57 +411,13 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
               </div>
             )}
 
-            <DataGrid
+            <CommonDataGrid
               dataSource={classesWithRowNumbers}
-              allowColumnReordering={true}
-              allowColumnResizing={true}
-              columnAutoWidth={true}
-              showBorders={true}
-              showRowLines={true}
-              showColumnLines={true}
-              rowAlternationEnabled={true}
-              hoverStateEnabled={true}
-              keyExpr="id"
-              className="dx-datagrid-borders"
+              storageKey="classesDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
-              noDataText="Nuk ka klasa. Shtoni një klasë më sipër!"
-              searchPanel={{ visible: true, placeholder: "Kërko..." }}
-              loadPanel={{ enabled: false }}
             >
-              {/* Enable features */}
-              <Selection mode="multiple" showCheckBoxesMode="always" />
-              <Grouping autoExpandAll={true} />
-              <GroupPanel visible={true} />
-              <SearchPanel visible={true} highlightCaseSensitive={true} />
-              <Sorting mode="multiple" />
-              <FilterRow visible={true} />
-              <HeaderFilter visible={true} />
-              <ColumnChooser enabled={true} />
-              <ColumnFixing enabled={true} />
-              <Paging defaultPageSize={25} />
-              <Pager
-                showPageSizeSelector={true}
-                allowedPageSizes={[10, 25, 50, 100]}
-                showInfo={true}
-              />
-              <StateStoring enabled={true} type="localStorage" storageKey="classesDataGrid" />
-
-              {/* Export functionality */}
-              <Export enabled={true} allowExportSelectedData={true} formats={["xlsx", "pdf"]} />
-
               {/* Columns */}
-              <Column
-                dataField="rowNumber"
-                caption="#"
-                width={60}
-                visible={true}
-                allowSorting={false}
-                allowFiltering={false}
-                allowGrouping={false}
-                allowExporting={true}
-                dataType="number"
-              />
               <Column
                 dataField="name"
                 caption="Emri i Klasës"
@@ -486,17 +427,10 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
                 dataField="programName"
                 caption="Programi"
                 groupIndex={0}
-                allowSorting={true}
-                allowFiltering={true}
               />
               <Column
                 dataField="subjectsText"
                 caption="Kurset"
-                allowSorting={true}
-                allowFiltering={true}
-                allowGrouping={true}
-                allowExporting={true}
-                visible={true}
                 cellRender={renderSubjectsCell}
               />
               <Column
@@ -511,7 +445,6 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
                 caption="Studentët"
                 width={130}
                 allowGrouping={false}
-                allowSorting={true}
                 cellRender={renderStudentsCell}
               />
               {isAdmin === "true" && (
@@ -525,7 +458,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
                   cellRender={renderActionsCell}
                 />
               )}
-            </DataGrid>
+            </CommonDataGrid>
 
             {/* Footer with stats */}
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 mt-4">

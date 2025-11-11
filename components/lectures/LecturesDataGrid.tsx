@@ -8,21 +8,7 @@ import {
 } from "@heroicons/react/16/solid";
 
 // DevExtreme imports
-import DataGrid, {
-  Column,
-  Grouping,
-  GroupPanel,
-  Paging,
-  Pager,
-  SearchPanel,
-  HeaderFilter,
-  Export,
-  Sorting,
-  ColumnChooser,
-  ColumnFixing,
-  StateStoring,
-  Selection,
-} from "devextreme-react/data-grid";
+import { Column } from "devextreme-react/data-grid";
 import { exportDataGrid } from "devextreme/pdf_exporter";
 import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
 import { jsPDF } from "jspdf";
@@ -98,6 +84,7 @@ import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import EditLectureForm from "@/components/lectures/EditLectureForm";
+import CommonDataGrid from "@/components/ui/CommonDataGrid";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -458,104 +445,44 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
               </div>
             )}
 
-            <DataGrid
+            <CommonDataGrid
               dataSource={lecturesWithRowNumbers as unknown as Lecture[]}
-              allowColumnReordering={true}
-              allowColumnResizing={false}
-              columnAutoWidth={true}
-              showBorders={false}
-              showRowLines={false}
-              showColumnLines={true}
-              rowAlternationEnabled={true}
-              hoverStateEnabled={true}
-              keyExpr="id"
-              className="dx-datagrid-borders"
+              storageKey="lecturesDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
-              noDataText="Nuk ka leksione. Shtoni një leksion më sipër!"
-              searchPanel={{ visible: true, placeholder: "Kërko..." }}
-              loadPanel={{ enabled: false }}
+              keyExpr="id"
             >
-              {/* Enable features */}
-              <Selection mode="multiple" showCheckBoxesMode="always" />
-              <Grouping autoExpandAll={true} />
-              <GroupPanel visible={true} emptyPanelText="Bëji drag një header kolone këtu për ta grupuar sipas asaj kolone" />
-              <SearchPanel visible={true} highlightCaseSensitive={true} />
-              <Sorting mode="multiple" />
-              <HeaderFilter visible={true} />
-              <ColumnChooser enabled={true} title="Zgjidh Kolonat" emptyPanelText="Shtoni kolona këtu për ta fshehur atë" />
-              <ColumnFixing enabled={true} />
-              <Paging defaultPageSize={25} />
-              <Pager
-                showPageSizeSelector={true}
-                allowedPageSizes={[10, 25, 50, 100]}
-                showInfo={true}
-              />
-              <StateStoring enabled={true} type="localStorage" storageKey="lecturesDataGrid" />
-
-              {/* Export functionality */}
-              <Export
-                enabled={true}
-                allowExportSelectedData={true}
-                formats={["xlsx", "pdf"]}
-                texts={{
-                  // exportAll: "Eksporto të gjitha",
-                  // exportSelectedRows: "Eksporto të zgjedhurat",
-                  // exportTo: "Eksporto në"
-                }} />
-
-              {/* Columns */}
-              <Column
-                dataField="rowNumber"
-                caption="#"
-                width={60}
-                visible={true}
-                allowSorting={false}
-                allowGrouping={false}
-                allowExporting={true}
-                dataType="number"
-              />
               <Column
                 dataField="dateFormatted"
                 caption="Data"
                 allowGrouping={false}
-                allowSorting={true}
                 dataType="string"
                 width={120}
               />
               <Column
                 dataField="subjectName"
                 caption="Lënda"
-                allowGrouping={true}
-                allowSorting={true}
               />
               <Column
                 dataField="subjectCode"
                 caption="Kodi"
                 width={100}
                 allowGrouping={false}
-                allowSorting={true}
               />
               <Column
                 dataField="className"
                 caption="Klasa"
-                allowGrouping={true}
-                allowSorting={true}
               />
               <Column
                 dataField="typeName"
                 caption="Tipi"
                 width={120}
-                allowGrouping={true}
-                allowSorting={true}
                 cellRender={renderTypeCell}
               />
               {isAdmin && (
                 <Column
                   dataField="professorName"
                   caption="Profesori"
-                  allowGrouping={true}
-                  allowSorting={true}
                 />
               )}
               <Column
@@ -574,7 +501,7 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
                 allowExporting={false}
                 cellRender={renderActionsCell}
               />
-            </DataGrid>
+            </CommonDataGrid>
 
             {/* Footer with stats */}
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">

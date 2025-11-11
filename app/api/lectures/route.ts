@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { logActivity } from "@/lib/activityLogger";
 
 export async function GET() {
   try {
@@ -172,6 +173,21 @@ export async function POST(req: Request) {
       },
     });
 
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "CREATE",
+      entity: "lectures",
+      entityId: newLecture.id,
+      details: {
+        date: new Date(date).toISOString(),
+        assignmentId,
+        subject: newLecture.teachingAssignment.subject.name,
+        class: newLecture.teachingAssignment.class.name,
+      },
+    });
+
     return NextResponse.json(newLecture, { status: 201 });
   } catch (error) {
     console.error("Error creating lecture:", error);
@@ -245,6 +261,21 @@ export async function PUT(req: Request) {
       },
     });
 
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "UPDATE",
+      entity: "lectures",
+      entityId: id,
+      details: {
+        changes: {
+          date: { old: existingLecture.date, new: new Date(date) },
+          assignmentId: { old: existingLecture.teachingAssignmentId, new: assignmentId },
+        },
+      },
+    });
+
     return NextResponse.json(updatedLecture, { status: 200 });
   } catch (error) {
     console.error("Error updating lecture:", error);
@@ -302,6 +333,19 @@ export async function DELETE(req: Request) {
 
     await prisma.lecture.delete({
       where: { id: lectureId },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "DELETE",
+      entity: "lectures",
+      entityId: lectureId,
+      details: {
+        date: existingLecture.date,
+        assignmentId: existingLecture.teachingAssignmentId,
+      },
     });
 
     return NextResponse.json(

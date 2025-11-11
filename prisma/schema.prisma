@@ -113,3 +113,18 @@ enum AttendanceStatus {
   ABSENT
   PARTICIPATED
 }
+
+model ActivityLog {
+  id          Int       @id @default(autoincrement())
+  userId      Int       // Professor ID who performed the action
+  userName    String    // Professor name for easier display
+  action      String    // CREATE, UPDATE, DELETE
+  entity      String    // students, professors, classes, subjects, lectures, attendance, assignments
+  entityId    Int?      // ID of the affected entity
+  details     String?   @db.Text // JSON string with details of what changed
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+}

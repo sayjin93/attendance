@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { logActivity, getChangedFields } from "@/lib/activityLogger";
 
 // GET: Fetch all classes for the logged-in professor or all classes for admins
 export async function GET(req: Request) {
@@ -75,11 +76,17 @@ export async function GET(req: Request) {
           }
         },
         include: includeOptions,
+        orderBy: {
+          name: 'asc'
+        }
       });
     } else {
       // For admins, get all classes
       classes = await prisma.class.findMany({
         include: includeOptions,
+        orderBy: {
+          name: 'asc'
+        }
       });
     }
 
@@ -164,6 +171,16 @@ export async function POST(req: Request) {
         name,
         programId,
       },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "CREATE",
+      entity: "classes",
+      entityId: newClass.id,
+      details: { name, programId },
     });
 
     return NextResponse.json(newClass, { status: 201 });
@@ -269,6 +286,23 @@ export async function PUT(req: Request) {
       },
     });
 
+    // Log activity
+    const changes = getChangedFields(
+      { name: existingClass.name, programId: existingClass.programId },
+      { name, programId }
+    );
+
+    if (Object.keys(changes).length > 0) {
+      await logActivity({
+        userId: decoded.professorId as number,
+        userName: `${decoded.firstName} ${decoded.lastName}`,
+        action: "UPDATE",
+        entity: "classes",
+        entityId: id,
+        details: { changes },
+      });
+    }
+
     return NextResponse.json(updatedClass, { status: 200 });
   } catch (error) {
     console.error("Error updating class:", error);
@@ -346,6 +380,19 @@ export async function DELETE(req: Request) {
     // Delete the class
     await prisma.class.delete({
       where: { id },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "DELETE",
+      entity: "classes",
+      entityId: id,
+      details: {
+        name: existingClass.name,
+        programId: existingClass.programId,
+      },
     });
 
     return NextResponse.json({ message: "Klasa u fshi me sukses!" }, { status: 200 });

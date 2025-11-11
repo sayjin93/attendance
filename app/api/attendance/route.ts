@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
+import { logActivity } from "@/lib/activityLogger";
+import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
 
 // ✅ Fetch Attendance API
 export async function GET(req: Request) {
@@ -62,6 +64,19 @@ export async function GET(req: Request) {
 // ✅ Update/Create Attendance API - Supports both single and batch updates
 export async function PUT(req: Request) {
   try {
+    const auth = await authenticateRequest();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { decoded } = auth;
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
 
     // Check if it's a batch update (array) or single update (object)
@@ -127,6 +142,21 @@ export async function PUT(req: Request) {
         ...updates,
         ...(creates.length > 0 ? [prisma.attendance.createMany({ data: creates })] : [])
       ]);
+
+      // Log activity
+      await logActivity({
+        userId: decoded.professorId as number,
+        userName: `${decoded.firstName} ${decoded.lastName}`,
+        action: creates.length > 0 ? "CREATE" : "UPDATE",
+        entity: "attendance",
+        entityId: lectureId,
+        details: {
+          lectureId,
+          studentsCount: attendanceUpdates.length,
+          updated: updates.length,
+          created: creates.length,
+        },
+      });
 
       return NextResponse.json(
         { 

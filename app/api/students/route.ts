@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { logActivity, getChangedFields } from "@/lib/activityLogger";
 
 // ✅ GET: Fetch students for a specific class
 export async function GET(req: Request) {
@@ -48,6 +49,19 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   try {
+    const auth = await authenticateRequest();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { decoded } = auth;
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid session or not authenticated!" },
+        { status: 401 }
+      );
+    }
+
     const { firstName, lastName, institutionEmail, classId, memo, father, personalEmail, phone, orderId } = await req.json();
 
     if (!classId || !firstName || !lastName || !institutionEmail) {
@@ -99,6 +113,21 @@ export async function POST(req: Request) {
         personalEmail: personalEmail || null,
         phone: phone || null,
         orderId: orderId || null,
+      },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "CREATE",
+      entity: "students",
+      entityId: newStudent.id,
+      details: {
+        firstName: formattedFirstName,
+        lastName: formattedLastName,
+        institutionEmail: institutionEmail.toLowerCase().trim(),
+        classId,
       },
     });
 
@@ -199,6 +228,41 @@ export async function PUT(req: Request) {
       },
     });
 
+    // Log activity
+    const changes = getChangedFields(
+      {
+        firstName: existingStudent.firstName,
+        lastName: existingStudent.lastName,
+        classId: existingStudent.classId,
+        memo: existingStudent.memo,
+        father: existingStudent.father,
+        personalEmail: existingStudent.personalEmail,
+        phone: existingStudent.phone,
+        orderId: existingStudent.orderId,
+      },
+      {
+        firstName: formattedFirstName,
+        lastName: formattedLastName,
+        classId,
+        memo: memo || null,
+        father: father || null,
+        personalEmail: personalEmail || null,
+        phone: phone || null,
+        orderId: orderId || null,
+      }
+    );
+
+    if (Object.keys(changes).length > 0) {
+      await logActivity({
+        userId: decoded.professorId as number,
+        userName: `${decoded.firstName} ${decoded.lastName}`,
+        action: "UPDATE",
+        entity: "students",
+        entityId: id,
+        details: { changes },
+      });
+    }
+
     return NextResponse.json(updatedStudent, { status: 200 });
   } catch (error) {
     console.error("Error updating student:", error);
@@ -276,6 +340,20 @@ export async function DELETE(req: Request) {
     // Delete the student
     await prisma.student.delete({
       where: { id },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "DELETE",
+      entity: "students",
+      entityId: id,
+      details: {
+        firstName: existingStudent.firstName,
+        lastName: existingStudent.lastName,
+        institutionEmail: existingStudent.institutionEmail,
+      },
     });
 
     return NextResponse.json({ message: "Studenti u fshi me sukses!" }, { status: 200 });

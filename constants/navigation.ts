@@ -8,7 +8,8 @@ import {
   BookOpenIcon,
   ClipboardDocumentListIcon,
   AcademicCapIcon,
-  TableCellsIcon
+  TableCellsIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 
 const navigationItems = [
@@ -22,6 +23,7 @@ const navigationItems = [
   { name: "Listëprezenca", href: "/attendance", icon: DocumentDuplicateIcon },
   { name: "Regjistri", href: "/registry", icon: TableCellsIcon },
   { name: "Raporte", href: "/reports", icon: ChartPieIcon },
+  { name: "Activity Logs", href: "/logs", icon: DocumentTextIcon, adminOnly: true },
 ];
 
 export default navigationItems;

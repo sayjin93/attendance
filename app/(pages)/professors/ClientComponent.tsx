@@ -6,23 +6,7 @@ import { EnvelopeIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
-import DataGrid, {
-    Column,
-    Grouping,
-    GroupPanel,
-    Paging,
-    Pager,
-    SearchPanel,
-    HeaderFilter,
-    FilterRow,
-    Export,
-    Sorting,
-    ColumnChooser,
-    ColumnFixing,
-    StateStoring,
-    Selection,
-    DataGridTypes,
-} from "devextreme-react/data-grid";
+import { Column, DataGridTypes } from "devextreme-react/data-grid";
 import { exportDataGrid } from "devextreme/pdf_exporter";
 import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
 import { jsPDF } from "jspdf";
@@ -45,6 +29,7 @@ import Card from "@/components/ui/Card";
 import AddProfessorForm from "@/components/professors/AddProfessorForm";
 import EditProfessorForm from "@/components/professors/EditProfessorForm";
 import Modal from "@/components/ui/Modal";
+import CommonDataGrid from "@/components/ui/CommonDataGrid";
 
 export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     //#region constants
@@ -444,55 +429,13 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                             </div>
                         )}
 
-                        <DataGrid
+                        <CommonDataGrid
                             dataSource={professorsWithRowNumbers}
-                            allowColumnReordering={true}
-                            allowColumnResizing={true}
-                            columnAutoWidth={true}
-                            showBorders={true}
-                            showRowLines={true}
-                            showColumnLines={true}
-                            rowAlternationEnabled={true}
-                            hoverStateEnabled={true}
-                            keyExpr="id"
-                            className="dx-datagrid-borders"
+                            storageKey="professorsDataGrid"
                             onExporting={onExporting}
                             onSelectionChanged={handleSelectionChanged}
-                            noDataText="Nuk ka profesorë për të shfaqur."
-                            loadPanel={{ enabled: false }}
+                            keyExpr="id"
                         >
-                            {/* Enable features */}
-                            <Selection mode="multiple" showCheckBoxesMode="always" />
-                            <SearchPanel visible={true} placeholder="Kërko..." />
-                            <Grouping autoExpandAll={true} />
-                            <GroupPanel visible={true} />
-                            <Sorting mode="multiple" />
-                            <FilterRow visible={true} />
-                            <HeaderFilter visible={true} />
-                            <ColumnChooser enabled={true} />
-                            <ColumnFixing enabled={true} />
-                            <Paging defaultPageSize={25} />
-                            <Pager
-                                showPageSizeSelector={true}
-                                allowedPageSizes={[10, 25, 50, 100]}
-                                showInfo={true}
-                            />
-                            <StateStoring enabled={true} type="localStorage" storageKey="professorsDataGrid" />
-
-                            {/* Export functionality */}
-                            <Export enabled={true} allowExportSelectedData={true} formats={["xlsx", "pdf"]} />
-
-                            {/* Columns */}
-                            <Column
-                                dataField="rowNumber"
-                                caption="#"
-                                width={60}
-                                visible={true}
-                                allowSorting={false}
-                                allowFiltering={false}
-                                allowGrouping={false}
-                                allowExporting={true}
-                            />
                             <Column
                                 dataField="fullName"
                                 caption="Emri i plotë"
@@ -527,21 +470,7 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                                     cellRender={renderActionsCell}
                                 />
                             )}
-                        </DataGrid>
-
-                        {/* Professor count footer */}
-                        <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 mt-4">
-                            <div className="flex justify-between items-center text-sm text-gray-600">
-                                <div className="flex items-center gap-4">
-                                    <span>Gjithsej {professors.length} profesor{professors.length !== 1 ? 'ë' : ''}</span>
-                                    {selectedProfessors.length > 0 && (
-                                        <span className="text-blue-600 font-medium">
-                                            ({selectedProfessors.length} të zgjedhur)
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        </CommonDataGrid>
                     </div>
                 )}
             </Card>

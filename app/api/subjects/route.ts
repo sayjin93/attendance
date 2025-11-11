@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { logActivity, getChangedFields } from "@/lib/activityLogger";
 
 // ✅ GET: Fetch all subjects for the logged-in professor or all subjects for admins
 export async function GET() {
@@ -116,6 +117,16 @@ export async function POST(req: Request) {
       },
     });
 
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "CREATE",
+      entity: "subjects",
+      entityId: newSubject.id,
+      details: { code, name, programId },
+    });
+
     return NextResponse.json(newSubject, { status: 201 });
   } catch (error) {
     console.error("Error creating subject:", error);
@@ -220,6 +231,27 @@ export async function PUT(req: Request) {
       },
     });
 
+    // Log activity
+    const changes = getChangedFields(
+      {
+        code: existingSubject.code,
+        name: existingSubject.name,
+        programId: existingSubject.programId,
+      },
+      { code, name, programId }
+    );
+
+    if (Object.keys(changes).length > 0) {
+      await logActivity({
+        userId: decoded.professorId as number,
+        userName: `${decoded.firstName} ${decoded.lastName}`,
+        action: "UPDATE",
+        entity: "subjects",
+        entityId: id,
+        details: { changes },
+      });
+    }
+
     return NextResponse.json(updatedSubject, { status: 200 });
   } catch (error) {
     console.error("Error updating subject:", error);
@@ -306,6 +338,20 @@ export async function DELETE(req: Request) {
     // Delete the subject
     await prisma.subject.delete({
       where: { id },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "DELETE",
+      entity: "subjects",
+      entityId: id,
+      details: {
+        code: existingSubject.code,
+        name: existingSubject.name,
+        programId: existingSubject.programId,
+      },
     });
 
     return NextResponse.json({ message: "Lënda u fshi me sukses!" }, { status: 200 });

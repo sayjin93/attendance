@@ -4,23 +4,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
-import DataGrid, {
-  Column,
-  Grouping,
-  GroupPanel,
-  Paging,
-  Pager,
-  SearchPanel,
-  HeaderFilter,
-  FilterRow,
-  Export,
-  Sorting,
-  ColumnChooser,
-  ColumnFixing,
-  StateStoring,
-  Selection,
-  DataGridTypes,
-} from "devextreme-react/data-grid";
+import { Column, DataGridTypes } from "devextreme-react/data-grid";
 import { exportDataGrid } from "devextreme/pdf_exporter";
 import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
 import { jsPDF } from "jspdf";
@@ -43,6 +27,7 @@ import Alert from "@/components/ui/Alert";
 import AddSubjectForm from "@/components/subjects/AddSubjectForm";
 import EditSubjectForm from "@/components/subjects/EditSubjectForm";
 import Modal from "@/components/ui/Modal";
+import CommonDataGrid from "@/components/ui/CommonDataGrid";
 
 export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
@@ -428,60 +413,18 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
               </div>
             )}
 
-            <DataGrid
+            <CommonDataGrid
               dataSource={subjectsWithRowNumbers}
-              allowColumnReordering={true}
-              allowColumnResizing={true}
-              columnAutoWidth={true}
-              showBorders={true}
-              showRowLines={true}
-              showColumnLines={true}
-              rowAlternationEnabled={true}
-              hoverStateEnabled={true}
-              keyExpr="id"
-              className="dx-datagrid-borders custom-tooltip-grid"
+              storageKey="subjectsDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
-              noDataText="Nuk ka lëndë për të shfaqur."
-              searchPanel={{ visible: true, placeholder: "Kërko..." }}
-              loadPanel={{ enabled: false }}
+              keyExpr="id"
             >
-              {/* Enable features */}
-              <Selection mode="multiple" showCheckBoxesMode="always" />
-              <Grouping autoExpandAll={false} />
-              <GroupPanel visible={true} />
-              <SearchPanel visible={true} highlightCaseSensitive={true} placeholder="Kërko lëndë..." />
-              <Sorting mode="multiple" />
-              <FilterRow visible={true} />
-              <HeaderFilter visible={true} />
-              <ColumnChooser enabled={true} />
-              <ColumnFixing enabled={true} />
-              <Paging defaultPageSize={25} />
-              <Pager
-                showPageSizeSelector={true}
-                allowedPageSizes={[10, 25, 50, 100]}
-                showInfo={true}
-              />
-              <StateStoring enabled={true} type="localStorage" storageKey="subjectsDataGrid" />
-
-              {/* Export functionality */}
-              <Export enabled={true} allowExportSelectedData={true} formats={["xlsx", "pdf"]} />
-
-              {/* Columns */}
-              <Column
-                dataField="rowNumber"
-                caption="#"
-                width={60}
-                visible={true}
-                allowSorting={false}
-                allowFiltering={false}
-                allowGrouping={false}
-                allowExporting={true}
-              />
               <Column
                 dataField="name"
                 caption="Emri i lëndës"
                 alignment="left"
+                allowGrouping={false}
               />
               <Column
                 dataField="codeDisplay"
@@ -511,7 +454,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
                   cellRender={renderActionsCell}
                 />
               )}
-            </DataGrid>
+            </CommonDataGrid>
 
             {/* Bulk Actions Bar */}
             {selectedSubjects.length > 0 && (

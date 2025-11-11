@@ -13,23 +13,7 @@ import { CheckIcon, UserPlusIcon } from "@heroicons/react/20/solid";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
-import DataGrid, {
-  Column,
-  Grouping,
-  GroupPanel,
-  Paging,
-  Pager,
-  SearchPanel,
-  HeaderFilter,
-  FilterRow,
-  Export,
-  Sorting,
-  ColumnChooser,
-  ColumnFixing,
-  StateStoring,
-  Selection,
-  DataGridTypes,
-} from "devextreme-react/data-grid";
+import { Column, DataGridTypes } from "devextreme-react/data-grid";
 import { exportDataGrid } from "devextreme/pdf_exporter";
 import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
 import { jsPDF } from "jspdf";
@@ -52,6 +36,7 @@ import Card from "@/components/ui/Card";
 import AddStudentForm from "@/components/students/AddStudentForm";
 import EditStudentForm from "@/components/students/EditStudentForm";
 import Modal from "@/components/ui/Modal";
+import CommonDataGrid from "@/components/ui/CommonDataGrid";
 
 export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
@@ -548,61 +533,20 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               </div>
             )}
 
-            <DataGrid
+            <CommonDataGrid
               dataSource={studentsWithRowNumbers}
-              allowColumnReordering={true}
-              allowColumnResizing={true}
-              columnAutoWidth={true}
-              showBorders={true}
-              showRowLines={true}
-              showColumnLines={true}
-              rowAlternationEnabled={true}
-              hoverStateEnabled={true}
-              keyExpr="id"
-              className="dx-datagrid-borders custom-tooltip-grid"
+              storageKey="studentsDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
-              noDataText="Nuk ka studentë në këtë klasë. Shtoni një student më sipër!"
-              searchPanel={{ visible: true, placeholder: "Kërko..." }}
-              loadPanel={{ enabled: false }}
             >
-              {/* Enable features */}
-              <Selection mode="multiple" showCheckBoxesMode="always" />
-              <Grouping autoExpandAll={false} />
-              <GroupPanel visible={true} />
-              <SearchPanel visible={true} highlightCaseSensitive={true} />
-              <Sorting mode="multiple" />
-              <FilterRow visible={true} />
-              <HeaderFilter visible={true} />
-              <ColumnChooser enabled={true} />
-              <ColumnFixing enabled={true} />
-              <Paging defaultPageSize={25} />
-              <Pager
-                showPageSizeSelector={true}
-                allowedPageSizes={[10, 25, 50, 100]}
-                showInfo={true}
-              />
-              <StateStoring enabled={true} type="localStorage" storageKey="studentsDataGrid" />
-
-              {/* Export functionality */}
-              <Export enabled={true} allowExportSelectedData={true} formats={["xlsx", "pdf"]} />
-
               {/* Columns */}
-              <Column
-                dataField="rowNumber"
-                caption="#"
-                width={60}
-                visible={true}
-                allowSorting={false}
-                allowFiltering={false}
-                allowGrouping={false}
-                allowExporting={true}
-              />
               <Column
                 dataField="firstName"
                 caption="Emri"
                 cellRender={renderFirstNameCell}
                 alignment="left"
+                allowGrouping={false}
+
               />
               <Column
                 dataField="father"
@@ -613,6 +557,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
               <Column
                 dataField="lastName"
                 caption="Mbiemri"
+                allowGrouping={false}
               />
               <Column
                 dataField="institutionEmail"
@@ -654,26 +599,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
                   cellRender={renderActionsCell}
                 />
               )}
-            </DataGrid>
-
-            {/* Student count footer */}
-            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 mt-4">
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <div className="flex items-center gap-4">
-                  <span>Gjithsej {studentsData?.length} student{studentsData?.length !== 1 ? 'ë' : ''}</span>
-                  {selectedStudents.length > 0 && (
-                    <span className="text-blue-600 font-medium">
-                      ({selectedStudents.length} të zgjedhur)
-                    </span>
-                  )}
-                </div>
-                {selectedClass && (
-                  <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">
-                    {selectedClass.name}
-                  </span>
-                )}
-              </div>
-            </div>
+            </CommonDataGrid>
           </div>
         )}
       </Card>

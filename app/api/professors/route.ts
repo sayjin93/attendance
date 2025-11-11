@@ -3,6 +3,7 @@ import { prisma } from "@/prisma/prisma";
 import bcrypt from "bcryptjs";
 import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
 import { sendWelcomeEmail } from "@/lib/emailService";
+import { logActivity, getChangedFields } from "@/lib/activityLogger";
 
 // GET: Fetch all professors (Admin only)
 export async function GET(req: Request) {
@@ -183,6 +184,21 @@ export async function POST(req: Request) {
       // Don't fail the registration if email fails
     }
 
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "CREATE",
+      entity: "professors",
+      entityId: newProfessor.id,
+      details: {
+        firstName: formattedFirstName,
+        lastName: formattedLastName,
+        email: trimmedEmail,
+        username: trimmedUsername,
+      },
+    });
+
     return NextResponse.json(newProfessor, { status: 201 });
   } catch (error) {
     console.error("Error creating professor:", error);
@@ -297,6 +313,33 @@ export async function PUT(req: Request) {
       }
     });
 
+    // Log activity
+    const changes = getChangedFields(
+      {
+        firstName: existingProfessor.firstName,
+        lastName: existingProfessor.lastName,
+        email: existingProfessor.email,
+        username: existingProfessor.username,
+      },
+      {
+        firstName: formattedFirstName,
+        lastName: formattedLastName,
+        email: trimmedEmail,
+        username: trimmedUsername,
+      }
+    );
+
+    if (Object.keys(changes).length > 0) {
+      await logActivity({
+        userId: decoded.professorId as number,
+        userName: `${decoded.firstName} ${decoded.lastName}`,
+        action: "UPDATE",
+        entity: "professors",
+        entityId: id,
+        details: { changes },
+      });
+    }
+
     return NextResponse.json(updatedProfessor, { status: 200 });
   } catch (error) {
     console.error("Error updating professor:", error);
@@ -363,6 +406,21 @@ export async function DELETE(req: Request) {
 
     await prisma.professor.delete({
       where: { id: professorId }
+    });
+
+    // Log activity
+    await logActivity({
+      userId: decoded.professorId as number,
+      userName: `${decoded.firstName} ${decoded.lastName}`,
+      action: "DELETE",
+      entity: "professors",
+      entityId: professorId,
+      details: {
+        firstName: existingProfessor.firstName,
+        lastName: existingProfessor.lastName,
+        email: existingProfessor.email,
+        username: existingProfessor.username,
+      },
     });
 
     return NextResponse.json(
