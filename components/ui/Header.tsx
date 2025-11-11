@@ -6,7 +6,9 @@ import HomeIcon from '@heroicons/react/24/outline/HomeIcon';
 import navigationItems from '@/constants/navigation';
 
 const Header = ({ name = 'Dashboard' }) => {
-    const currentNavItem = navigationItems.find(item => item.name === name);
+    // Flatten the navigation items to find the current one
+    const allItems = navigationItems.flatMap(category => category.items);
+    const currentNavItem = allItems.find(item => item.name === name);
     const Icon = currentNavItem ? currentNavItem.icon : HomeIcon;
 
     return (

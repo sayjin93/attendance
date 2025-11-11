@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -38,11 +38,16 @@ export default function ClientLayout({
   const pathname = usePathname();
 
   const navigation = navigationItems
-    .filter(item => isAdmin === "true" || !item.adminOnly) // Only show admin items if `isAdmin` is true
-    .map(item => ({
-      ...item,
-      current: pathname === item.href,
-    }));
+    .map(category => ({
+      ...category,
+      items: category.items
+        .filter(item => isAdmin === "true" || !item.adminOnly) // Filter admin-only items
+        .map(item => ({
+          ...item,
+          current: pathname === item.href,
+        }))
+    }))
+    .filter(category => category.items.length > 0); // Remove empty categories
   //#endregion
 
   //#region states
@@ -101,24 +106,31 @@ export default function ClientLayout({
                           innerCls="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800"
                         />
                       ) : (
-                        navigation.map((item) => (
-                          <li key={item.name}>
-                            <a
-                              href={item.href}
-                              className={classNames(
-                                item.current
-                                  ? "bg-gray-800 text-white"
-                                  : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                                "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-                              )}
-                            >
-                              <item.icon
-                                aria-hidden="true"
-                                className="size-6 shrink-0"
-                              />
-                              {item.name}
-                            </a>
-                          </li>
+                        navigation.map((category) => (
+                          <Fragment key={category.category}>
+                            <li className="text-xs font-semibold leading-6 text-gray-400 mt-4 first:mt-0">
+                              {category.category}
+                            </li>
+                            {category.items.map((item) => (
+                              <li key={item.name}>
+                                <a
+                                  href={item.href}
+                                  className={classNames(
+                                    item.current
+                                      ? "bg-gray-800 text-white"
+                                      : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                                    "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+                                  )}
+                                >
+                                  <item.icon
+                                    aria-hidden="true"
+                                    className="size-6 shrink-0"
+                                  />
+                                  {item.name}
+                                </a>
+                              </li>
+                            ))}
+                          </Fragment>
                         ))
                       )}
                     </ul>
@@ -179,24 +191,31 @@ export default function ClientLayout({
                       innerCls="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800"
                     />
                   ) : (
-                    navigation.map((item) => (
-                      <li key={item.name}>
-                        <a
-                          href={item.href}
-                          className={classNames(
-                            item.current
-                              ? "bg-gray-800 text-white"
-                              : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                            "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-                          )}
-                        >
-                          <item.icon
-                            aria-hidden="true"
-                            className="size-6 shrink-0"
-                          />
-                          {item.name}
-                        </a>
-                      </li>
+                    navigation.map((category) => (
+                      <Fragment key={category.category}>
+                        <li className="text-xs font-semibold leading-6 text-gray-400 mt-4 first:mt-0">
+                          {category.category}
+                        </li>
+                        {category.items.map((item) => (
+                          <li key={item.name}>
+                            <a
+                              href={item.href}
+                              className={classNames(
+                                item.current
+                                  ? "bg-gray-800 text-white"
+                                  : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                                "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+                              )}
+                            >
+                              <item.icon
+                                aria-hidden="true"
+                                className="size-6 shrink-0"
+                              />
+                              {item.name}
+                            </a>
+                          </li>
+                        ))}
+                      </Fragment>
                     ))
                   )}
                 </ul>
@@ -240,7 +259,7 @@ export default function ClientLayout({
           <Bars3Icon aria-hidden="true" className="size-6" />
         </button>
         <div className="flex-1 text-sm/6 font-semibold text-white">
-          {navigation.find((item) => item.current)?.name || "Dashboard"}
+          {navigation.flatMap(c => c.items).find((item) => item.current)?.name || "Dashboard"}
         </div>
         <a onClick={handleLogout} href="#">
           <span className="sr-only">Logout</span>
@@ -263,7 +282,7 @@ export default function ClientLayout({
 
       <main className="p-4 sm:p-6 lg:px-8 lg:pl-80 flex flex-col h-[calc(100%-64px)] lg:h-full">
         <Header
-          name={navigation.find((item) => item.current)?.name || "Dashboard"}
+          name={navigation.flatMap(c => c.items).find((item) => item.current)?.name || "Dashboard"}
         />
 
         <div className="h-full">{children}</div>
