@@ -17,16 +17,22 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
     dataSource,
     storageKey,
     showRowNumber = true,
-    keyExpr = "id",
+    keyExpr,
     onExporting,
     onSelectionChanged,
     children,
     ...rest
 }) => {
+    // Remove conflicting props from rest
+    const { keyExpr: restKeyExpr, ...restWithoutKeyExpr } = rest;
+
+    // Use keyExpr from props, fallback to "id"
+    const finalKeyExpr = keyExpr || restKeyExpr || "id";
+
     return (
         <DataGrid
             className="dx-datagrid-borders"
-            columnAutoWidth={true}
+            // columnAutoWidth={true}
             columnChooser={{ enabled: true, title: "Zgjidh Kolonat", emptyPanelText: "Shtoni kolona këtu për ta fshehur atë" }}
             columnFixing={{
                 enabled: true,
@@ -52,7 +58,7 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
             groupPanel={{ visible: false, emptyPanelText: "Bëji drag një header kolone këtu për ta grupuar sipas asaj kolone" }}
             headerFilter={{ visible: true }}
             hoverStateEnabled={true}
-            keyExpr={keyExpr}
+            keyExpr={finalKeyExpr}
             loadPanel={{ enabled: false }}
             noDataText="Nuk ka të dhëna."
             onExporting={onExporting}
@@ -64,10 +70,9 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
                 showNavigationButtons: true
             }}
             paging={{ enabled: true, pageSize: 25 }}
-            repaintChangesOnly={true}
             rowAlternationEnabled={true}
             searchPanel={{ visible: true, highlightCaseSensitive: true, placeholder: "Kërko..." }}
-            selection={{ mode: "multiple", showCheckBoxesMode: "onClick", selectAllMode: "page" }}
+            selection={{ mode: "multiple", showCheckBoxesMode: "onClick" }}
             showBorders={true}
             showColumnLines={true}
             showRowLines={true}
@@ -86,7 +91,7 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
                     }
                     : { enabled: false }
             }
-            {...rest}
+            {...restWithoutKeyExpr}
         >
             {/* Row Number Column - Always First (unless showRowNumber is false) */}
             {showRowNumber && (
