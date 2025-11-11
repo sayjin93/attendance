@@ -203,66 +203,66 @@ export default function ClientComponent() {
     return (
         <div className="flex flex-col gap-4">
             <Card title="Filtro">
-                <div className="p-4 border-b">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Entiteti</label>
-                            <SelectBox
-                                dataSource={entityOptions}
-                                displayExpr="label"
-                                valueExpr="value"
-                                value={entityFilter}
-                                onValueChanged={(e) => setEntityFilter(e.value)}
-                            />
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Veprimi</label>
-                            <SelectBox
-                                dataSource={actionOptions}
-                                displayExpr="label"
-                                valueExpr="value"
-                                value={actionFilter}
-                                onValueChanged={(e) => setActionFilter(e.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Nga Data</label>
-                            <DateBox
-                                value={startDate}
-                                onValueChanged={(e) => setStartDate(e.value)}
-                                type="date"
-                                displayFormat="dd/MM/yyyy"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Deri Data</label>
-                            <DateBox
-                                value={endDate}
-                                onValueChanged={(e) => setEndDate(e.value)}
-                                type="date"
-                                displayFormat="dd/MM/yyyy"
-                            />
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Entiteti</label>
+                        <SelectBox
+                            dataSource={entityOptions}
+                            displayExpr="label"
+                            valueExpr="value"
+                            value={entityFilter}
+                            onValueChanged={(e) => setEntityFilter(e.value)}
+                        />
                     </div>
 
-                    <div className="flex gap-2 mt-4">
-                        <Button
-                            text="Apliko Filtrat"
-                            type="default"
-                            onClick={handleApplyFilters}
-                            icon="search"
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Veprimi</label>
+                        <SelectBox
+                            dataSource={actionOptions}
+                            displayExpr="label"
+                            valueExpr="value"
+                            value={actionFilter}
+                            onValueChanged={(e) => setActionFilter(e.value)}
                         />
-                        <Button
-                            text="Pastro Filtrat"
-                            type="normal"
-                            onClick={handleClearFilters}
-                            icon="clear"
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Nga Data</label>
+                        <DateBox
+                            value={startDate}
+                            onValueChanged={(e) => setStartDate(e.value)}
+                            type="date"
+                            displayFormat="dd/MM/yyyy"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Deri Data</label>
+                        <DateBox
+                            value={endDate}
+                            onValueChanged={(e) => setEndDate(e.value)}
+                            type="date"
+                            displayFormat="dd/MM/yyyy"
                         />
                     </div>
                 </div>
+
+                <div className="flex gap-2 mt-4">
+                    <Button
+                        text="Apliko Filtrat"
+                        type="default"
+                        onClick={handleApplyFilters}
+                        icon="search"
+                    />
+                    <Button
+                        text="Pastro Filtrat"
+                        type="normal"
+                        onClick={handleClearFilters}
+                        icon="clear"
+                    />
+                </div>
+
             </Card>
 
             <Card title="Regjistri i Aktivitetit">
