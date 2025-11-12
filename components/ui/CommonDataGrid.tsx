@@ -33,7 +33,7 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
         <DataGrid
             width="100%"
             className="dx-datagrid-borders"
-            // columnAutoWidth={true}
+            columnAutoWidth={true}
             columnChooser={{ enabled: true, title: "Zgjidh Kolonat", emptyPanelText: "Shtoni kolona këtu për ta fshehur atë" }}
             columnFixing={{
                 enabled: true,
