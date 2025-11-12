@@ -53,7 +53,8 @@ async function seedStudentsMSH1INFB() {
       personalEmail: "xhesikafacja@gmail.com",
       phone: "0692729569",
       orderId: 5,
-      classId: 13
+      classId: 13,
+      memo: "Reference Elton Dura"
     },
     {
       firstName: "Anisa",

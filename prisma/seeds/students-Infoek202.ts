@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { memo } from "react";
 const prisma = new PrismaClient();
 
 async function seedStudentsInfoek202() {
@@ -343,7 +344,8 @@ async function seedStudentsInfoek202() {
       personalEmail: "kleazhaboli@gmail.com",
       phone: "0676665877",
       orderId: 34,
-      classId: 8
+      classId: 8,
+      memo: "Kushërira Misit"
     }
   ];
 

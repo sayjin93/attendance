@@ -103,7 +103,8 @@ async function seedStudentsMSH1INFA() {
       personalEmail: "dajanadariu21@gmail.com",
       phone: "0694204827",
       orderId: 10,
-      classId: 12
+      classId: 12,
+      memo:"Kusherira Sueda Fetah"
     },
     {
       firstName: "Livia",
