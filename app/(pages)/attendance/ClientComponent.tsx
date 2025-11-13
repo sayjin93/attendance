@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 //devextreme
 import DateBox from "devextreme-react/date-box";
 import { locale } from "devextreme/localization";
+import { Column } from "devextreme-react/data-grid";
 
 //types
 import { AttendanceRecord, Class, Lecture } from "@/types";
@@ -28,6 +29,7 @@ import { useNotify } from "@/contexts/NotifyContext";
 import Loader from "@/components/ui/Loader";
 import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
+import CommonDataGrid from "@/components/ui/CommonDataGrid";
 
 interface TeachingAssignmentWithLectures {
   id: number;
@@ -128,7 +130,11 @@ export default function AttendancePageClient({
         .sort((a, b) => {
           const surnameComparison = a.lastName.localeCompare(b.lastName);
           return surnameComparison === 0 ? a.firstName.localeCompare(b.firstName) : surnameComparison;
-        });
+        })
+        .map((student, index) => ({
+          ...student,
+          rowNumber: index + 1
+        }));
 
       setStudents(sortedStudents);
     }
@@ -254,6 +260,105 @@ export default function AttendancePageClient({
       prev.map((s) =>
         s.id === studentId ? { ...s, status } : s
       )
+    );
+  };
+
+  // Render cell functions for DataGrid
+  const renderStudentNameCell = (cellData: { data: AttendanceRecord }) => {
+    const student = cellData.data;
+    return (
+      <div className="flex items-center gap-2">
+        <div className="shrink-0 h-8 w-8">
+          <div className="h-8 w-8 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+            <span className="text-sm font-semibold text-white">
+              {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-gray-900">{student.firstName} {student.lastName}</span>
+          {student.memo && (
+            <div className="group relative inline-block">
+              <svg
+                className="w-4 h-4 text-indigo-500 cursor-help"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none">
+                {student.memo}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+              </div>
+            </div>
+          )}
+          {student.status.name === 'PARTICIPATED' && (
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+              ⭐ VIP
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderStatusCell = (cellData: { data: AttendanceRecord }) => {
+    const student = cellData.data;
+
+    return (
+      <div className="flex gap-2">
+        <button
+          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.PRESENT)}
+          className={`flex items-center justify-center p-1 rounded-lg border-2 transition-all ${student.status.name === 'PRESENT'
+            ? 'border-green-500 bg-green-50 shadow-sm'
+            : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+            }`}
+          title="Prezente"
+        >
+          <svg className={`w-5 h-5 ${student.status.name === 'PRESENT' ? 'text-green-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+
+        <button
+          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.ABSENT)}
+          className={`flex items-center justify-center p-1 rounded-lg border-2 transition-all ${student.status.name === 'ABSENT'
+            ? 'border-red-500 bg-red-50 shadow-sm'
+            : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
+            }`}
+          title="Mungesë"
+        >
+          <svg className={`w-5 h-5 ${student.status.name === 'ABSENT' ? 'text-red-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+
+        <button
+          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.PARTICIPATED)}
+          className={`flex items-center justify-center p-1 rounded-lg border-2 transition-all ${student.status.name === 'PARTICIPATED'
+            ? 'border-blue-500 bg-blue-50 shadow-sm'
+            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+            }`}
+          title="Aktiv"
+        >
+          <svg className={`w-5 h-5 ${student.status.name === 'PARTICIPATED' ? 'text-blue-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+          </svg>
+        </button>
+
+        <button
+          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.LEAVE)}
+          className={`flex items-center justify-center p-1 rounded-lg border-2 transition-all ${student.status.name === 'LEAVE'
+            ? 'border-yellow-500 bg-yellow-50 shadow-sm'
+            : 'border-gray-200 hover:border-yellow-300 hover:bg-yellow-50'
+            }`}
+          title="Leje"
+        >
+          <svg className={`w-5 h-5 ${student.status.name === 'LEAVE' ? 'text-yellow-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </button>
+      </div>
     );
   };
 
@@ -440,125 +545,35 @@ export default function AttendancePageClient({
                 </div>
               </div>
 
-              {/* Students Grid/Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {students.map((student) => (
-                  <div
-                    key={student.id}
-                    className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-200 hover:border-indigo-300"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="shrink-0 h-12 w-12">
-                          <div className="h-12 w-12 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
-                            <span className="text-lg font-semibold text-white">
-                              {student.firstName.charAt(0)}{student.lastName.charAt(0)}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900">
-                            <div className="flex items-center gap-2">
-                              <span>{student.firstName} {student.lastName}</span>
-                              {student.memo && (
-                                <div className="group relative inline-block">
-                                  <svg
-                                    className="w-4 h-4 text-indigo-500 cursor-help"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                  </svg>
-                                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none">
-                                    {student.memo}
-                                    <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            Student ID: #{student.id}
-                          </div>
-                        </div>
-                      </div>
-                      {student.status.name === 'PARTICIPATED' && (
-                        <div className="shrink-0">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            ⭐ VIP
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-xs font-medium text-gray-700 mb-2">
-                        Statusi i Prezencës
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.PRESENT)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'PRESENT'
-                            ? 'border-green-500 bg-green-50 shadow-sm'
-                            : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
-                            }`}
-                        >
-                          <svg className={`w-6 h-6 mb-1 ${student.status.name === 'PRESENT' ? 'text-green-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className={`text-xs font-medium ${student.status.name === 'PRESENT' ? 'text-green-700' : 'text-gray-600'}`}>
-                            Prezente
-                          </span>
-                        </button>
-
-                        <button
-                          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.ABSENT)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'ABSENT'
-                            ? 'border-red-500 bg-red-50 shadow-sm'
-                            : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
-                            }`}
-                        >
-                          <svg className={`w-6 h-6 mb-1 ${student.status.name === 'ABSENT' ? 'text-red-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className={`text-xs font-medium ${student.status.name === 'ABSENT' ? 'text-red-700' : 'text-gray-600'}`}>
-                            Mungesë
-                          </span>
-                        </button>
-
-                        <button
-                          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.PARTICIPATED)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'PARTICIPATED'
-                            ? 'border-blue-500 bg-blue-50 shadow-sm'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                            }`}
-                        >
-                          <svg className={`w-6 h-6 mb-1 ${student.status.name === 'PARTICIPATED' ? 'text-blue-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                          </svg>
-                          <span className={`text-xs font-medium ${student.status.name === 'PARTICIPATED' ? 'text-blue-700' : 'text-gray-600'}`}>
-                            Aktiv
-                          </span>
-                        </button>
-
-                        <button
-                          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.LEAVE)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'LEAVE'
-                            ? 'border-yellow-500 bg-yellow-50 shadow-sm'
-                            : 'border-gray-200 hover:border-yellow-300 hover:bg-yellow-50'
-                            }`}
-                        >
-                          <svg className={`w-6 h-6 mb-1 ${student.status.name === 'LEAVE' ? 'text-yellow-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span className={`text-xs font-medium ${student.status.name === 'LEAVE' ? 'text-yellow-700' : 'text-gray-600'}`}>
-                            Leje
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              {/* Students DataGrid */}
+              <div className="mt-6">
+                <CommonDataGrid
+                  dataSource={students}
+                  storageKey="attendanceDataGrid"
+                  showRowNumber={true}
+                  keyExpr="id"
+                  paging={{ pageSize: 100 }}
+                >
+                  <Column
+                    dataField="firstName"
+                    caption="Student"
+                    cellRender={renderStudentNameCell}
+                    alignment="left"
+                    allowGrouping={false}
+                    minWidth={250}
+                  />
+                  <Column
+                    dataField="status.name"
+                    caption="Statusi"
+                    cellRender={renderStatusCell}
+                    alignment="center"
+                    allowGrouping={false}
+                    allowSorting={false}
+                    allowFiltering={false}
+                    allowExporting={false}
+                    minWidth={250}
+                  />
+                </CommonDataGrid>
               </div>
 
               {/* Save Button */}
