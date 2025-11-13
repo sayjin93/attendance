@@ -367,32 +367,32 @@ async function seedStudentsMSH1INFB() {
       classId: 13
     },
     {
-      firstName: "Armir",
-      father: "Behar",
-      lastName: "Smajlaj",
-      institutionEmail: "asmajlaj3@uet.edu.al",
-      personalEmail: "smajlajarmir@gmail.com",
-      phone: "0695306744",
-      orderId: 37,
-      classId: 13
-    },
-    {
       firstName: "Ivion",
       father: "Ilir",
       lastName: "Subashi",
       institutionEmail: "isubashi3@uet.edu.al",
       personalEmail: "jonisubashi12@gmail.com",
       phone: "0693992898",
-      orderId: 38,
+      orderId: 37,
       classId: 13
     },
     {
-      firstName: "Alisia",
+      firstName: "Alisja",
       father: "Shkëlqim",
       lastName: "Tafa",
       institutionEmail: "atafa@uet.edu.al",
       personalEmail: "tafaalisia@yahoo.com",
       phone: "0682273480",
+      orderId: 38,
+      classId: 13
+    },
+    {
+      firstName: "Sivio",
+      father: "Besnik",
+      lastName: "Talelli",
+      institutionEmail: "stalelli@uet.edu.al",
+      personalEmail: "silviotalelli1@gmail.com",
+      phone: "0697899396",
       orderId: 39,
       classId: 13
     },

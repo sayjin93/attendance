@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { memo } from "react";
 const prisma = new PrismaClient();
 
 async function seedStudentsInfoek202() {

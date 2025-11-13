@@ -104,7 +104,7 @@ async function seedStudentsMSH1INFA() {
       phone: "0694204827",
       orderId: 10,
       classId: 12,
-      memo:"Kusherira Sueda Fetah"
+      memo:"Ref. Sueda Fetah"
     },
     {
       firstName: "Livia",
@@ -497,23 +497,13 @@ async function seedStudentsMSH1INFA() {
       classId: 12
     },
     {
-      firstName: "Silvio",
-      father: "Besnik",
-      lastName: "Talelli",
-      institutionEmail: "stalelli@uet.edu.al",
-      personalEmail: "silviotalelli1@gmail.com",
-      phone: "0697899396",
-      orderId: 50,
-      classId: 12
-    },
-    {
       firstName: "Ekland",
       father: "Bujar",
       lastName: "Topçiu",
       institutionEmail: "etopciu2@uet.edu.al",
       personalEmail: "topciuekland@gmail.com",
       phone: "0696431255",
-      orderId: 51,
+      orderId: 50,
       classId: 12
     },
     {
@@ -523,7 +513,7 @@ async function seedStudentsMSH1INFA() {
       institutionEmail: "etutaj@uet.edu.al",
       personalEmail: "erisbionatutaj@gmail.com",
       phone: "0676936563",
-      orderId: 52,
+      orderId: 51,
       classId: 12
     },
     {
@@ -533,7 +523,7 @@ async function seedStudentsMSH1INFA() {
       institutionEmail: "kxhediku@uet.edu.al",
       personalEmail: "xhedikukujtime@gmail.com",
       phone: "0682146161",
-      orderId: 53,
+      orderId: 52,
       classId: 12
     }
   ];
