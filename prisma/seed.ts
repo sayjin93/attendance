@@ -7,6 +7,8 @@ import { seedClasses } from "./seeds/classes";
 import { seedSubjects } from "./seeds/subjects";
 import { seedTeachingAssignments } from "./seeds/teaching-assignments";
 import { seedAllStudents } from "./seeds/students";
+import fs from "fs";
+import path from "path";
 
 const prisma = new PrismaClient();
 
@@ -24,6 +26,16 @@ async function main() {
 
   // Seed all students for all classes
   await seedAllStudents();
+
+  // Seed attendance backup if available
+  const backupPath = path.join(__dirname, "seeds", "attendance-backup.ts");
+  if (fs.existsSync(backupPath)) {
+    console.log("📋 Restoring attendance backup...");
+    const { seedAttendance } = await import("./seeds/attendance-backup");
+    await seedAttendance(prisma);
+  } else {
+    console.log("ℹ️  No attendance backup found. Skipping attendance restoration.");
+  }
 }
 
 main()

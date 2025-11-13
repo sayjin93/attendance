@@ -357,7 +357,14 @@ npx prisma migrate reset
 - **Cascade Filtering**: Include filter parameters in queryKey only when they affect the API response
 - **Memoization**: Use React.memo(), useCallback(), and useMemo() appropriately
 
-## 📝 API Documentation
+## � Documentation
+
+### Additional Documentation
+
+- **[Session Management](./docs/SESSION_MANAGEMENT.md)** - Detailed guide on authentication, JWT handling, and session refresh mechanisms
+- **[Attendance Backup](./docs/ATTENDANCE_BACKUP.md)** - Complete guide for backing up and restoring attendance data
+
+## �📝 API Documentation
 
 ### Authentication
 
