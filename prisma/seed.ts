@@ -27,6 +27,16 @@ async function main() {
   // Seed all students for all classes
   await seedAllStudents();
 
+  // Seed lectures backup if available
+  const lecturesBackupPath = path.join(__dirname, "seeds", "lectures-backup.ts");
+  if (fs.existsSync(lecturesBackupPath)) {
+    console.log("📚 Restoring lectures backup...");
+    const { seedLectures } = await import("./seeds/lectures-backup");
+    await seedLectures(prisma);
+  } else {
+    console.log("ℹ️  No lectures backup found. Skipping lectures restoration.");
+  }
+
   // Seed attendance backup if available
   const backupPath = path.join(__dirname, "seeds", "attendance-backup.ts");
   if (fs.existsSync(backupPath)) {
