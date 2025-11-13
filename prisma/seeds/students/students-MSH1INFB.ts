@@ -33,7 +33,8 @@ export async function seedStudentsMSH1INFB() {
       personalEmail: "leola.bora2005@gmail.com",
       phone: "0693112244",
       orderId: 3,
-      classId: 13
+      classId: 13,
+      memo: "Punë"
     },
     {
       firstName: "Mateo",
