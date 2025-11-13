@@ -157,17 +157,20 @@ Attendance  ←   Student
    # Generate Prisma Client
    npx prisma generate
 
-   # Push schema to database
-   npx prisma db push
-
-   # Migrationn creation
+   # Create the initial migration (REQUIRED - Do this first!)
    npx prisma migrate dev --name init
 
-   # Migrate reset & Seed
-   npx prisma migrate reset --force
+   # This will:
+   # - Create the migrations folder
+   # - Generate migration files
+   # - Apply migration to database
+   # - Run seed.ts automatically
 
-   # Seed initial data (optional)
-   npx tsx prisma/seed.ts
+   # Alternative: Push schema without migrations (development only)
+   # npx prisma db push
+
+   # Seed initial data (if not auto-seeded by migrate dev)
+   # npx tsx prisma/seed.ts
    ```
 
 5. **Run the development server**
