@@ -408,118 +408,112 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
     <>
       {/* DataGrid */}
       <Card title="Lista e Leksioneve">
-        {lecturesWithRowNumbers.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Nuk ka leksione të regjistruara.</p>
-          </div>
-        ) : (
-          <div>
-            {/* Selection controls */}
-            {selectedLectures.length > 0 && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-blue-700 font-medium">
-                    {selectedLectures.length} leksion{selectedLectures.length !== 1 ? 'e' : ''} të zgjedhura
-                  </span>
-                  <div className="flex gap-2">
+        <>
+          {/* Selection controls */}
+          {selectedLectures.length > 0 && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-blue-700 font-medium">
+                  {selectedLectures.length} leksion{selectedLectures.length !== 1 ? 'e' : ''} të zgjedhura
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleClearSelection}
+                    className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-white border border-blue-200 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150 cursor-pointer"
+                  >
+                    Pastro zgjedhjen
+                  </button>
+                  {isAdmin && (
                     <button
-                      onClick={handleClearSelection}
-                      className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-white border border-blue-200 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150 cursor-pointer"
+                      onClick={handleBulkDeleteClick}
+                      disabled={deletingMultipleLectures}
+                      className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer disabled:opacity-50"
                     >
-                      Pastro zgjedhjen
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      {deletingMultipleLectures ? 'Duke fshirë...' : `Fshi të zgjedhurat (${selectedLectures.length})`}
                     </button>
-                    {isAdmin && (
-                      <button
-                        onClick={handleBulkDeleteClick}
-                        disabled={deletingMultipleLectures}
-                        className="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-150 cursor-pointer disabled:opacity-50"
-                      >
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        {deletingMultipleLectures ? 'Duke fshirë...' : `Fshi të zgjedhurat (${selectedLectures.length})`}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <CommonDataGrid
-              dataSource={lecturesWithRowNumbers as unknown as Lecture[]}
-              storageKey="lecturesDataGrid"
-              onExporting={onExporting}
-              onSelectionChanged={handleSelectionChanged}
-            >
-              <Column
-                dataField="dateFormatted"
-                caption="Data"
-                allowGrouping={false}
-                dataType="string"
-                width={120}
-              />
-              <Column
-                dataField="subjectName"
-                caption="Lënda"
-              />
-              <Column
-                dataField="subjectCode"
-                caption="Kodi"
-                width={100}
-                allowGrouping={false}
-              />
-              <Column
-                dataField="className"
-                caption="Klasa"
-              />
-              <Column
-                dataField="typeName"
-                caption="Tipi"
-                width={120}
-                cellRender={renderTypeCell}
-              />
-              {isAdmin && (
-                <Column
-                  dataField="professorName"
-                  caption="Profesori"
-                />
-              )}
-              <Column
-                caption="Prezenca"
-                width={200}
-                allowSorting={false}
-                allowGrouping={false}
-                allowExporting={false}
-                cellRender={renderAttendanceCell}
-              />
-              <Column
-                caption="Veprime"
-                width={140}
-                allowSorting={false}
-                allowGrouping={false}
-                allowExporting={false}
-                cellRender={renderActionsCell}
-              />
-            </CommonDataGrid>
-
-            {/* Footer with stats */}
-            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <div className="flex items-center gap-4">
-                  <span>Gjithsej {lecturesWithRowNumbers.length} leksion{lecturesWithRowNumbers.length !== 1 ? 'e' : ''}</span>
-                  {selectedLectures.length > 0 && (
-                    <span className="text-blue-600 font-medium">
-                      ({selectedLectures.length} të zgjedhura)
-                    </span>
                   )}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Me prezencë: {lecturesWithRowNumbers.filter(l => l.hasAttendance).length}
                 </div>
               </div>
             </div>
+          )}
+
+          <CommonDataGrid
+            dataSource={lecturesWithRowNumbers as unknown as Lecture[]}
+            storageKey="lecturesDataGrid"
+            onExporting={onExporting}
+            onSelectionChanged={handleSelectionChanged}
+          >
+            <Column
+              dataField="dateFormatted"
+              caption="Data"
+              dataType="string"
+              width={120}
+            />
+            <Column
+              dataField="subjectName"
+              caption="Lënda"
+            />
+            <Column
+              dataField="subjectCode"
+              caption="Kodi"
+              width={100}
+              allowGrouping={false}
+            />
+            <Column
+              dataField="className"
+              caption="Klasa"
+            />
+            <Column
+              dataField="typeName"
+              caption="Tipi"
+              width={120}
+              cellRender={renderTypeCell}
+            />
+            {isAdmin && (
+              <Column
+                dataField="professorName"
+                caption="Profesori"
+              />
+            )}
+            <Column
+              caption="Prezenca"
+              width={200}
+              allowSorting={false}
+              allowGrouping={false}
+              allowExporting={false}
+              cellRender={renderAttendanceCell}
+            />
+            <Column
+              caption="Veprime"
+              width={140}
+              allowSorting={false}
+              allowGrouping={false}
+              allowExporting={false}
+              cellRender={renderActionsCell}
+            />
+          </CommonDataGrid>
+
+          {/* Footer with stats */}
+          <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+            <div className="flex justify-between items-center text-sm text-gray-600">
+              <div className="flex items-center gap-4">
+                <span>Gjithsej {lecturesWithRowNumbers.length} leksion{lecturesWithRowNumbers.length !== 1 ? 'e' : ''}</span>
+                {selectedLectures.length > 0 && (
+                  <span className="text-blue-600 font-medium">
+                    ({selectedLectures.length} të zgjedhura)
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-gray-500">
+                Me prezencë: {lecturesWithRowNumbers.filter(l => l.hasAttendance).length}
+              </div>
+            </div>
           </div>
-        )}
+        </>
+
       </Card>
 
       {/* Edit Lecture Modal */}
