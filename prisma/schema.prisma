@@ -100,18 +100,21 @@ model Lecture {
 }
 
 model Attendance {
-  id        Int     @id @default(autoincrement())
+  id       Int              @id @default(autoincrement())
   studentId Int
-  student   Student @relation(fields: [studentId], references: [id])
+  student   Student          @relation(fields: [studentId], references: [id])
   lectureId Int
-  lecture   Lecture @relation(fields: [lectureId], references: [id])
-  status    String // PRESENT, ABSENT, PARTICIPATED
+  lecture   Lecture          @relation(fields: [lectureId], references: [id])
+  statusId  Int
+  status    AttendanceStatus @relation(fields: [statusId], references: [id])
+
+  @@unique([studentId, lectureId]) // Prevent duplicate attendance records for same student-lecture
 }
 
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  PARTICIPATED
+model AttendanceStatus {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique
+  attendance Attendance[]
 }
 
 model ActivityLog {

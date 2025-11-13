@@ -88,7 +88,7 @@ export async function fetchAttendance(
 export async function updateAttendance(data: {
   studentId: number;
   lectureId: string;
-  status: "PRESENT" | "ABSENT" | "PARTICIPATED";
+  statusId: number;
 }) {
   const res = await fetch("/api/attendance", {
     method: "PUT",
@@ -105,7 +105,7 @@ export async function updateAttendance(data: {
 export async function updateAttendanceBatch(attendanceList: Array<{
   studentId: number;
   lectureId: string;
-  status: "PRESENT" | "ABSENT" | "PARTICIPATED";
+  statusId: number;
 }>) {
   const res = await fetch("/api/attendance", {
     method: "PUT",

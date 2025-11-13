@@ -182,7 +182,12 @@ export async function GET(request: Request) {
           attendance: {
             select: {
               studentId: true,
-              status: true
+              status: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              }
             }
           }
         }
@@ -209,26 +214,26 @@ export async function GET(request: Request) {
 
           assignmentLectures.forEach(lecture => {
             const studentAttendance = lecture.attendance.find(
-              (a: { studentId: number; status: string }) => a.studentId === student.id
+              (a: { studentId: number; status: { id: number; name: string } }) => a.studentId === student.id
             );
 
             if (isLecture) {
               totalLectures++;
               if (studentAttendance) {
-                if (studentAttendance.status === "PRESENT" || studentAttendance.status === "PARTICIPATED") {
+                if (studentAttendance.status.name === "PRESENT" || studentAttendance.status.name === "PARTICIPATED") {
                   attendedLectures++;
                 }
-                if (studentAttendance.status === "PARTICIPATED") {
+                if (studentAttendance.status.name === "PARTICIPATED") {
                   participatedLectures++;
                 }
               }
             } else if (isSeminar) {
               totalSeminars++;
               if (studentAttendance) {
-                if (studentAttendance.status === "PRESENT" || studentAttendance.status === "PARTICIPATED") {
+                if (studentAttendance.status.name === "PRESENT" || studentAttendance.status.name === "PARTICIPATED") {
                   attendedSeminars++;
                 }
-                if (studentAttendance.status === "PARTICIPATED") {
+                if (studentAttendance.status.name === "PARTICIPATED") {
                   participatedSeminars++;
                 }
               }

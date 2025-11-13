@@ -18,12 +18,12 @@ interface RegistryLecture {
 interface RegistryAttendance {
   studentId: string;
   lectureId: string;
-  status: 'PRESENT' | 'ABSENT' | 'PARTICIPATED';
+  status: { id: number; name: string };
 }
 
 interface StudentRegistryRow {
   student: RegistryStudent;
-  attendanceByLecture: { [lectureId: string]: 'PRESENT' | 'ABSENT' | 'PARTICIPATED' | null };
+  attendanceByLecture: { [lectureId: string]: { id: number; name: string } | null };
   absenceCount: number;
   totalLectures: number;
   absencePercentage: number;
@@ -246,7 +246,12 @@ export async function GET(request: Request) {
           select: {
             studentId: true,
             lectureId: true,
-            status: true
+            status: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
           }
         });
 
@@ -255,7 +260,7 @@ export async function GET(request: Request) {
         attendance = attendanceData.map(a => ({
           studentId: a.studentId.toString(),
           lectureId: a.lectureId.toString(),
-          status: a.status as 'PRESENT' | 'ABSENT' | 'PARTICIPATED'
+          status: a.status
         }));
 
         // Calculate registry rows
@@ -264,7 +269,7 @@ export async function GET(request: Request) {
         const failureThreshold = isLecture ? 0.5 : 0.25; // 50% for lectures, 25% for seminars
 
         registryRows = students.map(student => {
-          const attendanceByLecture: { [lectureId: string]: 'PRESENT' | 'ABSENT' | 'PARTICIPATED' | null } = {};
+          const attendanceByLecture: { [lectureId: string]: { id: number; name: string } | null } = {};
           let absenceCount = 0;
 
           // Initialize attendance for all lectures
@@ -276,7 +281,7 @@ export async function GET(request: Request) {
           attendance.forEach(att => {
             if (att.studentId === student.id) {
               attendanceByLecture[att.lectureId] = att.status;
-              if (att.status === 'ABSENT') {
+              if (att.status.name === 'ABSENT') {
                 absenceCount++;
               }
             }

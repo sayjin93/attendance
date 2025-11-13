@@ -8,7 +8,10 @@ import DateBox from "devextreme-react/date-box";
 import { locale } from "devextreme/localization";
 
 //types
-import { AttendanceRecord, AttendanceStatus, Class, Lecture } from "@/types";
+import { AttendanceRecord, Class, Lecture } from "@/types";
+
+// constants
+import { ATTENDANCE_STATUS, DEFAULT_STATUS } from "@/constants/attendanceStatus";
 
 // hooks
 import { formatDate } from "@/hooks/functions";
@@ -120,7 +123,7 @@ export default function AttendancePageClient({
       const sortedStudents = attendance
         .map((student) => ({
           ...student,
-          status: student.status || AttendanceStatus.PRESENT, // Default status
+          status: student.status || DEFAULT_STATUS, // Default status
         }))
         .sort((a, b) => {
           const surnameComparison = a.lastName.localeCompare(b.lastName);
@@ -198,7 +201,7 @@ export default function AttendancePageClient({
       const attendanceUpdates = studentsData.map((student) => ({
         studentId: student.id,
         lectureId: lectureId?.toString() || "",
-        status: student.status as "PRESENT" | "ABSENT" | "PARTICIPATED",
+        statusId: student.status.id, // Use status.id instead of status string
       }));
 
       return await updateAttendanceBatch(attendanceUpdates);
@@ -247,7 +250,7 @@ export default function AttendancePageClient({
   // Get current selected date for the DateBox (derived from selectedDate or current lecture)
   const currentSelectedDate = selectedDate || (selectedLecture ? new Date(selectedLecture.date) : null);
 
-  const handleStatusChange = (studentId: number, status: AttendanceStatus) => {
+  const handleStatusChange = (studentId: number, status: { id: number; name: string }) => {
     setStudents((prev) =>
       prev.map((s) =>
         s.id === studentId ? { ...s, status } : s
@@ -389,7 +392,7 @@ export default function AttendancePageClient({
                       </svg>
                     </div>
                     <div className="flex flex-col items-start sm:items-center">
-                      <div className="text-2xl sm:text-3xl font-bold text-green-700">{students.filter(s => s.status === AttendanceStatus.PRESENT).length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-green-700">{students.filter(s => s.status.name === 'PRESENT').length}</div>
                       <div className="text-xs sm:text-sm font-medium text-green-600 mt-1">Prezente</div>
                     </div>
                   </div>
@@ -403,7 +406,7 @@ export default function AttendancePageClient({
                       </svg>
                     </div>
                     <div className="flex flex-col items-start sm:items-center">
-                      <div className="text-2xl sm:text-3xl font-bold text-red-700">{students.filter(s => s.status === AttendanceStatus.ABSENT).length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-red-700">{students.filter(s => s.status.name === 'ABSENT').length}</div>
                       <div className="text-xs sm:text-sm font-medium text-red-600 mt-1">Mungesë</div>
                     </div>
                   </div>
@@ -417,7 +420,7 @@ export default function AttendancePageClient({
                       </svg>
                     </div>
                     <div className="flex flex-col items-start sm:items-center">
-                      <div className="text-2xl sm:text-3xl font-bold text-blue-700">{students.filter(s => s.status === AttendanceStatus.PARTICIPATED).length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-blue-700">{students.filter(s => s.status.name === 'PARTICIPATED').length}</div>
                       <div className="text-xs sm:text-sm font-medium text-blue-600 mt-1">Aktivizuar</div>
                     </div>
                   </div>
@@ -466,7 +469,7 @@ export default function AttendancePageClient({
                           </div>
                         </div>
                       </div>
-                      {student.status === AttendanceStatus.PARTICIPATED && (
+                      {student.status.name === 'PARTICIPATED' && (
                         <div className="shrink-0">
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                             ⭐ VIP
@@ -481,46 +484,46 @@ export default function AttendancePageClient({
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         <button
-                          onClick={() => handleStatusChange(student.id, AttendanceStatus.PRESENT)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status === AttendanceStatus.PRESENT
+                          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.PRESENT)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'PRESENT'
                               ? 'border-green-500 bg-green-50 shadow-sm'
                               : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
                             }`}
                         >
-                          <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.PRESENT ? 'text-green-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className={`w-6 h-6 mb-1 ${student.status.name === 'PRESENT' ? 'text-green-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className={`text-xs font-medium ${student.status === AttendanceStatus.PRESENT ? 'text-green-700' : 'text-gray-600'}`}>
+                          <span className={`text-xs font-medium ${student.status.name === 'PRESENT' ? 'text-green-700' : 'text-gray-600'}`}>
                             Prezente
                           </span>
                         </button>
 
                         <button
-                          onClick={() => handleStatusChange(student.id, AttendanceStatus.ABSENT)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status === AttendanceStatus.ABSENT
+                          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.ABSENT)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'ABSENT'
                               ? 'border-red-500 bg-red-50 shadow-sm'
                               : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
                             }`}
                         >
-                          <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.ABSENT ? 'text-red-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className={`w-6 h-6 mb-1 ${student.status.name === 'ABSENT' ? 'text-red-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className={`text-xs font-medium ${student.status === AttendanceStatus.ABSENT ? 'text-red-700' : 'text-gray-600'}`}>
+                          <span className={`text-xs font-medium ${student.status.name === 'ABSENT' ? 'text-red-700' : 'text-gray-600'}`}>
                             Mungesë
                           </span>
                         </button>
 
                         <button
-                          onClick={() => handleStatusChange(student.id, AttendanceStatus.PARTICIPATED)}
-                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status === AttendanceStatus.PARTICIPATED
+                          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.PARTICIPATED)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'PARTICIPATED'
                               ? 'border-blue-500 bg-blue-50 shadow-sm'
                               : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                             }`}
                         >
-                          <svg className={`w-6 h-6 mb-1 ${student.status === AttendanceStatus.PARTICIPATED ? 'text-blue-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className={`w-6 h-6 mb-1 ${student.status.name === 'PARTICIPATED' ? 'text-blue-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
                           </svg>
-                          <span className={`text-xs font-medium ${student.status === AttendanceStatus.PARTICIPATED ? 'text-blue-700' : 'text-gray-600'}`}>
+                          <span className={`text-xs font-medium ${student.status.name === 'PARTICIPATED' ? 'text-blue-700' : 'text-gray-600'}`}>
                             Aktiv
                           </span>
                         </button>

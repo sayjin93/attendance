@@ -32,7 +32,15 @@ export async function GET(req: Request) {
       where: {
         lectureId: lectureId ? parseInt(lectureId, 10) : undefined
       },
-      select: { studentId: true, status: true },
+      select: { 
+        studentId: true, 
+        status: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
     });
 
     // ✅ Merge attendance status with students list
@@ -45,7 +53,7 @@ export async function GET(req: Request) {
         firstName: student.firstName,
         lastName: student.lastName,
         memo: student.memo,
-        status: attendance ? attendance.status : "PRESENT", // Default status
+        status: attendance ? attendance.status : { id: 1, name: "PRESENT" }, // Default status
       };
     });
 
@@ -93,7 +101,7 @@ export async function PUT(req: Request) {
 
       // Validate all entries
       for (const update of attendanceUpdates) {
-        if (!update.studentId || !update.lectureId || !update.status) {
+        if (!update.studentId || !update.lectureId || !update.statusId) {
           return NextResponse.json(
             { error: "❌ Të dhëna të paplota në listën e prezencës!" },
             { status: 400 }
@@ -123,14 +131,14 @@ export async function PUT(req: Request) {
           updates.push(
             prisma.attendance.update({
               where: { id: existing.id },
-              data: { status: update.status },
+              data: { statusId: update.statusId },
             })
           );
         } else {
           creates.push({
             studentId: studentIdInt,
             lectureId,
-            status: update.status,
+            statusId: update.statusId,
           });
         }
       }
@@ -167,9 +175,9 @@ export async function PUT(req: Request) {
       
     } else {
       // Handle single update (backward compatibility)
-      const { studentId, lectureId, status } = body;
+      const { studentId, lectureId, statusId } = body;
 
-      if (!studentId || !lectureId || !status) {
+      if (!studentId || !lectureId || !statusId) {
         return NextResponse.json(
           { error: "❌ Të dhëna të paplota!" },
           { status: 400 }
@@ -186,7 +194,7 @@ export async function PUT(req: Request) {
       if (existingAttendance) {
         await prisma.attendance.update({
           where: { id: existingAttendance.id },
-          data: { status },
+          data: { statusId },
         });
         return NextResponse.json(
           { message: "✅ Prezenca u përditësua me sukses!" },
@@ -194,7 +202,7 @@ export async function PUT(req: Request) {
         );
       } else {
         await prisma.attendance.create({
-          data: { studentId: studentIdInt, lectureId: lectureIdInt, status },
+          data: { studentId: studentIdInt, lectureId: lectureIdInt, statusId },
         });
         return NextResponse.json(
           { message: "✅ Prezenca u regjistrua me sukses!" },

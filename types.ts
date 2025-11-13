@@ -63,19 +63,20 @@ export interface Lecture {
   attendance?: Attendance[];
 }
 
+export interface AttendanceStatus {
+  id: number;
+  name: string;
+  attendance?: Attendance[];
+}
+
 export interface Attendance {
   id: number;
   studentId: number;
   student?: Student;
   lectureId: number;
   lecture?: Lecture;
-  status: AttendanceStatus;
-}
-
-export enum AttendanceStatus {
-  PRESENT = "PRESENT",
-  ABSENT = "ABSENT",
-  PARTICIPATED = "PARTICIPATED",
+  statusId: number;
+  status?: AttendanceStatus;
 }
 
 export interface TeachingAssignment {
@@ -369,12 +370,12 @@ export interface RegistryStudent {
 export interface RegistryAttendanceRecord {
   studentId: string;
   lectureId: string;
-  status: 'PRESENT' | 'ABSENT' | 'PARTICIPATED';
+  status: { id: number; name: string };
 }
 
 export interface StudentRegistryRow {
   student: RegistryStudent;
-  attendanceByLecture: { [lectureId: string]: 'PRESENT' | 'ABSENT' | 'PARTICIPATED' | null };
+  attendanceByLecture: { [lectureId: string]: { id: number; name: string } | null };
   absenceCount: number;
   totalLectures: number;
   absencePercentage: number;

@@ -49,7 +49,7 @@ interface Student {
 
 interface StudentRegistryRow {
   student: Student;
-  attendanceByLecture: { [lectureId: string]: 'PRESENT' | 'ABSENT' | 'PARTICIPATED' | null };
+  attendanceByLecture: { [lectureId: string]: { id: number; name: string } | null };
   absenceCount: number;
   totalLectures: number;
   absencePercentage: number;
@@ -129,9 +129,10 @@ const RegistryTable = memo(function RegistryTable({
       `${row.student.firstName} ${row.student.lastName}`,
       ...lectures.map((lecture: Lecture) => {
         const status = row.attendanceByLecture[lecture.id];
-        if (status === 'ABSENT') return 'm';
-        if (status === 'PARTICIPATED') return '+';
-        if (status === 'PRESENT') return '';
+        if (status?.name === 'ABSENT') return 'm';
+        if (status?.name === 'PARTICIPATED') return '+';
+        if (status?.name === 'LEAVE') return 'L';
+        if (status?.name === 'PRESENT') return '';
         return '-';
       }),
       row.status
@@ -243,13 +244,16 @@ const RegistryTable = memo(function RegistryTable({
                     let displayText = '';
                     let cellClass = 'border border-gray-300 px-2 py-2 text-center text-sm';
                     
-                    if (status === 'ABSENT') {
+                    if (status?.name === 'ABSENT') {
                       displayText = 'm';
                       cellClass += ' text-red-600 font-bold';
-                    } else if (status === 'PARTICIPATED') {
+                    } else if (status?.name === 'PARTICIPATED') {
                       displayText = '+';
                       cellClass += ' text-green-600 font-bold';
-                    } else if (status === 'PRESENT') {
+                    } else if (status?.name === 'LEAVE') {
+                      displayText = 'L';
+                      cellClass += ' text-yellow-600 font-bold';
+                    } else if (status?.name === 'PRESENT') {
                       displayText = '';
                       cellClass += ' text-gray-400';
                     } else {
@@ -289,6 +293,10 @@ const RegistryTable = memo(function RegistryTable({
             <div className="flex items-center gap-1">
               <span className="w-4 h-4 border border-gray-300 bg-white text-green-600 font-bold flex items-center justify-center">+</span>
               <span>Aktivizuar</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-4 h-4 border border-gray-300 bg-white text-yellow-600 font-bold flex items-center justify-center">L</span>
+              <span>Me leje</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="px-2 py-1 bg-red-100 text-red-600 font-bold rounded text-xs">NK</span>

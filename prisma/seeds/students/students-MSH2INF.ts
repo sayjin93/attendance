@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-async function seedStudentsMSH2INF() {
+export async function seedStudentsMSH2INF() {
   console.log("🌱 Seeding students for MSH2INF...");
 
   const studentsMSH2INF = [
@@ -38,10 +38,13 @@ async function seedStudentsMSH2INF() {
   console.log(`✅ Successfully seeded ${studentsMSH2INF.length} students for MSH2INF!`);
 }
 
-seedStudentsMSH2INF()
-  .then(() => prisma.$disconnect())
-  .catch(async (e) => {
-    console.error("❌ Error seeding students for MSH2INF:", e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+// Allow direct execution
+if (require.main === module) {
+  seedStudentsMSH2INF()
+    .then(() => prisma.$disconnect())
+    .catch(async (e) => {
+      console.error("❌ Error seeding students for MSH2INF:", e);
+      await prisma.$disconnect();
+      process.exit(1);
+    });
+}

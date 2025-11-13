@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-async function seedStudentsMSH1INFB() {
+export async function seedStudentsMSH1INFB() {
   console.log("🌱 Seeding students for MSH1INFB...");
 
   const studentsMSH1INFB = [
@@ -54,7 +54,7 @@ async function seedStudentsMSH1INFB() {
       phone: "0692729569",
       orderId: 5,
       classId: 13,
-      memo: "Reference Elton Dura"
+      memo: "Ref. Elton Dura"
     },
     {
       firstName: "Anisa",
@@ -496,10 +496,13 @@ async function seedStudentsMSH1INFB() {
   console.log(`✅ Successfully seeded ${studentsMSH1INFB.length} student(s) for MSH1INFB!`);
 }
 
-seedStudentsMSH1INFB()
-  .then(() => prisma.$disconnect())
-  .catch(async (e) => {
-    console.error("❌ Error seeding students for MSH1INFB:", e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+// Allow direct execution
+if (require.main === module) {
+  seedStudentsMSH1INFB()
+    .then(() => prisma.$disconnect())
+    .catch(async (e) => {
+      console.error("❌ Error seeding students for MSH1INFB:", e);
+      await prisma.$disconnect();
+      process.exit(1);
+    });
+}
