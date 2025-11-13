@@ -58,7 +58,7 @@ export async function seedStudentsMSH1IE() {
     { firstName: "Albi", lastName: "Xhaho", institutionEmail: "axhaho2@uet.edu.al", father: "Albert", personalEmail: "albixhaho5@gmail.com", phone: "0699101088", orderId: 51, classId: 11 },
     { firstName: "Arens", lastName: "Xharo", institutionEmail: "axharo@uet.edu.al", father: "Artur", personalEmail: "arensxharo21@gmail.com", phone: "0692034710", orderId: 52, classId: 11 },
     { firstName: "Kristofor", lastName: "Zeqo", institutionEmail: "kzeqo@uet.edu.al", father: "Adrian", personalEmail: "kristozeqo24@gmail.com", phone: "0682990382", orderId: 53, classId: 11 },
-    { firstName: "Eleni", lastName: "Zhollanjj", institutionEmail: "ezhollanj@uet.edu.al", father: "Ilir", personalEmail: "eleni.zhollanjj@gmail.com", phone: "0682622292", orderId: 54, classId: 11 },
+    { firstName: "Eleni", lastName: "Zhollanji", institutionEmail: "ezhollanji@uet.edu.al", father: "Ilir", personalEmail: "eleni.zhollanji@gmail.com", phone: "0682622292", orderId: 54, classId: 11 },
   ];
 
   await prisma.student.createMany({
