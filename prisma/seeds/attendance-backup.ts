@@ -1,5 +1,5 @@
-// Attendance Backup - Generated on 2025-11-13T14:38:11.294Z
-// Total records: 522
+// Attendance Backup - Generated on 2025-11-13T15:49:24.992Z
+// Total records: 842
 
 import { PrismaClient } from '@prisma/client';
 
@@ -5233,6 +5233,3206 @@ export const attendanceData: AttendanceBackup[] = [
     "className": "MSH2TI",
     "lectureDate": "2025-10-25",
     "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 1,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Elios Deliu",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 2,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Enri Elezi",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 3,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Geraldina Farruku",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 4,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Melisa Fezo",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 5,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Klindi Fida",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 6,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Fiona Guma",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 7,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Kledisa Haka",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 8,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Rejdian Hyka",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 9,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Jurgi Kule",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 10,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Oligert Maksuti",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 11,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Nelson Manxharaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 12,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Flavio Mema",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 13,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Greta Ndoj",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 14,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Erlis Paloka",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 15,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Luis Shpërdhea",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 16,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Daniel Skënderaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 17,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Arvin Xhelilaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 18,
+    "lectureId": 19,
+    "statusId": 1,
+    "studentName": "Flavio Zani",
+    "className": "INF205",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 19,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Andrea Abeshi",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 20,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Amald Bedini",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 21,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Agim Çeka",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 22,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Ergis Çollaku",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 23,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Rei Duçka",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 24,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Melisa Gjegja",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 25,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Samir Haxhiu",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 26,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Kristi Kanani",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 27,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Jozef Lisi",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 28,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Egdar Shaqiri",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 29,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Florian Shurbi",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 30,
+    "lectureId": 20,
+    "statusId": 1,
+    "studentName": "Denis Sokoli",
+    "className": "INF206",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 31,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Gerald Balla",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 32,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Eldjon Beharaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 33,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Alesia Bufi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 34,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Esa Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 35,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Juljan Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 36,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Eni Dema",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 37,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Fabian Ferhati",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 38,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Aqilea Gaqos",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 39,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Marjela Gjeloshaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 40,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Lorenzo Gjeloshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 41,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Vanesa Gjika",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 42,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Anisa Hajdari",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 43,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Mario Hajderdhi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 44,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Ronela Hoxha",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 45,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Klea Joana Kodhelaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 46,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Klajdi Kola",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 47,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Sevastianos Korreshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 48,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Kristjen Kurti",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 49,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Skender Muçka",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 50,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Asel Nela",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 51,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Almedina Piranaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 52,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Albiona Qinami",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 53,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Selma Qoku",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 54,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Erjon Rira",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 55,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Amelja Rrapaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 56,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Erisa Sadikaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 57,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Ertugel Saliaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 58,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Sara Shehu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 59,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Justin Shtëpani",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 60,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Amela Subashaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 61,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Alesjo Sula",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 62,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Olta Xhardo",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 63,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Detjon Xhepi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 64,
+    "lectureId": 21,
+    "statusId": 1,
+    "studentName": "Klea Zhaboli",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-06",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 1,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Elios Deliu",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 2,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Enri Elezi",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 3,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Geraldina Farruku",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 4,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Melisa Fezo",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 5,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Klindi Fida",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 6,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Fiona Guma",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 7,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Kledisa Haka",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 8,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Rejdian Hyka",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 9,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Jurgi Kule",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 10,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Oligert Maksuti",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 11,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Nelson Manxharaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 12,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Flavio Mema",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 13,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Greta Ndoj",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 14,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Erlis Paloka",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 15,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Luis Shpërdhea",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 16,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Daniel Skënderaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 17,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Arvin Xhelilaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 18,
+    "lectureId": 22,
+    "statusId": 1,
+    "studentName": "Flavio Zani",
+    "className": "INF205",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 19,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Andrea Abeshi",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 20,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Amald Bedini",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 21,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Agim Çeka",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 22,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Ergis Çollaku",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 23,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Rei Duçka",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 24,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Melisa Gjegja",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 25,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Samir Haxhiu",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 26,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Kristi Kanani",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 27,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Jozef Lisi",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 28,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Egdar Shaqiri",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 29,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Florian Shurbi",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 30,
+    "lectureId": 23,
+    "statusId": 1,
+    "studentName": "Denis Sokoli",
+    "className": "INF206",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 31,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Gerald Balla",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 32,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Eldjon Beharaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 33,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Alesia Bufi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 34,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Esa Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 35,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Juljan Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 36,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Eni Dema",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 37,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Fabian Ferhati",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 38,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Aqilea Gaqos",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 39,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Marjela Gjeloshaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 40,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Lorenzo Gjeloshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 41,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Vanesa Gjika",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 42,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Anisa Hajdari",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 43,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Mario Hajderdhi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 44,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Ronela Hoxha",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 45,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Klea Joana Kodhelaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 46,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Klajdi Kola",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 47,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Sevastianos Korreshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 48,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Kristjen Kurti",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 49,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Skender Muçka",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 50,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Asel Nela",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 51,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Almedina Piranaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 52,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Albiona Qinami",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 53,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Selma Qoku",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 54,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Erjon Rira",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 55,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Amelja Rrapaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 56,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Erisa Sadikaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 57,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Ertugel Saliaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 58,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Sara Shehu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 59,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Justin Shtëpani",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 60,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Amela Subashaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 61,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Alesjo Sula",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 62,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Olta Xhardo",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 63,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Detjon Xhepi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 64,
+    "lectureId": 24,
+    "statusId": 1,
+    "studentName": "Klea Zhaboli",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-13",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 1,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Elios Deliu",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 2,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Enri Elezi",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 3,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Geraldina Farruku",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 4,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Melisa Fezo",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 5,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Klindi Fida",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 6,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Fiona Guma",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 7,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Kledisa Haka",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 8,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Rejdian Hyka",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 9,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Jurgi Kule",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 10,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Oligert Maksuti",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 11,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Nelson Manxharaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 12,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Flavio Mema",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 13,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Greta Ndoj",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 14,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Erlis Paloka",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 15,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Luis Shpërdhea",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 16,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Daniel Skënderaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 17,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Arvin Xhelilaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 18,
+    "lectureId": 25,
+    "statusId": 1,
+    "studentName": "Flavio Zani",
+    "className": "INF205",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 19,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Andrea Abeshi",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 20,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Amald Bedini",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 21,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Agim Çeka",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 22,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Ergis Çollaku",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 23,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Rei Duçka",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 24,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Melisa Gjegja",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 25,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Samir Haxhiu",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 26,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Kristi Kanani",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 27,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Jozef Lisi",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 28,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Egdar Shaqiri",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 29,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Florian Shurbi",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 30,
+    "lectureId": 26,
+    "statusId": 1,
+    "studentName": "Denis Sokoli",
+    "className": "INF206",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 31,
+    "lectureId": 27,
+    "statusId": 2,
+    "studentName": "Gerald Balla",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 32,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Eldjon Beharaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 33,
+    "lectureId": 27,
+    "statusId": 2,
+    "studentName": "Alesia Bufi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 34,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Esa Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 35,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Juljan Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 36,
+    "lectureId": 27,
+    "statusId": 2,
+    "studentName": "Eni Dema",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 37,
+    "lectureId": 27,
+    "statusId": 2,
+    "studentName": "Fabian Ferhati",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 38,
+    "lectureId": 27,
+    "statusId": 2,
+    "studentName": "Aqilea Gaqos",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 39,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Marjela Gjeloshaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 40,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Lorenzo Gjeloshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 41,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Vanesa Gjika",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 42,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Anisa Hajdari",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 43,
+    "lectureId": 27,
+    "statusId": 2,
+    "studentName": "Mario Hajderdhi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 44,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Ronela Hoxha",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 45,
+    "lectureId": 27,
+    "statusId": 2,
+    "studentName": "Klea Joana Kodhelaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 46,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Klajdi Kola",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 47,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Sevastianos Korreshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 48,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Kristjen Kurti",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 49,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Skender Muçka",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 50,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Asel Nela",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 51,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Almedina Piranaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 52,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Albiona Qinami",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 53,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Selma Qoku",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 54,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Erjon Rira",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 55,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Amelja Rrapaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 56,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Erisa Sadikaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 57,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Ertugel Saliaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 58,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Sara Shehu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 59,
+    "lectureId": 27,
+    "statusId": 2,
+    "studentName": "Justin Shtëpani",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 60,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Amela Subashaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 61,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Alesjo Sula",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 62,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Olta Xhardo",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 63,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Detjon Xhepi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 64,
+    "lectureId": 27,
+    "statusId": 1,
+    "studentName": "Klea Zhaboli",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-20",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 1,
+    "lectureId": 28,
+    "statusId": 1,
+    "studentName": "Elios Deliu",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 2,
+    "lectureId": 28,
+    "statusId": 2,
+    "studentName": "Enri Elezi",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 3,
+    "lectureId": 28,
+    "statusId": 1,
+    "studentName": "Geraldina Farruku",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 4,
+    "lectureId": 28,
+    "statusId": 3,
+    "studentName": "Melisa Fezo",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 5,
+    "lectureId": 28,
+    "statusId": 2,
+    "studentName": "Klindi Fida",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 6,
+    "lectureId": 28,
+    "statusId": 1,
+    "studentName": "Fiona Guma",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 7,
+    "lectureId": 28,
+    "statusId": 1,
+    "studentName": "Kledisa Haka",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 8,
+    "lectureId": 28,
+    "statusId": 1,
+    "studentName": "Rejdian Hyka",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 9,
+    "lectureId": 28,
+    "statusId": 1,
+    "studentName": "Jurgi Kule",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 10,
+    "lectureId": 28,
+    "statusId": 2,
+    "studentName": "Oligert Maksuti",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 11,
+    "lectureId": 28,
+    "statusId": 2,
+    "studentName": "Nelson Manxharaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 12,
+    "lectureId": 28,
+    "statusId": 1,
+    "studentName": "Flavio Mema",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 13,
+    "lectureId": 28,
+    "statusId": 3,
+    "studentName": "Greta Ndoj",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 14,
+    "lectureId": 28,
+    "statusId": 2,
+    "studentName": "Erlis Paloka",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 15,
+    "lectureId": 28,
+    "statusId": 2,
+    "studentName": "Luis Shpërdhea",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 16,
+    "lectureId": 28,
+    "statusId": 2,
+    "studentName": "Daniel Skënderaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 17,
+    "lectureId": 28,
+    "statusId": 2,
+    "studentName": "Arvin Xhelilaj",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 18,
+    "lectureId": 28,
+    "statusId": 1,
+    "studentName": "Flavio Zani",
+    "className": "INF205",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 19,
+    "lectureId": 29,
+    "statusId": 1,
+    "studentName": "Andrea Abeshi",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 20,
+    "lectureId": 29,
+    "statusId": 1,
+    "studentName": "Amald Bedini",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 21,
+    "lectureId": 29,
+    "statusId": 2,
+    "studentName": "Agim Çeka",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 22,
+    "lectureId": 29,
+    "statusId": 1,
+    "studentName": "Ergis Çollaku",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 23,
+    "lectureId": 29,
+    "statusId": 2,
+    "studentName": "Rei Duçka",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 24,
+    "lectureId": 29,
+    "statusId": 2,
+    "studentName": "Melisa Gjegja",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 25,
+    "lectureId": 29,
+    "statusId": 2,
+    "studentName": "Samir Haxhiu",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 26,
+    "lectureId": 29,
+    "statusId": 1,
+    "studentName": "Kristi Kanani",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 27,
+    "lectureId": 29,
+    "statusId": 2,
+    "studentName": "Jozef Lisi",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 28,
+    "lectureId": 29,
+    "statusId": 3,
+    "studentName": "Egdar Shaqiri",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 29,
+    "lectureId": 29,
+    "statusId": 1,
+    "studentName": "Florian Shurbi",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 30,
+    "lectureId": 29,
+    "statusId": 1,
+    "studentName": "Denis Sokoli",
+    "className": "INF206",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 31,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Gerald Balla",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 32,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Eldjon Beharaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 33,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Alesia Bufi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 34,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Esa Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 35,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Juljan Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 36,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Eni Dema",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 37,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Fabian Ferhati",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 38,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Aqilea Gaqos",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 39,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Marjela Gjeloshaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 40,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Lorenzo Gjeloshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 41,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Vanesa Gjika",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 42,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Anisa Hajdari",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 43,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Mario Hajderdhi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 44,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Ronela Hoxha",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 45,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Klea Joana Kodhelaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 46,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Klajdi Kola",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 47,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Sevastianos Korreshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 48,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Kristjen Kurti",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 49,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Skender Muçka",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 50,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Asel Nela",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 51,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Almedina Piranaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 52,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Albiona Qinami",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 53,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Selma Qoku",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 54,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Erjon Rira",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 55,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Amelja Rrapaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 56,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Erisa Sadikaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 57,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Ertugel Saliaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 58,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Sara Shehu",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 59,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Justin Shtëpani",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 60,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Amela Subashaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 61,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Alesjo Sula",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 62,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Olta Xhardo",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 63,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Detjon Xhepi",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 64,
+    "lectureId": 30,
+    "statusId": 1,
+    "studentName": "Klea Zhaboli",
+    "className": "Infoek202",
+    "lectureDate": "2025-10-27",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 1,
+    "lectureId": 31,
+    "statusId": 2,
+    "studentName": "Elios Deliu",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 2,
+    "lectureId": 31,
+    "statusId": 2,
+    "studentName": "Enri Elezi",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 3,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Geraldina Farruku",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 4,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Melisa Fezo",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 5,
+    "lectureId": 31,
+    "statusId": 2,
+    "studentName": "Klindi Fida",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 6,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Fiona Guma",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 7,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Kledisa Haka",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 8,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Rejdian Hyka",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 9,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Jurgi Kule",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 10,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Oligert Maksuti",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 11,
+    "lectureId": 31,
+    "statusId": 2,
+    "studentName": "Nelson Manxharaj",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 12,
+    "lectureId": 31,
+    "statusId": 2,
+    "studentName": "Flavio Mema",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 13,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Greta Ndoj",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 14,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Erlis Paloka",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 15,
+    "lectureId": 31,
+    "statusId": 2,
+    "studentName": "Luis Shpërdhea",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 16,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Daniel Skënderaj",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 17,
+    "lectureId": 31,
+    "statusId": 2,
+    "studentName": "Arvin Xhelilaj",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 18,
+    "lectureId": 31,
+    "statusId": 1,
+    "studentName": "Flavio Zani",
+    "className": "INF205",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 19,
+    "lectureId": 32,
+    "statusId": 2,
+    "studentName": "Andrea Abeshi",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 20,
+    "lectureId": 32,
+    "statusId": 1,
+    "studentName": "Amald Bedini",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 21,
+    "lectureId": 32,
+    "statusId": 2,
+    "studentName": "Agim Çeka",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 22,
+    "lectureId": 32,
+    "statusId": 2,
+    "studentName": "Ergis Çollaku",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 23,
+    "lectureId": 32,
+    "statusId": 2,
+    "studentName": "Rei Duçka",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 24,
+    "lectureId": 32,
+    "statusId": 2,
+    "studentName": "Melisa Gjegja",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 25,
+    "lectureId": 32,
+    "statusId": 2,
+    "studentName": "Samir Haxhiu",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 26,
+    "lectureId": 32,
+    "statusId": 1,
+    "studentName": "Kristi Kanani",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 27,
+    "lectureId": 32,
+    "statusId": 2,
+    "studentName": "Jozef Lisi",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 28,
+    "lectureId": 32,
+    "statusId": 1,
+    "studentName": "Egdar Shaqiri",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 29,
+    "lectureId": 32,
+    "statusId": 2,
+    "studentName": "Florian Shurbi",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 30,
+    "lectureId": 32,
+    "statusId": 1,
+    "studentName": "Denis Sokoli",
+    "className": "INF206",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 31,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Gerald Balla",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 32,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Eldjon Beharaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 33,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Alesia Bufi",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 34,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Esa Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 35,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Juljan Deliu",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 36,
+    "lectureId": 33,
+    "statusId": 2,
+    "studentName": "Eni Dema",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 37,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Fabian Ferhati",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 38,
+    "lectureId": 33,
+    "statusId": 2,
+    "studentName": "Aqilea Gaqos",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 39,
+    "lectureId": 33,
+    "statusId": 2,
+    "studentName": "Marjela Gjeloshaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 40,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Lorenzo Gjeloshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 41,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Vanesa Gjika",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 42,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Anisa Hajdari",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 43,
+    "lectureId": 33,
+    "statusId": 2,
+    "studentName": "Mario Hajderdhi",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 44,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Ronela Hoxha",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 45,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Klea Joana Kodhelaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 46,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Klajdi Kola",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 47,
+    "lectureId": 33,
+    "statusId": 2,
+    "studentName": "Sevastianos Korreshi",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 48,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Kristjen Kurti",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 49,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Skender Muçka",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 50,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Asel Nela",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 51,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Almedina Piranaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 52,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Albiona Qinami",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 53,
+    "lectureId": 33,
+    "statusId": 2,
+    "studentName": "Selma Qoku",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 54,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Erjon Rira",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 55,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Amelja Rrapaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 56,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Erisa Sadikaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 57,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Ertugel Saliaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 58,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Sara Shehu",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 59,
+    "lectureId": 33,
+    "statusId": 2,
+    "studentName": "Justin Shtëpani",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 60,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Amela Subashaj",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 61,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Alesjo Sula",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 62,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Olta Xhardo",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 63,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Detjon Xhepi",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 64,
+    "lectureId": 33,
+    "statusId": 1,
+    "studentName": "Klea Zhaboli",
+    "className": "Infoek202",
+    "lectureDate": "2025-11-03",
+    "subjectCode": "CIS242/B",
     "teachingType": "Seminar"
   }
 ];
