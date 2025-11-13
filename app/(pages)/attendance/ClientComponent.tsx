@@ -66,11 +66,6 @@ export default function AttendancePageClient({
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   //#endregion
 
-  // Configure locale for DateBox
-  useEffect(() => {
-    locale("sq");
-  }, []);
-
   //#region useQuery
   const {
     data: classes,
@@ -80,27 +75,27 @@ export default function AttendancePageClient({
     queryKey: ["classes", professorId],
     queryFn: async () => {
       const result = await fetchClassesIncludesLecturesAndStudents(professorId);
-      
+
       // Check if the result is an error object
       if (result && typeof result === 'object' && 'error' in result) {
         throw new Error(result.error);
       }
-      
+
       if (!Array.isArray(result)) {
         return [];
       }
-      
+
       // Transform the data to flatten lectures from teachingAssignments
       const transformedClasses = result.map((classItem: ClassWithLectures) => ({
         ...classItem,
-        lectures: classItem.teachingAssignments?.flatMap((assignment: TeachingAssignmentWithLectures) => 
+        lectures: classItem.teachingAssignments?.flatMap((assignment: TeachingAssignmentWithLectures) =>
           assignment.lectures?.map((lecture: Lecture) => ({
             ...lecture,
             subject: assignment.subject
           })) || []
         ) || []
       }));
-      
+
       return transformedClasses;
     },
     enabled: !!professorId,
@@ -119,6 +114,11 @@ export default function AttendancePageClient({
 
   //#region useEffect
   useEffect(() => {
+    // Configure locale for DateBox
+    locale("sq");
+  }, []);
+
+  useEffect(() => {
     if (attendance) {
       const sortedStudents = attendance
         .map((student) => ({
@@ -129,7 +129,7 @@ export default function AttendancePageClient({
           const surnameComparison = a.lastName.localeCompare(b.lastName);
           return surnameComparison === 0 ? a.firstName.localeCompare(b.firstName) : surnameComparison;
         });
-      
+
       setStudents(sortedStudents);
     }
   }, [attendance]);
@@ -222,10 +222,9 @@ export default function AttendancePageClient({
   if (classesError) {
     return <Alert type="error" title="Gabim në ngarkimin e klasave" message={classesError.message || "Një gabim ka ndodhur gjatë ngarkimit të klasave."} />;
   }
-
   // Ensure classes is an array before using array methods
   const classesArray = Array.isArray(classes) ? classes : [];
-  
+
   const selectedClass = classesArray.find((cls: ClassWithLectures) => cls.id === classId);
   const selectedLecture = selectedClass?.lectures?.find(
     (lecture: Lecture) => lecture.id === lectureId
@@ -237,7 +236,7 @@ export default function AttendancePageClient({
 
   // Get available lecture dates for the selected class
   const availableDates = selectedClass?.lectures?.map(lecture => new Date(lecture.date)) || [];
-  
+
   // Find lecture by date
   const findLectureByDate = (date: Date) => {
     if (!selectedClass?.lectures) return null;
@@ -275,7 +274,7 @@ export default function AttendancePageClient({
               required
             >
               <option value="">Zgjidhni një klasë...</option>
-              
+
               {bachelorClasses.length > 0 && (
                 <optgroup label="Bachelor">
                   {bachelorClasses.map((cls) => (
@@ -285,7 +284,7 @@ export default function AttendancePageClient({
                   ))}
                 </optgroup>
               )}
-              
+
               {masterClasses.length > 0 && (
                 <optgroup label="Master">
                   {masterClasses.map((cls) => (
@@ -310,8 +309,8 @@ export default function AttendancePageClient({
                 !classId
                   ? "Zgjidhni një klasë fillimisht"
                   : !selectedClass?.lectures?.length
-                  ? "Nuk ka leksione për këtë klasë"
-                  : "Zgjidhni datën e leksionit..."
+                    ? "Nuk ka leksione për këtë klasë"
+                    : "Zgjidhni datën e leksionit..."
               }
               displayFormat="dd/MM/yyyy"
               onValueChanged={(e) => {
@@ -341,7 +340,7 @@ export default function AttendancePageClient({
               min={availableDates.length > 0 ? new Date(Math.min(...availableDates.map(d => d.getTime()))) : undefined}
               max={availableDates.length > 0 ? new Date(Math.max(...availableDates.map(d => d.getTime()))) : undefined}
               disabledDates={availableDates.length > 0 ? (data: { date: Date }) => {
-                return !availableDates.some(availableDate => 
+                return !availableDates.some(availableDate =>
                   availableDate.toDateString() === data.date.toDateString()
                 );
               } : undefined}
@@ -382,7 +381,7 @@ export default function AttendancePageClient({
           ) : (
             <div className="space-y-4">
               {/* Statistics - Responsive Layout */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {/* Prezente */}
                 <div className="bg-linear-to-br from-green-50 to-green-100 p-4 sm:p-6 rounded-xl border border-green-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
                   <div className="flex flex-row items-center gap-3 sm:flex-col sm:items-center sm:gap-2 w-full">
@@ -425,6 +424,20 @@ export default function AttendancePageClient({
                     </div>
                   </div>
                 </div>
+                {/* Leje */}
+                <div className="bg-linear-to-br from-yellow-50 to-yellow-100 p-4 sm:p-6 rounded-xl border border-yellow-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
+                  <div className="flex flex-row items-center gap-3 sm:flex-col sm:items-center sm:gap-2 w-full">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-200 rounded-full flex items-center justify-center mr-2 sm:mr-0">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col items-start sm:items-center">
+                      <div className="text-2xl sm:text-3xl font-bold text-yellow-700">{students.filter(s => s.status.name === 'LEAVE').length}</div>
+                      <div className="text-xs sm:text-sm font-medium text-yellow-600 mt-1">Leje</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Students Grid/Cards */}
@@ -449,9 +462,9 @@ export default function AttendancePageClient({
                               <span>{student.firstName} {student.lastName}</span>
                               {student.memo && (
                                 <div className="group relative inline-block">
-                                  <svg 
-                                    className="w-4 h-4 text-indigo-500 cursor-help" 
-                                    fill="currentColor" 
+                                  <svg
+                                    className="w-4 h-4 text-indigo-500 cursor-help"
+                                    fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
                                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -482,12 +495,12 @@ export default function AttendancePageClient({
                       <label className="block text-xs font-medium text-gray-700 mb-2">
                         Statusi i Prezencës
                       </label>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.PRESENT)}
                           className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'PRESENT'
-                              ? 'border-green-500 bg-green-50 shadow-sm'
-                              : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                            ? 'border-green-500 bg-green-50 shadow-sm'
+                            : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
                             }`}
                         >
                           <svg className={`w-6 h-6 mb-1 ${student.status.name === 'PRESENT' ? 'text-green-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -501,8 +514,8 @@ export default function AttendancePageClient({
                         <button
                           onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.ABSENT)}
                           className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'ABSENT'
-                              ? 'border-red-500 bg-red-50 shadow-sm'
-                              : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
+                            ? 'border-red-500 bg-red-50 shadow-sm'
+                            : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
                             }`}
                         >
                           <svg className={`w-6 h-6 mb-1 ${student.status.name === 'ABSENT' ? 'text-red-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -516,8 +529,8 @@ export default function AttendancePageClient({
                         <button
                           onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.PARTICIPATED)}
                           className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'PARTICIPATED'
-                              ? 'border-blue-500 bg-blue-50 shadow-sm'
-                              : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                            ? 'border-blue-500 bg-blue-50 shadow-sm'
+                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                             }`}
                         >
                           <svg className={`w-6 h-6 mb-1 ${student.status.name === 'PARTICIPATED' ? 'text-blue-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -525,6 +538,21 @@ export default function AttendancePageClient({
                           </svg>
                           <span className={`text-xs font-medium ${student.status.name === 'PARTICIPATED' ? 'text-blue-700' : 'text-gray-600'}`}>
                             Aktiv
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={() => handleStatusChange(student.id, ATTENDANCE_STATUS.LEAVE)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${student.status.name === 'LEAVE'
+                            ? 'border-yellow-500 bg-yellow-50 shadow-sm'
+                            : 'border-gray-200 hover:border-yellow-300 hover:bg-yellow-50'
+                            }`}
+                        >
+                          <svg className={`w-6 h-6 mb-1 ${student.status.name === 'LEAVE' ? 'text-yellow-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span className={`text-xs font-medium ${student.status.name === 'LEAVE' ? 'text-yellow-700' : 'text-gray-600'}`}>
+                            Leje
                           </span>
                         </button>
                       </div>
