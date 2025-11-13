@@ -44,7 +44,7 @@ interface LectureWithRowData {
       name: string;
     };
   };
-  attendance?: Array<{ status: string }>;
+  attendance?: Array<{ id: number; status?: { id: number; name: string } }>;
   rowNumber: number;
   professorName: string;
   subjectName: string;
@@ -136,9 +136,9 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
           return `${day}/${month}/${year}`;
         })(),
         attendanceCount: lecture.attendance?.length || 0,
-        presentCount: lecture.attendance?.filter((a: { status: string }) => a.status === "PRESENT").length || 0,
-        participatedCount: lecture.attendance?.filter((a: { status: string }) => a.status === "PARTICIPATED").length || 0,
-        absentCount: lecture.attendance?.filter((a: { status: string }) => a.status === "ABSENT").length || 0,
+        presentCount: lecture.attendance?.filter((a) => a.status?.name === "PRESENT").length || 0,
+        participatedCount: lecture.attendance?.filter((a) => a.status?.name === "PARTICIPATED").length || 0,
+        absentCount: lecture.attendance?.filter((a) => a.status?.name === "ABSENT").length || 0,
         hasAttendance: (lecture.attendance?.length || 0) > 0,
         // Keep the original flat structure for compatibility with EditLectureForm
         professor: lecture.teachingAssignment.professor,
