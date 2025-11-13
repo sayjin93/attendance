@@ -298,11 +298,13 @@ export interface StudentReport {
   totalLectures: number;
   attendedLectures: number;
   participatedLectures: number;
+  leaveLectures: number;
   attendancePercentage: number;
   passedLectures: boolean;
   totalSeminars: number;
   attendedSeminars: number;
   participatedSeminars: number;
+  leaveSeminars: number;
   seminarPercentage: number;
   passedSeminars: boolean;
   overallPassed: boolean;

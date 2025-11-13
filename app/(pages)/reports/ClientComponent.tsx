@@ -130,12 +130,14 @@ export default function ReportsPageClient({
       // Table
       autoTable(doc, {
         startY: 85,
-        head: [["Studenti", "Leksione (%)", "Aktiv.(L)", "Seminare (%)", "Aktiv.(S)", "Statusi"]],
+        head: [["Studenti", "Leksione (%)", "Leje (L)", "Aktiv.(L)", "Seminare (%)", "Leje (S)", "Aktiv.(S)", "Statusi"]],
         body: students.map((s: StudentReport) => [
           `${s.firstName} ${s.lastName}`,
           `${s.attendancePercentage.toFixed(1)}%`,
+          (s.leaveLectures || 0).toString(),
           s.participatedLectures.toString(),
           `${s.seminarPercentage.toFixed(1)}%`,
+          (s.leaveSeminars || 0).toString(),
           s.participatedSeminars.toString(),
           s.overallPassed ? "KALOI" : "NK"
         ]),
@@ -331,9 +333,7 @@ export default function ReportsPageClient({
             <Skeleton times={1} rootCls="h-8 w-16 mx-auto mb-2" />
 
           </div>
-        ) : students.length === 0 ? (
-          <Alert title="Zgjidh programin, klasën dhe lëndën për të parë raportin e studentëve." />
-        ) : (
+        ) :  (
           <CommonDataGrid
             dataSource={students}
             onExporting={onExporting}
@@ -385,6 +385,16 @@ export default function ReportsPageClient({
               )}
             />
             <Column
+              dataField="leaveLectures"
+              caption="📅 Leje (L)"
+              alignment="center"
+              cellRender={(data) => (
+                <span className="px-2 py-1 rounded text-sm bg-yellow-100 text-yellow-800">
+                  {data.data.leaveLectures || 0}
+                </span>
+              )}
+            />
+            <Column
               dataField="participatedLectures"
               caption="⭐ Aktivizime (L)"
               alignment="center"
@@ -410,6 +420,16 @@ export default function ReportsPageClient({
                     {data.data.attendedSeminars}/{data.data.totalSeminars}
                   </div>
                 </div>
+              )}
+            />
+            <Column
+              dataField="leaveSeminars"
+              caption="📅 Leje (S)"
+              alignment="center"
+              cellRender={(data) => (
+                <span className="px-2 py-1 rounded text-sm bg-yellow-100 text-yellow-800">
+                  {data.data.leaveSeminars || 0}
+                </span>
               )}
             />
             <Column

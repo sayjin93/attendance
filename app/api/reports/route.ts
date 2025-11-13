@@ -201,6 +201,8 @@ export async function GET(request: Request) {
         let totalSeminars = 0;
         let attendedSeminars = 0;
         let participatedSeminars = 0;
+        let leaveLectures = 0;
+        let leaveSeminars = 0;
 
         // Group lectures by assignment type
         assignments.forEach(assignment => {
@@ -223,6 +225,7 @@ export async function GET(request: Request) {
                 // LEAVE (Leje) should not count as absence - exclude it from total
                 if (studentAttendance.status.name === "LEAVE") {
                   totalLectures--; // Don't count this lecture in the total
+                  leaveLectures++; // Count the leave
                 } else if (studentAttendance.status.name === "PRESENT" || studentAttendance.status.name === "PARTICIPATED") {
                   attendedLectures++;
                 }
@@ -236,6 +239,7 @@ export async function GET(request: Request) {
                 // LEAVE (Leje) should not count as absence - exclude it from total
                 if (studentAttendance.status.name === "LEAVE") {
                   totalSeminars--; // Don't count this seminar in the total
+                  leaveSeminars++; // Count the leave
                 } else if (studentAttendance.status.name === "PRESENT" || studentAttendance.status.name === "PARTICIPATED") {
                   attendedSeminars++;
                 }
@@ -267,11 +271,13 @@ export async function GET(request: Request) {
           totalLectures,
           attendedLectures,
           participatedLectures,
+          leaveLectures,
           attendancePercentage,
           passedLectures,
           totalSeminars,
           attendedSeminars,
           participatedSeminars,
+          leaveSeminars,
           seminarPercentage,
           passedSeminars,
           overallPassed
