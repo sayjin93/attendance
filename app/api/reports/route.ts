@@ -220,7 +220,10 @@ export async function GET(request: Request) {
             if (isLecture) {
               totalLectures++;
               if (studentAttendance) {
-                if (studentAttendance.status.name === "PRESENT" || studentAttendance.status.name === "PARTICIPATED") {
+                // LEAVE (Leje) should not count as absence - exclude it from total
+                if (studentAttendance.status.name === "LEAVE") {
+                  totalLectures--; // Don't count this lecture in the total
+                } else if (studentAttendance.status.name === "PRESENT" || studentAttendance.status.name === "PARTICIPATED") {
                   attendedLectures++;
                 }
                 if (studentAttendance.status.name === "PARTICIPATED") {
@@ -230,7 +233,10 @@ export async function GET(request: Request) {
             } else if (isSeminar) {
               totalSeminars++;
               if (studentAttendance) {
-                if (studentAttendance.status.name === "PRESENT" || studentAttendance.status.name === "PARTICIPATED") {
+                // LEAVE (Leje) should not count as absence - exclude it from total
+                if (studentAttendance.status.name === "LEAVE") {
+                  totalSeminars--; // Don't count this seminar in the total
+                } else if (studentAttendance.status.name === "PRESENT" || studentAttendance.status.name === "PARTICIPATED") {
                   attendedSeminars++;
                 }
                 if (studentAttendance.status.name === "PARTICIPATED") {
