@@ -24,11 +24,11 @@ export default function LecturesPageClient() {
 
   if (isLoading) return <Loader />;
   if (error) {
-    return <Alert type="error" title="D�shtoi ngarkimi i leksioneve!" />;
+    return <Alert type="error" title="Dështoi ngarkimi i leksioneve!" />;
   }
 
   if (!data) {
-    return <Alert type="warning" title="Nuk ka t� dh�na t� disponueshme." />;
+    return <Alert type="warning" title="Nuk ka të dhëna të disponueshme." />;
   }
 
   return (
