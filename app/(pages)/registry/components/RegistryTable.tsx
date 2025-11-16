@@ -1,9 +1,14 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { Column, DataGridTypes } from "devextreme-react/data-grid";
+import { Workbook } from "exceljs";
+import saveAs from "file-saver";
+import { exportDataGrid } from "devextreme/excel_exporter";
 import Card from "../../../../components/ui/Card";
+import CommonDataGrid from "../../../../components/ui/CommonDataGrid";
 import Tooltip from "../../../../components/ui/Tooltip";
 
 interface Program {
@@ -57,6 +62,28 @@ interface StudentRegistryRow {
   status: 'NK' | 'OK';
 }
 
+interface AttendanceData {
+  text: string;
+  status: string;
+}
+
+interface GridRowData {
+  id: string;
+  rowNumber: number;
+  studentName: string;
+  studentMemo?: string | null;
+  status: string;
+  absenceCount: number;
+  totalLectures: number;
+  absencePercentage: number;
+  [key: string]: string | number | AttendanceData | null | undefined;
+}
+
+interface CellRenderData {
+  value: string | AttendanceData | null | undefined;
+  data: GridRowData;
+}
+
 interface RegistryTableProps {
   programs: Program[];
   professors: Professor[];
@@ -91,83 +118,181 @@ const RegistryTable = ({
     });
   }, []);
 
-  // PDF Export function - memoized to prevent rerenders
-  const downloadPDF = useCallback(() => {
-    if (!registryRows.length || !lectures.length) return;
+  // Transform data for DataGrid - memoized to prevent rerenders
+  const gridData = useMemo(() => {
+    return registryRows.map((row: StudentRegistryRow, index: number) => {
+      const gridRow: GridRowData = {
+        id: row.student.id,
+        rowNumber: index + 1,
+        studentName: `${row.student.firstName} ${row.student.lastName}`,
+        studentMemo: row.student.memo,
+        status: row.status,
+        absenceCount: row.absenceCount,
+        totalLectures: row.totalLectures,
+        absencePercentage: row.absencePercentage,
+      };
 
-    const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation for better table fit
-
-    // Title
-    doc.setFontSize(16);
-    doc.text('Regjistri i Prezencës', 20, 20);
-
-    // Find program from selected class
-    const selectedProgram = programs.find((p: Program) => p.id === selectedClass?.programId);
-
-    // Metadata
-    doc.setFontSize(12);
-    doc.text(`Programi: ${selectedProgram?.name || ''}`, 20, 35);
-    doc.text(`Klasa: ${selectedClass?.name || ''}`, 20, 45);
-    doc.text(`Lënda: ${selectedSubject?.code} - ${selectedSubject?.name || ''}`, 20, 55);
-    doc.text(`Tipi: ${selectedType?.name || ''}`, 20, 65);
-
-    // Always show professor name (either selected admin professor or current professor)
-    const professorName = isAdminUser && selectedProfessor
-      ? `${selectedProfessor.firstName} ${selectedProfessor.lastName}`
-      : professors.length > 0
-        ? `${professors[0].firstName} ${professors[0].lastName}`
-        : 'N/A';
-    doc.text(`Profesori: ${professorName}`, 20, 75);
-
-    // Prepare table data
-    const tableHead = [
-      'Studenti',
-      ...lectures.map((lecture: Lecture) => formatDate(lecture.date)),
-      'Statusi'
-    ];
-
-    const tableBody = registryRows.map((row: StudentRegistryRow) => [
-      `${row.student.firstName} ${row.student.lastName}`,
-      ...lectures.map((lecture: Lecture) => {
+      // Add attendance data for each lecture
+      lectures.forEach((lecture: Lecture) => {
         const status = row.attendanceByLecture[lecture.id];
-        if (status?.name === 'ABSENT') return 'm';
-        if (status?.name === 'PARTICIPATED') return '+';
-        if (status?.name === 'LEAVE') return 'L';
-        if (status?.name === 'PRESENT') return '';
-        return '-';
-      }),
-      row.status
-    ]);
+        let displayText = '';
 
-    // Add table
-    autoTable(doc, {
-      startY: 85,
-      head: [tableHead],
-      body: tableBody,
-      styles: {
-        fontSize: 8,
-        cellPadding: 2,
-      },
-      headStyles: {
-        fillColor: [71, 85, 105],
-        textColor: [255, 255, 255],
-        fontSize: 9,
-      },
-      columnStyles: {
-        0: { minCellWidth: 30 }, // Student name column
-        [tableHead.length - 1]: { minCellWidth: 15 }, // Status column
-      },
+        if (status?.name === 'ABSENT') displayText = 'm';
+        else if (status?.name === 'PARTICIPATED') displayText = '+';
+        else if (status?.name === 'LEAVE') displayText = 'L';
+        else if (status?.name === 'PRESENT') displayText = '';
+        else displayText = '-';
+
+        gridRow[`lecture_${lecture.id}`] = {
+          text: displayText,
+          status: status?.name || 'NOT_RECORDED'
+        };
+      });
+
+      return gridRow;
     });
+  }, [registryRows, lectures]);
 
-    // Generate filename
-    const programName = selectedProgram?.name || 'Program';
-    const className = selectedClass?.name || 'Klasa';
-    const subjectCode = selectedSubject?.code || 'Lenda';
-    const typeName = selectedType?.name || 'Tipi';
-    const fileName = `Regjistri_${programName}_${className}_${subjectCode}_${typeName}.pdf`;
+  // Export function (handles both PDF and Excel)
+  const onExporting = useCallback((e: DataGridTypes.ExportingEvent) => {
+    if (e.format === 'pdf') {
+      e.cancel = true; // Cancel default PDF export
 
-    doc.save(fileName);
-  }, [registryRows, lectures, programs, selectedClass, selectedSubject, selectedType, selectedProfessor, isAdminUser, professors, formatDate]);
+      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation for better table fit
+
+      // Title
+      doc.setFontSize(16);
+      doc.text('Regjistri i Prezencës', 20, 20);
+
+      // Find program from selected class
+      const selectedProgram = programs.find((p: Program) => p.id === selectedClass?.programId);
+
+      // Metadata
+      doc.setFontSize(12);
+      doc.text(`Programi: ${selectedProgram?.name || ''}`, 20, 35);
+      doc.text(`Klasa: ${selectedClass?.name || ''}`, 20, 45);
+      doc.text(`Lënda: ${selectedSubject?.code} - ${selectedSubject?.name || ''}`, 20, 55);
+      doc.text(`Tipi: ${selectedType?.name || ''}`, 20, 65);
+
+      // Always show professor name (either selected admin professor or current professor)
+      const professorName = isAdminUser && selectedProfessor
+        ? `${selectedProfessor.firstName} ${selectedProfessor.lastName}`
+        : professors.length > 0
+          ? `${professors[0].firstName} ${professors[0].lastName}`
+          : 'N/A';
+      doc.text(`Profesori: ${professorName}`, 20, 75);
+
+      // Prepare table data
+      const tableHead = [
+        'Studenti',
+        ...lectures.map((lecture: Lecture) => formatDate(lecture.date)),
+        'Statusi'
+      ];
+
+      const tableBody = registryRows.map((row: StudentRegistryRow) => [
+        `${row.student.firstName} ${row.student.lastName}`,
+        ...lectures.map((lecture: Lecture) => {
+          const status = row.attendanceByLecture[lecture.id];
+          if (status?.name === 'ABSENT') return 'm';
+          if (status?.name === 'PARTICIPATED') return '+';
+          if (status?.name === 'LEAVE') return 'L';
+          if (status?.name === 'PRESENT') return '';
+          return '-';
+        }),
+        row.status
+      ]);
+
+      // Add table
+      autoTable(doc, {
+        startY: 85,
+        head: [tableHead],
+        body: tableBody,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+        },
+        headStyles: {
+          fillColor: [71, 85, 105],
+          textColor: [255, 255, 255],
+          fontSize: 9,
+        },
+        columnStyles: {
+          0: { minCellWidth: 30 }, // Student name column
+          [tableHead.length - 1]: { minCellWidth: 15 }, // Status column
+        },
+      });
+
+      // Generate filename
+      const programName = selectedProgram?.name || 'Program';
+      const className = selectedClass?.name || 'Klasa';
+      const subjectCode = selectedSubject?.code || 'Lenda';
+      const typeName = selectedType?.name || 'Tipi';
+      const fileName = `Regjistri_${programName}_${className}_${subjectCode}_${typeName}.pdf`;
+
+      doc.save(fileName);
+    } else if (e.format === 'xlsx') {
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet('Registry');
+
+      exportDataGrid({
+        component: e.component,
+        worksheet,
+        autoFilterEnabled: true,
+      }).then(() => {
+        // Find program from selected class
+        const selectedProgram = programs.find((p: Program) => p.id === selectedClass?.programId);
+        const programName = selectedProgram?.name || 'Program';
+        const className = selectedClass?.name || 'Klasa';
+        const subjectCode = selectedSubject?.code || 'Lenda';
+        const typeName = selectedType?.name || 'Tipi';
+        const fileName = `Regjistri_${programName}_${className}_${subjectCode}_${typeName}.xlsx`;
+
+        workbook.xlsx.writeBuffer().then((buffer) => {
+          saveAs(
+            new Blob([buffer], { type: 'application/octet-stream' }),
+            fileName
+          );
+        });
+      });
+      e.cancel = true;
+    }
+  }, [programs, selectedClass, selectedSubject, selectedType, selectedProfessor, isAdminUser, professors, registryRows, lectures, formatDate]);
+
+  // Custom cell render functions
+  const renderStudentCell = useCallback((data: CellRenderData) => {
+    return (
+      <div className="flex items-center gap-2">
+        <span>{data.value as string}</span>
+        {data.data.studentMemo && (
+          <Tooltip content={data.data.studentMemo} />
+        )}
+      </div>
+    );
+  }, []);
+
+  const renderAttendanceCell = useCallback((data: CellRenderData) => {
+    const attendance = data.value as AttendanceData;
+    if (!attendance) return <span className="text-gray-400">-</span>;
+
+    let className = "font-bold ";
+    // if (attendance.status === 'ABSENT') className += "text-red-600";
+    if (attendance.status === 'PARTICIPATED') className += "text-green-600";
+    else if (attendance.status === 'LEAVE') className += "text-yellow-600";
+    else className += "font-normal text-black-600";
+
+    return <span className={className}>{attendance.text}</span>;
+  }, []);
+
+  const renderStatusCell = useCallback((data: CellRenderData) => {
+    const status = data.value as string;
+    const isNK = status === 'NK';
+    if (!isNK) return <span></span>;
+    return (
+      <span className="text-red-600 font-bold">
+        {status}
+      </span>
+    );
+  }, []);
 
   return (
     <div className="relative">
@@ -184,87 +309,58 @@ const RegistryTable = ({
         </div>
       )}
       <Card title={`Regjistri - ${selectedClass?.name} - ${selectedSubject?.code} - ${selectedType?.name}${isAdminUser ? ` - ${selectedProfessor?.firstName} ${selectedProfessor?.lastName}` : ""}`}>
-        {/* Export button */}
-        <div className="mb-4 flex justify-end">
-          <button
-            onClick={downloadPDF}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Shkarko regjistrën në PDF
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-300">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="border border-gray-300 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Studenti
-                </th>
-                {lectures.map((lecture: Lecture) => (
-                  <th
-                    key={lecture.id}
-                    className="border border-gray-300 px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    style={{ minWidth: '60px' }}
-                  >
-                    {formatDate(lecture.date)}
-                  </th>
-                ))}
-                <th className="border border-gray-300 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Statusi
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {registryRows.map((row: StudentRegistryRow) => (
-                <tr key={row.student.id} className="hover:bg-gray-50">
-                  <td className="border border-gray-300 px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                    <div className="flex items-center gap-2">
-                      <span>{row.student.firstName} {row.student.lastName}</span>
-                      {row.student.memo && (
-                        <Tooltip content={row.student.memo} />
-                      )}
-                    </div>
-                  </td>
-                  {lectures.map((lecture: Lecture) => {
-                    const status = row.attendanceByLecture[lecture.id];
-                    let displayText = '';
-                    let cellClass = 'border border-gray-300 px-2 py-2 text-center text-sm';
+        <CommonDataGrid
+          dataSource={gridData}
+          keyExpr="id"
+          onExporting={onExporting}
+          storageKey="registryTable"
+          showRowNumber={false}
+          wordWrapEnabled={false}
+          columnChooser={{ enabled: false }}
+        >
+          {/* Student Name Column */}
+          <Column
+            dataField="studentName"
+            caption="Studenti"
+            cellRender={renderStudentCell}
+            minWidth={200}
+            fixed={true}
+            fixedPosition="left"
+          />
 
-                    if (status?.name === 'ABSENT') {
-                      displayText = 'm';
-                      cellClass += ' text-red-600 font-bold';
-                    } else if (status?.name === 'PARTICIPATED') {
-                      displayText = '+';
-                      cellClass += ' text-green-600 font-bold';
-                    } else if (status?.name === 'LEAVE') {
-                      displayText = 'L';
-                      cellClass += ' text-yellow-600 font-bold';
-                    } else if (status?.name === 'PRESENT') {
-                      displayText = '';
-                      cellClass += ' text-gray-400';
-                    } else {
-                      displayText = '-';
-                      cellClass += ' text-gray-400';
-                    }
+          {/* Lecture Date Columns */}
+          {lectures.map((lecture: Lecture) => (
+            <Column
+              key={lecture.id}
+              dataField={`lecture_${lecture.id}`}
+              caption={formatDate(lecture.date)}
+              cellRender={renderAttendanceCell}
+              width={60}
+              alignment="center"
+              allowSorting={false}
+              allowFiltering={false}
+              allowGrouping={false}
+              customizeText={(data) => {
+                const attendance = data.value as AttendanceData;
+                return attendance ? attendance.text : '-';
+              }}
+            />
+          ))}
 
-                    return (
-                      <td key={lecture.id} className={cellClass}>
-                        {displayText}
-                      </td>
-                    );
-                  })}
-                  <td className={`border border-gray-300 px-4 py-2 text-center text-sm font-bold ${row.status === 'NK' ? 'text-red-600' : 'text-green-600'
-                    }`}>
-                    {row.status}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          {/* Status Column */}
+          <Column
+            dataField="status"
+            caption="Statusi"
+            cellRender={renderStatusCell}
+            width={100}
+            alignment="center"
+            fixed={true}
+            fixedPosition="right"
+            customizeText={(data) => {
+              return data.value === 'NK' ? 'NK' : '';
+            }}
+          />
+        </CommonDataGrid>
 
         {/* Legend */}
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -275,7 +371,7 @@ const RegistryTable = ({
               <span>Prezent</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="w-4 h-4 border border-gray-300 bg-white text-red-600 font-bold flex items-center justify-center">m</span>
+              <span className="w-4 h-4 border border-gray-300 bg-white text-black-600 font-bold flex items-center justify-center">m</span>
               <span>Mungon</span>
             </div>
             <div className="flex items-center gap-1">
