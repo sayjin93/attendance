@@ -317,6 +317,7 @@ const RegistryTable = ({
           showRowNumber={false}
           wordWrapEnabled={false}
           columnChooser={{ enabled: false }}
+          paging={{ pageSize: 100 }}
         >
           {/* Student Name Column */}
           <Column

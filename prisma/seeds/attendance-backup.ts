@@ -1,4 +1,4 @@
-// Attendance Backup - Generated on 2025-11-16T02:24:47.190Z
+// Attendance Backup - Generated on 2025-11-16T02:26:15.283Z
 // Total records: 944
 
 import { PrismaClient } from '@prisma/client';
@@ -1099,7 +1099,7 @@ export const attendanceData: AttendanceBackup[] = [
     "studentId": 173,
     "lectureId": 3,
     "statusId": 1,
-    "studentName": "Bora Leola",
+    "studentName": "Leola Bora",
     "className": "MSH1INFB",
     "lectureDate": "2025-11-08",
     "subjectCode": "CIS518",
@@ -2839,7 +2839,7 @@ export const attendanceData: AttendanceBackup[] = [
     "studentId": 173,
     "lectureId": 9,
     "statusId": 1,
-    "studentName": "Bora Leola",
+    "studentName": "Leola Bora",
     "className": "MSH1INFB",
     "lectureDate": "2025-11-01",
     "subjectCode": "CIS518",
@@ -4579,7 +4579,7 @@ export const attendanceData: AttendanceBackup[] = [
     "studentId": 173,
     "lectureId": 15,
     "statusId": 1,
-    "studentName": "Bora Leola",
+    "studentName": "Leola Bora",
     "className": "MSH1INFB",
     "lectureDate": "2025-10-25",
     "subjectCode": "CIS518",
@@ -8999,7 +8999,7 @@ export const attendanceData: AttendanceBackup[] = [
     "studentId": 173,
     "lectureId": 38,
     "statusId": 1,
-    "studentName": "Bora Leola",
+    "studentName": "Leola Bora",
     "className": "MSH1INFB",
     "lectureDate": "2025-11-15",
     "subjectCode": "CIS518",
