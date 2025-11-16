@@ -104,7 +104,7 @@ export async function seedStudentsMSH1INFA() {
       phone: "0694204827",
       orderId: 10,
       classId: 12,
-      memo:"Ref. Sueda Fetah"
+      memo: "Ref. Sueda Fetah"
     },
     {
       firstName: "Livia",
@@ -514,6 +514,16 @@ export async function seedStudentsMSH1INFA() {
       personalEmail: "erisbionatutaj@gmail.com",
       phone: "0676936563",
       orderId: 51,
+      classId: 12
+    },
+    {
+      firstName: "Armir",
+      father: "",
+      lastName: "Smajlaj",
+      institutionEmail: "asmajlaj3@uet.edu.al",
+      personalEmail: "",
+      phone: "",
+      orderId: 52,
       classId: 12
     },
   ];

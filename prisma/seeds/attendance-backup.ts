@@ -1,5 +1,5 @@
-// Attendance Backup - Generated on 2025-11-16T02:50:04.779Z
-// Total records: 992
+// Attendance Backup - Generated on 2025-11-16T03:06:26.758Z
+// Total records: 1013
 
 import { PrismaClient } from '@prisma/client';
 
@@ -1569,7 +1569,7 @@ export const attendanceData: AttendanceBackup[] = [
     "studentId": 221,
     "lectureId": 4,
     "statusId": 2,
-    "studentName": "Geraldo Cela",
+    "studentName": "Geraldo Çela",
     "className": "MSH1TI",
     "lectureDate": "2025-11-08",
     "subjectCode": "CIS518",
@@ -3299,7 +3299,7 @@ export const attendanceData: AttendanceBackup[] = [
     "studentId": 221,
     "lectureId": 10,
     "statusId": 2,
-    "studentName": "Geraldo Cela",
+    "studentName": "Geraldo Çela",
     "className": "MSH1TI",
     "lectureDate": "2025-11-01",
     "subjectCode": "CIS518",
@@ -5029,7 +5029,7 @@ export const attendanceData: AttendanceBackup[] = [
     "studentId": 221,
     "lectureId": 16,
     "statusId": 2,
-    "studentName": "Geraldo Cela",
+    "studentName": "Geraldo Çela",
     "className": "MSH1TI",
     "lectureDate": "2025-10-25",
     "subjectCode": "CIS518",
@@ -9931,6 +9931,216 @@ export const attendanceData: AttendanceBackup[] = [
     "statusId": 1,
     "studentName": "Erisbiona Tutaj",
     "className": "MSH1INFA",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 239,
+    "lectureId": 39,
+    "statusId": 1,
+    "studentName": "Armir Smajlaj",
+    "className": "MSH1INFA",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 219,
+    "lectureId": 40,
+    "statusId": 2,
+    "studentName": "Arlind Balla",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 220,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Arbi Çangu",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 221,
+    "lectureId": 40,
+    "statusId": 2,
+    "studentName": "Geraldo Çela",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 222,
+    "lectureId": 40,
+    "statusId": 2,
+    "studentName": "Griselda Cura",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 223,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Ergita Curri",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 224,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Robert Feinaj",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 225,
+    "lectureId": 40,
+    "statusId": 2,
+    "studentName": "Bleona Gazulli",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 226,
+    "lectureId": 40,
+    "statusId": 2,
+    "studentName": "Ermal Imeraj",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 227,
+    "lectureId": 40,
+    "statusId": 2,
+    "studentName": "Horges Kaca",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 228,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Xhoalina Karasani",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 229,
+    "lectureId": 40,
+    "statusId": 2,
+    "studentName": "Redjon Lleshaj",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 230,
+    "lectureId": 40,
+    "statusId": 2,
+    "studentName": "Ergi Mankollari",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 231,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Arsa Picari",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 232,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Frenklin Saliasi",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 233,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Luiza Sula",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 234,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Xhoilda Vuksanaj",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 235,
+    "lectureId": 40,
+    "statusId": 1,
+    "studentName": "Endrit Zharri",
+    "className": "MSH1TI",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 236,
+    "lectureId": 41,
+    "statusId": 1,
+    "studentName": "Elvis Dylgjeri",
+    "className": "MSH2INF",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 237,
+    "lectureId": 41,
+    "statusId": 2,
+    "studentName": "Korab Kuçi",
+    "className": "MSH2INF",
+    "lectureDate": "2025-11-15",
+    "subjectCode": "CIS518",
+    "teachingType": "Seminar"
+  },
+  {
+    "studentId": 238,
+    "lectureId": 43,
+    "statusId": 1,
+    "studentName": "Mario Lipo",
+    "className": "MSH2TI",
     "lectureDate": "2025-11-15",
     "subjectCode": "CIS518",
     "teachingType": "Seminar"

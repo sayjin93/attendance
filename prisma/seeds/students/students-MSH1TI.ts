@@ -28,7 +28,7 @@ export async function seedStudentsMSH1TI() {
     {
       firstName: "Geraldo",
       father: "Lorenc",
-      lastName: "Cela",
+      lastName: "Çela",
       institutionEmail: "gcela@uet.edu.al",
       personalEmail: "gercelacela@gmail.com",
       phone: "0695348998",
