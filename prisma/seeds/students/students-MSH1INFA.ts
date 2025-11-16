@@ -459,7 +459,7 @@ export async function seedStudentsMSH1INFA() {
     {
       firstName: "Aurora",
       father: "Martin",
-      lastName: "Reci",
+      lastName: "Reçi",
       institutionEmail: "areci8@uet.edu.al",
       personalEmail: "aurora.reci@yahoo.com",
       phone: "0693955313",
@@ -516,16 +516,6 @@ export async function seedStudentsMSH1INFA() {
       orderId: 51,
       classId: 12
     },
-    {
-      firstName: "Kujtime",
-      father: "Adrian",
-      lastName: "Xhediku",
-      institutionEmail: "kxhediku@uet.edu.al",
-      personalEmail: "xhedikukujtime@gmail.com",
-      phone: "0682146161",
-      orderId: 52,
-      classId: 12
-    }
   ];
 
   await prisma.student.createMany({
