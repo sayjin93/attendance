@@ -14,6 +14,14 @@ import { Workbook } from "exceljs";
 import saveAs from "file-saver";
 import { exportDataGrid } from "devextreme/excel_exporter";
 
+// Helper function to get current month's first and last day
+const getCurrentMonthRange = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return { firstDay, lastDay };
+};
+
 interface ActivityLog {
     id: number;
     userId: number;
@@ -64,8 +72,10 @@ export default function ClientComponent() {
     // Filters
     const [entityFilter, setEntityFilter] = useState("all");
     const [actionFilter, setActionFilter] = useState("all");
-    const [startDate, setStartDate] = useState<Date | null>(null);
-    const [endDate, setEndDate] = useState<Date | null>(null);
+    const { firstDay, lastDay } = getCurrentMonthRange();
+    const [startDate, setStartDate] = useState<Date | null>(firstDay);
+    const [endDate, setEndDate] = useState<Date | null>(lastDay);
+    const [showAll, setShowAll] = useState(false);
 
     const { showMessage } = useNotify();
 
@@ -79,8 +89,12 @@ export default function ClientComponent() {
 
             if (entityFilter !== "all") params.append("entity", entityFilter);
             if (actionFilter !== "all") params.append("action", actionFilter);
-            if (startDate) params.append("startDate", startDate.toISOString());
-            if (endDate) params.append("endDate", endDate.toISOString());
+            if (showAll) {
+                params.append("showAll", "true");
+            } else {
+                if (startDate) params.append("startDate", startDate.toISOString());
+                if (endDate) params.append("endDate", endDate.toISOString());
+            }
 
             const response = await fetch(`/api/logs?${params.toString()}`);
 
@@ -106,7 +120,7 @@ export default function ClientComponent() {
     useEffect(() => {
         fetchLogs();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pagination.page, pagination.limit]);
+    }, [pagination.page, pagination.limit, showAll]);
 
     const handleApplyFilters = () => {
         setPagination((prev) => ({ ...prev, page: 1 }));
@@ -116,8 +130,18 @@ export default function ClientComponent() {
     const handleClearFilters = () => {
         setEntityFilter("all");
         setActionFilter("all");
+        const { firstDay, lastDay } = getCurrentMonthRange();
+        setStartDate(firstDay);
+        setEndDate(lastDay);
+        setShowAll(false);
+        setPagination((prev) => ({ ...prev, page: 1 }));
+        setTimeout(() => fetchLogs(), 100);
+    };
+
+    const handleShowAll = () => {
         setStartDate(null);
         setEndDate(null);
+        setShowAll(true);
         setPagination((prev) => ({ ...prev, page: 1 }));
         setTimeout(() => fetchLogs(), 100);
     };
@@ -261,6 +285,12 @@ export default function ClientComponent() {
                         type="normal"
                         onClick={handleClearFilters}
                         icon="clear"
+                    />
+                    <Button
+                        text={showAll ? "Muaji Aktual" : "Shfaq Të Gjitha"}
+                        type="normal"
+                        onClick={showAll ? handleClearFilters : handleShowAll}
+                        icon={showAll ? "event" : "showpanel"}
                     />
                 </div>
 

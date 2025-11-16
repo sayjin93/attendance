@@ -4,6 +4,7 @@ import { memo, useCallback } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Card from "../../../../components/ui/Card";
+import Tooltip from "../../../../components/ui/Tooltip";
 
 interface Program {
   id: string;
@@ -69,7 +70,7 @@ interface RegistryTableProps {
   isLoading: boolean;
 }
 
-const RegistryTable = memo(function RegistryTable({
+const RegistryTable = ({
   programs,
   professors,
   lectures,
@@ -80,7 +81,7 @@ const RegistryTable = memo(function RegistryTable({
   selectedProfessor,
   isAdminUser,
   isLoading,
-}: RegistryTableProps) {
+}: RegistryTableProps) => {
   // Format date helper - memoized to prevent rerenders
   const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
@@ -95,25 +96,25 @@ const RegistryTable = memo(function RegistryTable({
     if (!registryRows.length || !lectures.length) return;
 
     const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation for better table fit
-    
+
     // Title
     doc.setFontSize(16);
     doc.text('Regjistri i Prezencës', 20, 20);
 
     // Find program from selected class
     const selectedProgram = programs.find((p: Program) => p.id === selectedClass?.programId);
-    
+
     // Metadata
     doc.setFontSize(12);
     doc.text(`Programi: ${selectedProgram?.name || ''}`, 20, 35);
     doc.text(`Klasa: ${selectedClass?.name || ''}`, 20, 45);
     doc.text(`Lënda: ${selectedSubject?.code} - ${selectedSubject?.name || ''}`, 20, 55);
     doc.text(`Tipi: ${selectedType?.name || ''}`, 20, 65);
-    
+
     // Always show professor name (either selected admin professor or current professor)
-    const professorName = isAdminUser && selectedProfessor 
+    const professorName = isAdminUser && selectedProfessor
       ? `${selectedProfessor.firstName} ${selectedProfessor.lastName}`
-      : professors.length > 0 
+      : professors.length > 0
         ? `${professors[0].firstName} ${professors[0].lastName}`
         : 'N/A';
     doc.text(`Profesori: ${professorName}`, 20, 75);
@@ -164,7 +165,7 @@ const RegistryTable = memo(function RegistryTable({
     const subjectCode = selectedSubject?.code || 'Lenda';
     const typeName = selectedType?.name || 'Tipi';
     const fileName = `Regjistri_${programName}_${className}_${subjectCode}_${typeName}.pdf`;
-    
+
     doc.save(fileName);
   }, [registryRows, lectures, programs, selectedClass, selectedSubject, selectedType, selectedProfessor, isAdminUser, professors, formatDate]);
 
@@ -223,19 +224,7 @@ const RegistryTable = memo(function RegistryTable({
                     <div className="flex items-center gap-2">
                       <span>{row.student.firstName} {row.student.lastName}</span>
                       {row.student.memo && (
-                        <div className="group relative inline-block">
-                          <svg 
-                            className="w-4 h-4 text-indigo-500 cursor-help" 
-                            fill="currentColor" 
-                            viewBox="0 0 20 20"
-                          >
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                          </svg>
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none print:hidden">
-                            {row.student.memo}
-                            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                          </div>
-                        </div>
+                        <Tooltip content={row.student.memo} />
                       )}
                     </div>
                   </td>
@@ -243,7 +232,7 @@ const RegistryTable = memo(function RegistryTable({
                     const status = row.attendanceByLecture[lecture.id];
                     let displayText = '';
                     let cellClass = 'border border-gray-300 px-2 py-2 text-center text-sm';
-                    
+
                     if (status?.name === 'ABSENT') {
                       displayText = 'm';
                       cellClass += ' text-red-600 font-bold';
@@ -260,16 +249,15 @@ const RegistryTable = memo(function RegistryTable({
                       displayText = '-';
                       cellClass += ' text-gray-400';
                     }
-                    
+
                     return (
                       <td key={lecture.id} className={cellClass}>
                         {displayText}
                       </td>
                     );
                   })}
-                  <td className={`border border-gray-300 px-4 py-2 text-center text-sm font-bold ${
-                    row.status === 'NK' ? 'text-red-600' : 'text-green-600'
-                  }`}>
+                  <td className={`border border-gray-300 px-4 py-2 text-center text-sm font-bold ${row.status === 'NK' ? 'text-red-600' : 'text-green-600'
+                    }`}>
                     {row.status}
                   </td>
                 </tr>
@@ -311,6 +299,6 @@ const RegistryTable = memo(function RegistryTable({
       </Card>
     </div>
   );
-});
+};
 
-export default RegistryTable;
+export default memo(RegistryTable);

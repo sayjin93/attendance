@@ -13,6 +13,7 @@ import Alert from "../../../components/ui/Alert";
 import Card from "../../../components/ui/Card";
 import CommonDataGrid from "../../../components/ui/CommonDataGrid";
 import Skeleton from "../../../components/ui/Skeleton";
+import Tooltip from "../../../components/ui/Tooltip";
 import { useNotify } from "../../../contexts/NotifyContext";
 import { fetchReportData, fetchClassesByProfessor } from "../../../hooks/fetchFunctions";
 import {
@@ -119,7 +120,7 @@ export default function ReportsPageClient({
         // Left column
         doc.text(`Total Studentë: ${reportData.summary.totalStudents}`, 20, 60);
         doc.text(`Prezenca Mesatare: ${reportData.summary.averageAttendance.toFixed(1)}%`, 20, 70);
-        
+
         // Right column
         const pageWidth = doc.internal.pageSize.width;
         const rightColumnX = pageWidth / 2 + 10;
@@ -156,11 +157,11 @@ export default function ReportsPageClient({
       titleRow.value = 'Raporti i Prezencës';
       titleRow.font = { size: 16, bold: true };
       titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
-      
+
       // Add metadata
       worksheet.getCell('A3').value = `Klasa: ${className || 'Të gjitha'}${program ? ` (${program})` : ''}`;
       worksheet.getCell('A4').value = `Lënda: ${subject || 'Të gjitha'}`;
-      
+
       // Add summary in two columns
       if (reportData?.summary) {
         worksheet.getCell('A6').value = `Total Studentë: ${reportData.summary.totalStudents}`;
@@ -333,7 +334,7 @@ export default function ReportsPageClient({
             <Skeleton times={1} rootCls="h-8 w-16 mx-auto mb-2" />
 
           </div>
-        ) :  (
+        ) : (
           <CommonDataGrid
             dataSource={students}
             onExporting={onExporting}
@@ -349,19 +350,7 @@ export default function ReportsPageClient({
                 <div className="flex items-center gap-2">
                   <span>{data.data.firstName} {data.data.lastName}</span>
                   {data.data.memo && (
-                    <div className="group relative inline-block">
-                      <svg
-                        className="w-4 h-4 text-indigo-500 cursor-help"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none print:hidden">
-                        {data.data.memo}
-                        <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                      </div>
-                    </div>
+                    <Tooltip content={data.data.memo} />
                   )}
                 </div>
               )}

@@ -185,7 +185,10 @@ export async function GET(request: Request) {
       const studentsData = await prisma.student.findMany({
         where: { classId: parseInt(classId) },
         select: { id: true, firstName: true, lastName: true, memo: true },
-        orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }]
+        orderBy: [
+          { firstName: 'asc' },
+          { lastName: 'asc' }
+        ]
       });
 
       students = studentsData.map(s => ({

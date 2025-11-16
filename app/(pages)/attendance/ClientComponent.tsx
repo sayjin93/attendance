@@ -30,6 +30,7 @@ import Loader from "@/components/ui/Loader";
 import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
 import CommonDataGrid from "@/components/ui/CommonDataGrid";
+import Tooltip from "@/components/ui/Tooltip";
 
 interface TeachingAssignmentWithLectures {
   id: number;
@@ -128,8 +129,8 @@ export default function AttendancePageClient({
           status: student.status || DEFAULT_STATUS, // Default status
         }))
         .sort((a, b) => {
-          const surnameComparison = a.lastName.localeCompare(b.lastName);
-          return surnameComparison === 0 ? a.firstName.localeCompare(b.firstName) : surnameComparison;
+          const firstNameComparison = a.firstName.localeCompare(b.firstName);
+          return firstNameComparison === 0 ? a.lastName.localeCompare(b.lastName) : firstNameComparison;
         })
         .map((student, index) => ({
           ...student,
@@ -278,19 +279,7 @@ export default function AttendancePageClient({
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-900">{student.firstName} {student.lastName}</span>
           {student.memo && (
-            <div className="group relative inline-block">
-              <svg
-                className="w-4 h-4 text-indigo-500 cursor-help"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none">
-                {student.memo}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-              </div>
-            </div>
+            <Tooltip content={student.memo} />
           )}
           {student.status.name === 'PARTICIPATED' && (
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -553,6 +542,8 @@ export default function AttendancePageClient({
                   showRowNumber={true}
                   keyExpr="id"
                   paging={{ pageSize: 100 }}
+                  columnChooser={{ enabled: false }}
+                  selection={{ mode: "none" }}
                 >
                   <Column
                     dataField="firstName"

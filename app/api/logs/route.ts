@@ -25,6 +25,7 @@ export async function GET(req: Request) {
     const userId = searchParams.get("userId");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
+    const showAll = searchParams.get("showAll") === "true"; // Allow bypassing default month filter
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "50");
 
@@ -44,15 +45,29 @@ export async function GET(req: Request) {
       whereClause.userId = parseInt(userId);
     }
 
-    if (startDate || endDate) {
+    // Default to current month if no date filters are provided (unless showAll is true)
+    if (startDate || endDate || (!startDate && !endDate && !showAll)) {
       whereClause.createdAt = {};
+      
       if (startDate) {
         whereClause.createdAt.gte = new Date(startDate);
+      } else if (!startDate && !endDate && !showAll) {
+        // Default to first day of current month
+        const now = new Date();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        whereClause.createdAt.gte = firstDayOfMonth;
       }
+      
       if (endDate) {
         const endDateTime = new Date(endDate);
         endDateTime.setHours(23, 59, 59, 999);
         whereClause.createdAt.lte = endDateTime;
+      } else if (!startDate && !endDate && !showAll) {
+        // Default to last day of current month
+        const now = new Date();
+        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        lastDayOfMonth.setHours(23, 59, 59, 999);
+        whereClause.createdAt.lte = lastDayOfMonth;
       }
     }
 
