@@ -35,7 +35,7 @@ export async function seedStudentsMSH1IE() {
     { firstName: "Klevis", lastName: "Kosiqi", institutionEmail: "kkosiqi@uet.edu.al", father: "Ndriçim", personalEmail: "kosiqiklevis0@gmail.com", phone: "0685050170", orderId: 28, classId: 11 },
     { firstName: "Eriola", lastName: "Lala", institutionEmail: "elala12@uet.edu.al", father: "Edlir", personalEmail: "eriolalala05@gmail.com", phone: "0692298256", orderId: 29, classId: 11 },
     { firstName: "Mateo", lastName: "Lala", institutionEmail: "mlala5@uet.edu.al", father: "Bashkim", personalEmail: "mateolala54@gmail.com", phone: "0688017418", orderId: 30, classId: 11 },
-    { firstName: "Klejvin", lastName: "Lataj", institutionEmail: "klataj@uet.edu.al", father: "Bilbil", personalEmail: "klejvinlataj18@gmail.com", phone: "0693040688", orderId: 31, classId: 11 },
+    { firstName: "Klejvin", lastName: "Lalaj", institutionEmail: "klalaj@uet.edu.al", father: "Bilbil", personalEmail: "klejvinlalaj18@gmail.com", phone: "0693040688", orderId: 31, classId: 11 },
     { firstName: "Manuela", lastName: "Manuka", institutionEmail: "mmanuka@uet.edu.al", father: "Murat", personalEmail: "marina.manukaa@gmail.com", phone: "0683230859", orderId: 32, classId: 11 },
     { firstName: "Esmeraldo", lastName: "Mema", institutionEmail: "emema21@uet.edu.al", father: "Bledar", personalEmail: "nbigthing220@gmail.com", phone: "0696666174", orderId: 33, classId: 11 },
     { firstName: "Bora", lastName: "Mino", institutionEmail: "bmino3@uet.edu.al", father: "Avenir", personalEmail: "bora.mino29@gmail.com", phone: "0693520662", orderId: 34, classId: 11 },

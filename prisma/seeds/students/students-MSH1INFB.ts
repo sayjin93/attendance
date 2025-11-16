@@ -230,7 +230,7 @@ export async function seedStudentsMSH1INFB() {
     {
       firstName: "Kristina",
       father: "Vasil",
-      lastName: "Nicaj",
+      lastName: "Niçaj",
       institutionEmail: "knicaj@uet.edu.al",
       personalEmail: "kristinanicaj19@gmail.com",
       phone: "0692072133",
@@ -290,7 +290,7 @@ export async function seedStudentsMSH1INFB() {
     {
       firstName: "Aljon",
       father: "Artur",
-      lastName: "Pocari",
+      lastName: "Poçari",
       institutionEmail: "apocari@uet.edu.al",
       personalEmail: "aljonpocari0@gmail.com",
       phone: "0699731181",
@@ -350,7 +350,7 @@ export async function seedStudentsMSH1INFB() {
     {
       firstName: "Kevin",
       father: "Anesti",
-      lastName: "Shembitraku",
+      lastName: "Shëmbitraku",
       institutionEmail: "kshembitraku@uet.edu.al",
       personalEmail: "kevinshembitraku@gmail.com",
       phone: "0692707878",
@@ -368,7 +368,7 @@ export async function seedStudentsMSH1INFB() {
       classId: 13
     },
     {
-      firstName: "Ivion",
+      firstName: "Ivjon",
       father: "Ilir",
       lastName: "Subashi",
       institutionEmail: "isubashi3@uet.edu.al",
@@ -420,7 +420,7 @@ export async function seedStudentsMSH1INFB() {
     {
       firstName: "Enisa",
       father: "Mirvet",
-      lastName: "Toci",
+      lastName: "Toçi",
       institutionEmail: "etoci3@uet.edu.al",
       personalEmail: "enisatoci2@gmail.com",
       phone: "0677154787",
