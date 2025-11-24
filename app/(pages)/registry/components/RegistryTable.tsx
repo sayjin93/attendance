@@ -385,7 +385,7 @@ const RegistryTable = ({
             </div>
             <div className="flex items-center gap-1">
               <span className="px-2 py-1 bg-red-100 text-red-600 font-bold rounded text-xs">NK</span>
-              <span>Nuk kaloni (Leksion: {'>'}50% mungesa, Seminar: {'>'}25% mungesa)</span>
+              <span>Nuk kalon (Leksion: {'>'}50% mungesa, Seminar: {'>'}25% mungesa)</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="px-2 py-1 bg-green-100 text-green-600 font-bold rounded text-xs">OK</span>

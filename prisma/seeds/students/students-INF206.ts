@@ -124,6 +124,16 @@ export async function seedStudentsINF206() {
       phone: "0694883813",
       orderId: 12,
       classId: 6
+    },
+    {
+      firstName: "Alfons",
+      father: "Albert",
+      lastName: "Tuga",
+      institutionEmail: "	atuga1@uet.edu.al",
+      personalEmail: "",
+      phone: "",
+      orderId: 13,
+      classId: 6
     }
   ];
 
