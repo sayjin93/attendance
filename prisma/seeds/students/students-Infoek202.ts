@@ -345,6 +345,15 @@ export async function seedStudentsInfoek202() {
       orderId: 34,
       classId: 8,
       memo: "Kushërira Misit"
+    },{
+      firstName: "Irakli",
+      father: "",
+      lastName: "Mitro",
+      institutionEmail: "imitro@uet.edu.al",
+      personalEmail: "",
+      phone: "",
+      orderId: 35,
+      classId: 8,
     }
   ];
 
