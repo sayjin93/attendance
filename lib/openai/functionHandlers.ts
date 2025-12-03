@@ -648,7 +648,6 @@ export async function markAttendance(
     where: {
       name: {
         equals: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(),
-        mode: 'insensitive',
       },
     },
   });
@@ -754,7 +753,6 @@ export async function updateAttendance(
     where: {
       name: {
         equals: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(),
-        mode: 'insensitive',
       },
     },
   });
