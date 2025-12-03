@@ -70,12 +70,24 @@ export default function AIAgentChat() {
         setMessages((prev) => [...prev, loadingMessage]);
 
         try {
-            // Call your AI agent API
-            const response = await fetch('/api/ai-agent', {
+            // Call the new AI chat API with OpenAI function calling
+            const response = await fetch('/api/ai-chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text }),
+                body: JSON.stringify({ 
+                    messages: messages
+                        .filter(m => m.role !== 'system' || m.id === '1') // Keep only the initial system message
+                        .map(m => ({
+                            role: m.role,
+                            content: m.content
+                        }))
+                        .concat([{ role: 'user', content: text }])
+                }),
             });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
 
             const data = await response.json();
 
