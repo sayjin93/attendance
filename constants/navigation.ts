@@ -10,6 +10,7 @@ import {
   AcademicCapIcon,
   TableCellsIcon,
   DocumentTextIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 
 export interface NavigationItem {
@@ -58,6 +59,7 @@ const navigationItems: NavigationCategory[] = [
   {
     category: "SISTEMI",
     items: [
+      { name: "AI Assistant", href: "/ai-assistant", icon: SparklesIcon },
       { name: "Activity Logs", href: "/logs", icon: DocumentTextIcon, adminOnly: true },
     ]
   }
