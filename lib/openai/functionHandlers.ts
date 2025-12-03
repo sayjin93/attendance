@@ -89,7 +89,6 @@ export async function getStudents(params: {
     email: s.institutionEmail,
     class: s.class.name,
     program: s.class.program.name,
-    createdAt: s.createdAt,
   }));
 }
 
