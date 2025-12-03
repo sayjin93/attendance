@@ -42,7 +42,7 @@ Ekzekuton operacionin në database
 ```
 "Trego studentët në Infoek202"
 "Create lecture for Web Development tomorrow"
-"Shëno john.doe@example.com prezent sot"
+"Shëno John Doe prezent sot"
 "What's the attendance rate for Infoek202?"
 ```
 

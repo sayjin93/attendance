@@ -31,7 +31,7 @@ export default function AIAgentChat() {
         'List students in Infoek202',
         'Show me today\'s lectures',
         'Create lecture for Web Development in Infoek202 tomorrow',
-        'Mark john.doe@example.com present in Web Development lecture today',
+        'Mark John Doe present in Web Development lecture today',
         'Delete Web Development lecture for Infoek202 from yesterday',
     ];
 
@@ -241,9 +241,9 @@ export default function AIAgentChat() {
             )}
 
             {/* Input */}
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-end gap-2">
-                    <div className="flex-1 relative">
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2">
+                    <div className="flex flex-1 relative align-center">
                         <textarea
                             ref={inputRef}
                             value={input}
@@ -252,14 +252,14 @@ export default function AIAgentChat() {
                             placeholder="Ask me anything about the attendance system..."
                             disabled={isProcessing}
                             rows={1}
-                            className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50"
                             style={{ minHeight: '48px', maxHeight: '120px' }}
                         />
                     </div>
                     <button
                         onClick={() => handleSendMessage()}
                         disabled={!input.trim() || isProcessing}
-                        className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                        className="px-4 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-h-12"
                     >
                         {isProcessing ? (
                             <svg
@@ -284,7 +284,7 @@ export default function AIAgentChat() {
                             </svg>
                         ) : (
                             <svg
-                                className="w-5 h-5"
+                                className="w-5 h-5 transform rotate-90"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
