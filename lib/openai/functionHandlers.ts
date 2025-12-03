@@ -65,7 +65,8 @@ export async function getStudents(params: {
               OR: [
                 { firstName: { contains: searchQuery } },
                 { lastName: { contains: searchQuery } },
-                { email: { contains: searchQuery } },
+                { institutionEmail: { contains: searchQuery } },
+                { personalEmail: { contains: searchQuery } },
               ],
             }
           : {},
@@ -85,7 +86,7 @@ export async function getStudents(params: {
     id: s.id,
     firstName: s.firstName,
     lastName: s.lastName,
-    email: s.email,
+    email: s.institutionEmail,
     class: s.class.name,
     program: s.class.program.name,
     createdAt: s.createdAt,
@@ -100,7 +101,7 @@ export async function getStudentDetails(params: { studentId?: number; email?: st
   }
 
   const student = await prisma.student.findFirst({
-    where: studentId ? { id: studentId } : { email },
+    where: studentId ? { id: studentId } : { institutionEmail: email },
     include: {
       class: {
         include: {
@@ -138,7 +139,7 @@ export async function getStudentDetails(params: { studentId?: number; email?: st
     id: student.id,
     firstName: student.firstName,
     lastName: student.lastName,
-    email: student.email,
+    email: student.institutionEmail,
     class: student.class.name,
     program: student.class.program.name,
     recentAttendance: student.attendance.map((a: typeof student.attendance[number]) => ({
@@ -195,7 +196,7 @@ export async function getClassDetails(params: { className?: string; classId?: nu
           id: true,
           firstName: true,
           lastName: true,
-          email: true,
+          institutionEmail: true,
         },
         take: 100,
       },
@@ -594,7 +595,7 @@ export async function markAttendance(
 
   // Find student
   const student = await prisma.student.findFirst({
-    where: { email: studentEmail },
+    where: { institutionEmail: studentEmail },
   });
 
   if (!student) {
