@@ -250,7 +250,6 @@ export async function getSubjects(params: { searchQuery?: string }) {
     id: s.id,
     name: s.name,
     code: s.code,
-    credits: s.credits,
     assignmentsCount: s._count.teachingAssignments,
   }));
 }
@@ -398,7 +397,7 @@ export async function getLectureAttendance(params: { lectureId: number }) {
     attendance: lecture.attendance.map((a: typeof lecture.attendance[number]) => ({
       id: a.id,
       student: `${a.student.firstName} ${a.student.lastName}`,
-      email: a.student.email,
+      email: a.student.institutionEmail,
       status: a.status.name,
     })),
   };
