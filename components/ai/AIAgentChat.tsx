@@ -103,6 +103,7 @@ export default function AIAgentChat() {
     const [input, setInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(true);
+    const [isMounted, setIsMounted] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -118,6 +119,10 @@ export default function AIAgentChat() {
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     useEffect(() => {
         scrollToBottom();
@@ -290,10 +295,12 @@ export default function AIAgentChat() {
                                                     : 'text-gray-500 dark:text-gray-400'
                                                 }`}
                                         >
-                                            {message.timestamp.toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                            })}
+                                            {isMounted
+                                                ? message.timestamp.toLocaleTimeString([], {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                })
+                                                : '\u00A0'}
                                         </p>
                                     </>
                                 )}
