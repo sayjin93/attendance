@@ -123,12 +123,13 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#endregion
 
   //#region functions
+  const classCount = classes?.length ?? 0;
   const onExporting = useMemo(() => createExportHandler({
     title: "Lista e Klasave",
-    subtitle: `Gjithsej ${classes?.length || 0} klas${classes?.length !== 1 ? "a" : "ë"}`,
+    subtitle: `Gjithsej ${classCount} klas${classCount !== 1 ? "a" : "ë"}`,
     fileName: "Klasat",
     columnWidths: [15, 30, 70, 20, 20],
-  }), [classes?.length]);
+  }), [classCount]);
 
   const handleDeleteClass = () => {
     if (deletingClass) {

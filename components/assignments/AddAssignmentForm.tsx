@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 //contexts
@@ -47,12 +47,6 @@ export default function AddAssignmentForm({
   );
   //#endregion
 
-  //#region effects
-  // Reset subject and class when program changes
-  useEffect(() => {
-    setSubjectId(0);
-    setClassId(0);
-  }, [programId]);
   //#endregion
 
   //#region mutations
@@ -115,7 +109,7 @@ export default function AddAssignmentForm({
         {/* Dropdown për zgjedhjen e programit */}
         <select
           value={programId}
-          onChange={(e) => setProgramId(Number(e.target.value))}
+          onChange={(e) => { setProgramId(Number(e.target.value)); setSubjectId(0); setClassId(0); }}
           className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
         >
           <option value={0} disabled>

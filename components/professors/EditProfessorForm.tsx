@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 //types
@@ -14,23 +14,11 @@ export default function EditProfessorForm({ professor, onClose }: EditProfessorF
   //#endregion
 
   //#region states
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState(professor?.firstName ?? "");
+  const [lastName, setLastName] = useState(professor?.lastName ?? "");
+  const [email, setEmail] = useState(professor?.email ?? "");
+  const [username, setUsername] = useState(professor?.username ?? "");
   const [password, setPassword] = useState("");
-  //#endregion
-
-  //#region effects
-  useEffect(() => {
-    if (professor) {
-      setFirstName(professor.firstName);
-      setLastName(professor.lastName);
-      setEmail(professor.email);
-      setUsername(professor.username);
-      setPassword(""); // Don't pre-fill password
-    }
-  }, [professor]);
   //#endregion
 
   //#region mutations

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useId, useMemo, useCallback } from "react";
+import { useState, useId, useMemo, useCallback } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import {
@@ -44,30 +44,25 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   //#endregion
 
   //#region states
-  const [classId, setClassId] = useState<number>(0);
-  const [programId, setProgramId] = useState<number>(0);
+  const [classId, setClassId] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('selectedClassId');
+      if (saved) { localStorage.removeItem('selectedClassId'); return parseInt(saved); }
+    }
+    return 0;
+  });
+  const [programId, setProgramId] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('selectedProgramId');
+      if (saved) { localStorage.removeItem('selectedProgramId'); return parseInt(saved); }
+    }
+    return 0;
+  });
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [deletingMultipleStudents, setDeletingMultipleStudents] = useState<boolean>(false);
   const [showAddStudentForm, setShowAddStudentForm] = useState(false);
-
-  // Check localStorage for pre-selected program and class (from classes page navigation)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedProgramId = localStorage.getItem('selectedProgramId');
-      const savedClassId = localStorage.getItem('selectedClassId');
-
-      if (savedProgramId && savedClassId) {
-        setProgramId(parseInt(savedProgramId));
-        setClassId(parseInt(savedClassId));
-
-        // Clear the saved values after using them
-        localStorage.removeItem('selectedProgramId');
-        localStorage.removeItem('selectedClassId');
-      }
-    }
-  }, []);
   //#endregion
 
   //#region useQuery

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Alert from "../../../components/ui/Alert";
 import Skeleton from "../../../components/ui/Skeleton";
@@ -111,6 +111,9 @@ export default function RegistryPageClient({
 
     const handleClassChange = useCallback((value: string) => {
         setSelectedClassId(value);
+        // Reset dependent selections that may become invalid with the new class
+        setSelectedSubjectId("");
+        setSelectedTypeId("");
         // Invalidate table data so stale cache is not reused for the new class
         queryClient.removeQueries({ queryKey: ["registry-table"] });
     }, [queryClient]);
@@ -134,16 +137,7 @@ export default function RegistryPageClient({
     const lectures = registryData?.lectures || [];
     const registryRows = registryData?.registryRows || [];
 
-    // After filter data updates for a new class, clear invalid subject/type selections
-    useEffect(() => {
-        if (!selectedClassId) return;
-        if (selectedSubjectId && subjects.length > 0 && !subjects.some((s: RegistrySubject) => s.id === selectedSubjectId)) {
-            setSelectedSubjectId("");
-            setSelectedTypeId("");
-        } else if (selectedTypeId && types.length > 0 && !types.some((t: RegistryTeachingType) => t.id === selectedTypeId)) {
-            setSelectedTypeId("");
-        }
-    }, [subjects, types, selectedClassId, selectedSubjectId, selectedTypeId]);
+
 
     // Selected items
     const selectedClass = classes.find((c: RegistryClass) => c.id === selectedClassId);

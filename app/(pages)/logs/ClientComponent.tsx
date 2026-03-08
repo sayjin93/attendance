@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Column } from "devextreme-react/data-grid";
 import type { ExportingEvent } from "devextreme/ui/data_grid";
 import { SelectBox } from "devextreme-react/select-box";
@@ -79,6 +79,8 @@ export default function ClientComponent() {
 
     const { showMessage } = useNotify();
 
+    const fetchLogsRef = useRef<(() => Promise<void>) | null>(null);
+
     const fetchLogs = async () => {
         try {
             setLoading(true);
@@ -117,8 +119,10 @@ export default function ClientComponent() {
         }
     };
 
+    fetchLogsRef.current = fetchLogs;
+
     useEffect(() => {
-        fetchLogs();
+        fetchLogsRef.current?.();
     }, [pagination.page, pagination.limit, showAll]);
 
     const handleApplyFilters = () => {

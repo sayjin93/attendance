@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
@@ -59,10 +59,23 @@ export default function AttendancePageClient({
   //#endregion
 
   //#region states
-  const [classId, setClassId] = useState<number | null>(null);
-  const [lectureId, setLectureId] = useState<number | null>(null);
-  const [students, setStudents] = useState<AttendanceRecord[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [classId, setClassId] = useState<number | null>(() => {
+    // Initialize from URL parameter (avoids setState-in-effect)
+    if (typeof window !== 'undefined') {
+      const urlClassId = searchParams.get("classId");
+      return urlClassId ? parseInt(urlClassId, 10) : null;
+    }
+    return null;
+  });
+  const [lectureId, setLectureId] = useState<number | null>(() => {
+    if (typeof window !== 'undefined') {
+      const urlLectureId = searchParams.get("lectureId");
+      return urlLectureId ? parseInt(urlLectureId, 10) : null;
+    }
+    return null;
+  });
+  const [statusOverrides, setStatusOverrides] = useState<Record<number, { id: number; name: string }>>({});
+  const [prevAttendance, setPrevAttendance] = useState<AttendanceRecord[] | undefined>(undefined);
   //#endregion
 
   //#region useQuery
@@ -115,89 +128,78 @@ export default function AttendancePageClient({
   });
   //#endregion
 
+  //#region derived state
+  // When attendance data changes, reset status overrides (React-recommended pattern)
+  if (attendance !== prevAttendance) {
+    setPrevAttendance(attendance);
+    if (Object.keys(statusOverrides).length > 0) {
+      setStatusOverrides({});
+    }
+  }
+
+  // Derive students from attendance data + local status overrides
+  const students = useMemo(() => {
+    if (!attendance) return [];
+    return attendance
+      .map((student) => ({
+        ...student,
+        status: statusOverrides[student.id] ?? student.status ?? DEFAULT_STATUS,
+      }))
+      .sort((a, b) => {
+        const firstNameComparison = a.firstName.localeCompare(b.firstName);
+        return firstNameComparison === 0 ? a.lastName.localeCompare(b.lastName) : firstNameComparison;
+      })
+      .map((student, index) => ({
+        ...student,
+        rowNumber: index + 1,
+      }));
+  }, [attendance, statusOverrides]);
+  //#endregion
+
   //#region useEffect
   useEffect(() => {
     // Configure locale for DateBox
     locale("sq");
   }, []);
 
-  useEffect(() => {
-    if (attendance) {
-      const sortedStudents = attendance
-        .map((student) => ({
-          ...student,
-          status: student.status || DEFAULT_STATUS, // Default status
-        }))
-        .sort((a, b) => {
-          const firstNameComparison = a.firstName.localeCompare(b.firstName);
-          return firstNameComparison === 0 ? a.lastName.localeCompare(b.lastName) : firstNameComparison;
-        })
-        .map((student, index) => ({
-          ...student,
-          rowNumber: index + 1
-        }));
+  // Validate URL params against loaded classes (render-time one-shot)
+  const [classesValidated, setClassesValidated] = useState(false);
+  if (!classesValidated && Array.isArray(classes) && classes.length > 0) {
+    setClassesValidated(true);
 
-      setStudents(sortedStudents);
-    }
-  }, [attendance]);
-
-  // Reset lecture when class changes
-  useEffect(() => {
-    setLectureId(null);
-    setSelectedDate(null);
-    setStudents([]);
-  }, [classId]);
-
-  // Initialize from URL parameters
-  useEffect(() => {
     const urlClassId = searchParams.get("classId");
     const urlLectureId = searchParams.get("lectureId");
 
-    if (urlClassId && !classId) {
-      setClassId(parseInt(urlClassId, 10));
-    }
-    if (urlLectureId && !lectureId) {
-      setLectureId(parseInt(urlLectureId, 10));
-    }
-  }, [searchParams, classId, lectureId]);
+    if (urlClassId) {
+      const parsedClassId = parseInt(urlClassId, 10);
+      const classExists = classes.find(c => c.id === parsedClassId);
+      if (classExists && classId !== parsedClassId) {
+        setClassId(parsedClassId);
 
-  // Ensure selections are valid when classes load
-  useEffect(() => {
-    if (Array.isArray(classes) && classes.length > 0) {
-      const urlClassId = searchParams.get("classId");
-      const urlLectureId = searchParams.get("lectureId");
-
-      if (urlClassId && classes) {
-        const parsedClassId = parseInt(urlClassId, 10);
-        const classExists = classes.find(c => c.id === parsedClassId);
-        if (classExists && classId !== parsedClassId) {
-          setClassId(parsedClassId);
-
-          if (urlLectureId) {
-            const parsedLectureId = parseInt(urlLectureId, 10);
-            const lectureExists = classExists.lectures?.find(l => l.id === parsedLectureId);
-            if (lectureExists && lectureId !== parsedLectureId) {
-              setLectureId(parsedLectureId);
-              setSelectedDate(new Date(lectureExists.date));
-            }
+        if (urlLectureId) {
+          const parsedLectureId = parseInt(urlLectureId, 10);
+          const lectureExists = classExists.lectures?.find(l => l.id === parsedLectureId);
+          if (lectureExists) {
+            setLectureId(parsedLectureId);
           }
         }
       }
     }
+  }
 
-    // Sync selectedDate when lectureId changes (after component updates)
+  // Derive selectedDate from lectureId + classes (no need for separate state)
+  const selectedDate = useMemo(() => {
     if (lectureId && classes) {
       const currentClass = classes.find(c => c.id === classId);
       if (currentClass?.lectures) {
         const lecture = currentClass.lectures.find(l => l.id === lectureId);
         if (lecture) {
-          setSelectedDate(new Date(lecture.date));
+          return new Date(lecture.date);
         }
       }
-    } else if (!lectureId) {
-      setSelectedDate(null);
     }
-  }, [classes, searchParams, lectureId]);
+    return null;
+  }, [lectureId, classes, classId]);
   //#endregion
 
   //#region mutations
@@ -252,15 +254,11 @@ export default function AttendancePageClient({
     });
   };
 
-  // Get current selected date for the DateBox (derived from selectedDate or current lecture)
-  const currentSelectedDate = selectedDate || (selectedLecture ? new Date(selectedLecture.date) : null);
+  // selectedDate is derived from lectureId + classes via useMemo
+  const currentSelectedDate = selectedDate;
 
   const handleStatusChange = (studentId: number, status: { id: number; name: string }) => {
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === studentId ? { ...s, status } : s
-      )
-    );
+    setStatusOverrides((prev) => ({ ...prev, [studentId]: status }));
   };
 
   // Render cell functions for DataGrid
@@ -362,7 +360,12 @@ export default function AttendancePageClient({
             </label>
             <select
               value={classId || ""}
-              onChange={(e) => setClassId(e.target.value ? parseInt(e.target.value) : null)}
+              onChange={(e) => {
+                const newClassId = e.target.value ? parseInt(e.target.value) : null;
+                setClassId(newClassId);
+                setLectureId(null);
+                setStatusOverrides({});
+              }}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             >
@@ -410,14 +413,12 @@ export default function AttendancePageClient({
                 if (e.value) {
                   const date = e.value instanceof Date ? e.value : new Date(e.value);
                   if (!isNaN(date.getTime())) {
-                    setSelectedDate(date);
                     const lecture = findLectureByDate(date);
                     if (lecture) {
                       setLectureId(lecture.id);
                     }
                   }
                 } else {
-                  setSelectedDate(null);
                   setLectureId(null);
                 }
               }}
