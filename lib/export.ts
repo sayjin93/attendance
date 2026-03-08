@@ -54,6 +54,7 @@ function exportToPdf(
   exportDataGridToPdf({
     jsPDFDocument: doc,
     component: e.component,
+    selectedRowsOnly: e.selectedRowsOnly,
     indent: 5,
     topLeft: { x: 10, y: topOffset },
     ...(columnWidths && { columnWidths }),
@@ -100,6 +101,7 @@ function exportToExcel(e: DataGridTypes.ExportingEvent, fileName: string) {
   exportDataGridToExcel({
     component: e.component,
     worksheet,
+    selectedRowsOnly: e.selectedRowsOnly,
     autoFilterEnabled: true,
   }).then(() => {
     workbook.xlsx.writeBuffer().then((buffer) => {

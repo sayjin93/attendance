@@ -16,6 +16,7 @@ const COLUMN_FIXING = {
     }
 };
 const EXPORT_CONFIG = { enabled: true, allowExportSelectedData: true, formats: ["xlsx", "pdf"] };
+const EXPORT_CONFIG_NO_SELECTION = { enabled: true, allowExportSelectedData: false, formats: ["xlsx", "pdf"] };
 const GROUPING = {
     texts: {
         groupByThisColumn: "Grupo sipas kësaj kolone",
@@ -86,6 +87,9 @@ const CommonDataGrid = React.forwardRef<CommonDataGridHandle, CommonDataGridProp
         },
     }));
 
+    const resolvedSelection = selection ?? DEFAULT_SELECTION;
+    const hasSelection = resolvedSelection.mode !== "none";
+
     const pagingConfig = useMemo(
         () => (paging ? { ...DEFAULT_PAGING, ...paging } : DEFAULT_PAGING),
         [paging]
@@ -105,7 +109,7 @@ const CommonDataGrid = React.forwardRef<CommonDataGridHandle, CommonDataGridProp
             columnChooser={columnChooser ?? DEFAULT_COLUMN_CHOOSER}
             columnFixing={COLUMN_FIXING}
             dataSource={dataSource}
-            {...(onExporting && { export: EXPORT_CONFIG })}
+            {...(onExporting && { export: hasSelection ? EXPORT_CONFIG : EXPORT_CONFIG_NO_SELECTION })}
             grouping={GROUPING}
             groupPanel={GROUP_PANEL}
             headerFilter={HEADER_FILTER}
@@ -120,7 +124,7 @@ const CommonDataGrid = React.forwardRef<CommonDataGridHandle, CommonDataGridProp
             repaintChangesOnly={true}
             rowAlternationEnabled={true}
             searchPanel={SEARCH_PANEL}
-            selection={selection ?? DEFAULT_SELECTION}
+            selection={resolvedSelection}
             showBorders={true}
             showColumnLines={true}
             showRowLines={true}
