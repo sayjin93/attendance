@@ -1,6 +1,6 @@
 # 🤖 AI Assistant - OpenAI Function Calling
 
-AI Assistant për sistemin e prezencës që përdor OpenAI GPT-4 me Function Calling për operacione CRUD të avancuara.
+AI Assistant për sistemin e prezencës që përdor OpenAI GPT-4 me Function Calling për query dhe raporte.
 
 ## 🚀 Setup (5 minuta)
 
@@ -34,16 +34,17 @@ GPT-4 kupton qëllimin tuaj
     ↓
 Zgjedh automatikisht funksionin e duhur
     ↓
-Ekzekuton operacionin në database
-    ↓ Kthen përgjigje në gjuhë natyrale
+Merr të dhënat nga database
+    ↓
+Kthen përgjigje në gjuhë natyrale
 ```
 
 **Shembuj:**
 ```
 "Trego studentët në Infoek202"
-"Create lecture for Web Development tomorrow"
-"Shëno John Doe prezent sot"
-"What's the attendance rate for Infoek202?"
+"Sa mungesa ka studenti X ?"
+"Datat kur ka munguar studenti X ?"
+"Nxirr listen NK per klasen ... per lenden ... per seminaret"
 ```
 
 ## 📋 Operacionet e Disponueshme
@@ -51,27 +52,24 @@ Ekzekuton operacionin në database
 ### 📊 Query (Shikimi i të dhënave)
 - System statistics - `"Trego statistikat"`
 - Students - `"Lista e studentëve në Infoek202"`
+- Student details - `"Detajet e studentit X"`
 - Classes - `"Trego klasat"`
 - Lectures - `"Leksionet e sotme"`
 - Attendance - `"Prezenca për leksion 123"`
-- Statistics - `"Norma e prezencës për Infoek202"`
+- Statistics - `"Sa mungesa ka studenti X?"`
 
-### ➕ Create (Krijimi)
-- Lectures - `"Krijo leksion për Web Development në Infoek202 nesër"`
-- Attendance - `"Shëno john@example.com prezent në leksionin e sotëm"`
+### 📈 Raporte
+- NK/OK lista - `"Lista NK për klasën X, lëndën Y"`
+- Rekordet individuale - `"Datat kur ka munguar studenti X"`
 
-### ✏️ Update (Ndryshimi)
-- Attendance status - `"Ndrysho prezencën 456 në excused"`
-
-### ❌ Delete (Fshirja)
-- Lectures - `"Fshi leksionin 789"` (fshin edhe attendance records)
+> **Shënim:** AI Assistant ka vetëm akses leximi (read-only). Nuk mund të krijojë, ndryshojë ose fshijë të dhëna.
 
 ## 🏗️ Struktura Teknike
 
 ```
 lib/openai/
-  ├── functions.ts          # 14 funksione që GPT mund të thërrasë
-  └── functionHandlers.ts   # Implementimi i funksioneve (Prisma)
+  ├── functions.ts          # Funksionet query që GPT mund të thërrasë
+  └── functionHandlers.ts   # Implementimi i funksioneve (Prisma, read-only)
 
 app/api/
   └── ai-chat/route.ts      # Endpoint kryesor
@@ -190,16 +188,16 @@ case 'get_assignments':
 "Lista e studentëve në Infoek202" → Pritni listë studentësh
 ```
 
-### Test Create
+### Test Raporte
 ```
-"Krijo leksion për Web Development në Infoek202 nesër"
-→ Pritni konfirmim me ID të leksionit
+"Lista NK për klasën Infoek202, lëndën Web Development, për seminaret"
+→ Pritni listë studentësh NK/OK
 ```
 
-### Test Multi-Step
+### Test Rekordet Individuale
 ```
-"Trego leksionet e sotme dhe shëno John prezent në të parin"
-→ Pritni të ekzekutohen 2 funksione
+"Datat kur ka munguar studenti Endrit Mustafaj"
+→ Printo listë datash me statusin e prezencës
 ```
 
 ---
