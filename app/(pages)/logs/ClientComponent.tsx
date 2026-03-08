@@ -76,6 +76,7 @@ export default function ClientComponent() {
     const [startDate, setStartDate] = useState<Date | null>(firstDay);
     const [endDate, setEndDate] = useState<Date | null>(lastDay);
     const [showAll, setShowAll] = useState(false);
+    const [fetchTrigger, setFetchTrigger] = useState(0);
 
     const { showMessage } = useNotify();
 
@@ -123,11 +124,11 @@ export default function ClientComponent() {
 
     useEffect(() => {
         fetchLogsRef.current?.();
-    }, [pagination.page, pagination.limit, showAll]);
+    }, [pagination.page, pagination.limit, showAll, fetchTrigger]);
 
     const handleApplyFilters = () => {
         setPagination((prev) => ({ ...prev, page: 1 }));
-        fetchLogs();
+        setFetchTrigger((t) => t + 1);
     };
 
     const handleClearFilters = () => {
@@ -138,7 +139,7 @@ export default function ClientComponent() {
         setEndDate(lastDay);
         setShowAll(false);
         setPagination((prev) => ({ ...prev, page: 1 }));
-        setTimeout(() => fetchLogs(), 100);
+        setFetchTrigger((t) => t + 1);
     };
 
     const handleShowAll = () => {
@@ -146,7 +147,7 @@ export default function ClientComponent() {
         setEndDate(null);
         setShowAll(true);
         setPagination((prev) => ({ ...prev, page: 1 }));
-        setTimeout(() => fetchLogs(), 100);
+        setFetchTrigger((t) => t + 1);
     };
 
     const onExporting = (e: ExportingEvent) => {
