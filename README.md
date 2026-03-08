@@ -1,6 +1,6 @@
 # 📚 Attendance Management System
 
-A modern, full-stack attendance management system built for educational institutions with role-based access control, real-time data synchronization, and comprehensive reporting capabilities.
+A modern, full-stack attendance management system built for educational institutions with role-based access control, real-time data synchronization, AI assistant, and comprehensive reporting capabilities.
 
 ## 🌟 Features
 
@@ -11,26 +11,32 @@ A modern, full-stack attendance management system built for educational institut
 - **Subject & Course Management**: Create and assign subjects with unique codes
 - **Teaching Assignments**: Assign professors to specific subjects, classes, and teaching types (Lecture/Seminar)
 - **User Management**: Create and manage professor accounts with admin privileges
-- **Comprehensive Reports**: Generate detailed attendance reports with PDF export
+- **Activity Logs**: Track all system actions with detailed audit trail
+- **Comprehensive Reports**: Generate detailed attendance reports with PDF/Excel export
 
 ### For Professors
 
 - **Lecture Management**: Create and manage lectures for assigned subjects
-- **Attendance Tracking**: Mark student attendance with three statuses:
+- **Attendance Tracking**: Mark student attendance with four statuses:
   - ✅ **PRESENT** - Student attended the lecture
   - ❌ **ABSENT** - Student was absent
   - 🎯 **PARTICIPATED** - Student actively participated
-- **Real-time Dashboard**: View statistics and upcoming lectures
+  - 🏥 **LEAVE** - Excused absence (not counted toward total)
+- **Real-time Dashboard**: View statistics with animated counters and upcoming lectures
 - **Student Reports**: Access attendance data for assigned classes
+- **AI Assistant**: Chat-powered assistant with function calling for quick data lookups
 
 ### General Features
 
-- 🔐 **Secure Authentication**: JWT-based authentication with HTTP-only cookies
+- 🔐 **Secure Authentication**: JWT-based authentication with HTTP-only cookies and automatic session refresh
 - 🎨 **Modern UI**: Clean, responsive interface with Albanian language support
-- 🔄 **Real-time Updates**: TanStack Query for optimistic UI updates and caching
+- 🔄 **Real-time Updates**: TanStack Query for server state management and cache invalidation
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
-- ⚡ **Performance Optimized**: React memoization, placeholderData for smooth transitions
-- 📋 **Registry Management**: Comprehensive student attendance registry with status tracking (NK/OK)
+- ⚡ **Performance Optimized**: Service layer architecture, React memoization, smart caching
+- 📋 **Registry Management**: Comprehensive student attendance registry with cascade filtering and status tracking (NK/OK)
+- 📊 **Export Capabilities**: PDF and Excel export via DevExtreme data grids with standardized export handler
+- 🤖 **AI Assistant**: OpenAI-powered chat with function calling for querying attendance data
+- 📧 **Email Notifications**: Welcome emails for new professors via Nodemailer
 
 ## 🏗️ Architecture
 
@@ -40,9 +46,10 @@ A modern, full-stack attendance management system built for educational institut
 
 - [Next.js 16](https://nextjs.org/) - React framework with App Router
 - [React 19](https://react.dev/) - UI library
-- [TypeScript 5](https://www.typescriptlang.org/) - Type safety
+- [TypeScript 5](https://www.typescriptlang.org/) - Type safety (strict mode)
 - [Tailwind CSS 4](https://tailwindcss.com/) - Utility-first CSS
 - [TanStack Query 5](https://tanstack.com/query) - Server state management
+- [DevExtreme 25](https://js.devexpress.com/) - Enterprise data grids with export
 - [Headless UI 2](https://headlessui.com/) - Accessible UI components
 - [Heroicons 2](https://heroicons.com/) - Icon library
 - [Framer Motion 12](https://www.framer.com/motion/) - Animations
@@ -53,14 +60,44 @@ A modern, full-stack attendance management system built for educational institut
 - [MySQL](https://www.mysql.com/) - Relational database
 - [jose](https://github.com/panva/jose) - JWT implementation
 - [bcryptjs](https://github.com/dcodeIO/bcrypt.js) - Password hashing
+- [OpenAI](https://platform.openai.com/) - AI assistant with function calling
+- [Nodemailer](https://nodemailer.com/) - Email service
 
 **Development Tools**
 
 - [Turbopack](https://turbo.build/pack) - Fast bundler
-- [ESLint 9](https://eslint.org/) - Code linting
+- [ESLint 10](https://eslint.org/) - Code linting with flat config
+- [typescript-eslint](https://typescript-eslint.io/) - TypeScript ESLint rules
 - [tsx](https://github.com/esbuild-kit/tsx) - TypeScript execution
 
 ### Architecture Patterns
+
+#### Service Layer Architecture
+
+The application uses a centralized service layer that abstracts all API communication:
+
+```
+UI Components → Services → API Client → API Routes → Prisma → Database
+```
+
+- **`services/api-client.ts`**: Centralized HTTP client with `ApiError` class that throws on non-200 responses
+- **`services/*.service.ts`**: Domain-specific services (auth, class, student, professor, subject, assignment, lecture, attendance, report, dashboard)
+- **`services/index.ts`**: Barrel exports for clean imports
+
+```typescript
+// Service layer pattern
+import { classService, studentService } from "@/services";
+
+// Services throw ApiError on failure — no manual response checking needed
+const classes = await classService.getAll();
+const students = await studentService.getByClass(classId);
+```
+
+#### Shared Utility Libraries
+
+- **`lib/auth.ts`**: Server-side auth helpers (`requireAuth()`, `requireAdmin()`) for API routes
+- **`lib/utils.ts`**: Shared utilities (`cn()`, `formatDate()`, `getTodayDate()`, `formatName()`, `getLabelColor()`)
+- **`lib/export.ts`**: Standardized `createExportHandler()` factory for PDF/Excel export across all data grids
 
 #### Hybrid SSR/Client Pattern
 
@@ -68,35 +105,47 @@ The application uses a hybrid rendering approach:
 
 - **Server Components**: Fetch authentication data and initial page data
 - **Client Components**: Handle user interactions and client-side state
-- **Data Flow**: Server → Client Component props → TanStack Query hooks
+- **Data Flow**: Server → Client Component props → TanStack Query → Service Layer
 
 ```typescript
-// Server Layout (app/(pages)/layout.tsx)
-export default async function RootLayout({ children }) {
+// Server page (app/(pages)/classes/page.tsx)
+export default async function Page() {
   const { professorId, isAdmin } = await getAuthHeaders();
-  return (
-    <ClientLayout professorId={professorId} isAdmin={isAdmin}>
-      {children}
-    </ClientLayout>
-  );
+  return <ClientComponent professorId={professorId} isAdmin={isAdmin} />;
 }
 
-// Client Component
-export default function PageClient({ professorId }: { professorId: string }) {
-  const { data } = useQuery({
-    queryKey: ["data", professorId],
-    queryFn: fetchData,
-  });
-}
+// Client component uses services via TanStack Query
+const { data } = useQuery({
+  queryKey: ["classes"],
+  queryFn: () => classService.getAll(),
+});
+```
+
+#### Mutation Pattern
+
+Since the API client throws `ApiError` on non-200 responses, mutations use a clean pattern:
+
+```typescript
+const deleteMutation = useMutation({
+  mutationFn: (id: number) => classService.delete(id),
+  onSuccess: () => {
+    showMessage("Success!", "success");
+    queryClient.invalidateQueries({ queryKey: ["classes"] });
+  },
+  onError: (error) => {
+    showMessage(error.message, "error");
+  },
+});
 ```
 
 #### Authentication Flow
 
-1. **Login**: User credentials → `/api/auth/login` → JWT stored in HTTP-only cookie
-2. **Middleware**: `proxy.ts` validates JWT, injects auth headers (`X-Professor-Id`, `X-Is-Admin`)
+1. **Login**: User credentials → `/api/auth/login` → JWT stored in HTTP-only cookie (30-min expiry)
+2. **Middleware**: `middleware.ts` validates JWT, injects auth headers (`X-Professor-Id`, `X-Is-Admin`)
 3. **Server Auth**: `getAuthHeaders()` extracts auth from headers in Server Components
-4. **API Auth**: `authenticateRequest()` validates JWT in API routes
-5. **Protected Routes**: All `/(pages)/*` and `/api/*` routes require authentication
+4. **API Auth**: `requireAuth()` / `requireAdmin()` validates JWT in API routes
+5. **Session Refresh**: Automatic token refresh via `useSessionRefresh` hook
+6. **Protected Routes**: All `/(pages)/*` and `/api/*` routes require authentication
 
 #### Database Schema
 
@@ -196,84 +245,165 @@ After running the seed script, use these credentials to log in:
 ```
 attendance/
 ├── app/
-│   ├── (auth)/              # Authentication pages
-│   │   └── login/           # Login page
-│   ├── (pages)/             # Protected pages (requires auth)
-│   │   ├── dashboard/       # Dashboard with statistics
-│   │   ├── classes/         # Class management (Admin)
-│   │   ├── students/        # Student management (Admin)
-│   │   ├── professors/      # Professor management (Admin)
-│   │   ├── subjects/        # Subject management (Admin)
-│   │   ├── assignments/     # Teaching assignments (Admin)
-│   │   ├── lectures/        # Lecture management
-│   │   ├── attendance/      # Attendance tracking
-│   │   ├── registry/        # Student registry with attendance status
-│   │   ├── reports/         # Reports and analytics with PDF export
-│   │   └── utils/           # Server utilities
-│   ├── api/                 # API routes
-│   │   ├── auth/            # Authentication endpoints
-│   │   ├── classes/         # Class CRUD
-│   │   ├── students/        # Student CRUD
-│   │   ├── professors/      # Professor CRUD
-│   │   ├── subjects/        # Subject CRUD
-│   │   ├── assignments/     # Assignment CRUD
-│   │   ├── lectures/        # Lecture CRUD
-│   │   ├── attendance/      # Attendance CRUD
-│   │   ├── registry/        # Registry data with cascade filtering
-│   │   └── reports/         # Report generation with filtering
-│   ├── globals.css          # Global styles
-│   └── layout.tsx           # Root layout
-├── components/              # Reusable React components
-│   ├── Add*Form.tsx         # Create entity forms
-│   ├── Edit*Form.tsx        # Update entity forms
-│   ├── Header.tsx           # Navigation header
-│   ├── Modal.tsx            # Modal dialog
-│   ├── Card.tsx             # Card component
-│   ├── Alert.tsx            # Alert notifications
-│   └── Loader.tsx           # Loading spinner
-├── constants/               # Application constants
-│   ├── index.ts             # Secret key config
-│   └── navigation.ts        # Navigation menu items
-├── contexts/                # React contexts
-│   ├── NotifyContext.tsx    # Notification system
-│   └── TanstackProvider.tsx # Query client provider
-├── hooks/                   # Custom React hooks
-│   ├── fetchFunctions.tsx   # API fetch functions
-│   ├── functions.tsx        # Utility functions
-│   └── useAuth.ts           # Authentication hook
-├── prisma/                  # Database configuration
-│   ├── schema.prisma        # Prisma schema
-│   ├── seed.ts              # Database seeder
-│   ├── seeds/               # Seed data files (students by class)
-│   │   ├── README.md        # Seed files documentation
-│   │   ├── students-INF205.ts      # 42 students
-│   │   ├── students-INF206.ts      # 12 students
-│   │   ├── students-Infoek202.ts   # 36 students
-│   │   ├── students-MSH1IE.ts      # 33 students
-│   │   ├── students-MSH1TI.ts      # 48 students
-│   │   ├── students-MSH1INFA.ts    # 15 students
-│   │   └── students-MSH1INFB.ts    # 15 students
-│   └── migrations/          # Database migrations
-├── public/                  # Static assets
-├── proxy.ts                 # Authentication middleware
-├── types.ts                 # TypeScript type definitions
-└── package.json             # Dependencies
+│   ├── (auth)/                  # Authentication pages
+│   │   ├── login/               # Login page
+│   │   ├── forgot-password/     # Password reset request
+│   │   └── reset-password/      # Password reset via token
+│   ├── (pages)/                 # Protected pages (requires auth)
+│   │   ├── ClientLayout.tsx     # Client-side layout with navigation
+│   │   ├── ai-assistant/        # AI chat assistant
+│   │   ├── assignments/         # Teaching assignments (Admin)
+│   │   ├── attendance/          # Attendance tracking
+│   │   ├── classes/             # Class management (Admin)
+│   │   ├── dashboard/           # Dashboard with statistics
+│   │   ├── lectures/            # Lecture management
+│   │   ├── logs/                # Activity logs (Admin)
+│   │   ├── professors/          # Professor management (Admin)
+│   │   ├── registry/            # Student registry with cascade filtering
+│   │   │   └── components/      # Registry-specific components
+│   │   ├── reports/             # Reports and analytics with PDF/Excel export
+│   │   ├── students/            # Student management (Admin)
+│   │   ├── subjects/            # Subject management (Admin)
+│   │   └── utils/               # Server-side auth utilities
+│   ├── api/                     # API routes
+│   │   ├── ai-chat/             # AI assistant endpoint
+│   │   ├── assignments/         # Assignment CRUD + [id] route
+│   │   ├── attendance/          # Attendance CRUD
+│   │   ├── auth/                # Auth endpoints (login, logout, refresh, session, forgot/reset-password)
+│   │   ├── classes/             # Class CRUD
+│   │   ├── dashboard/stats/     # Dashboard statistics
+│   │   ├── lectures/            # Lecture CRUD
+│   │   ├── logs/                # Activity log retrieval
+│   │   ├── professors/          # Professor CRUD + [id] route
+│   │   ├── registry/            # Registry data with cascade filtering
+│   │   ├── reports/             # Report generation with filtering
+│   │   ├── students/            # Student CRUD
+│   │   ├── subjects/            # Subject CRUD
+│   │   └── test-email/          # Email testing endpoint
+│   ├── globals.css              # Global styles
+│   └── layout.tsx               # Root layout
+├── components/                  # Reusable React components
+│   ├── ai/                      # AI chat component
+│   │   └── AIAgentChat.tsx
+│   ├── assignments/             # Assignment forms and data grid
+│   │   ├── AddAssignmentCard.tsx
+│   │   ├── AddAssignmentForm.tsx
+│   │   ├── AssignmentsDataGrid.tsx
+│   │   └── EditAssignmentForm.tsx
+│   ├── classes/                 # Class forms
+│   │   ├── AddClassForm.tsx
+│   │   └── EditClassForm.tsx
+│   ├── lectures/                # Lecture forms and data grid
+│   │   ├── AddLectureCard.tsx
+│   │   ├── AddLectureForm.tsx
+│   │   ├── EditLectureForm.tsx
+│   │   └── LecturesDataGrid.tsx
+│   ├── professors/              # Professor forms
+│   │   ├── AddProfessorForm.tsx
+│   │   └── EditProfessorForm.tsx
+│   ├── students/                # Student forms
+│   │   ├── AddStudentForm.tsx
+│   │   └── EditStudentForm.tsx
+│   ├── subjects/                # Subject forms
+│   │   ├── AddSubjectForm.tsx
+│   │   └── EditSubjectForm.tsx
+│   └── ui/                      # Shared UI components
+│       ├── Alert.tsx            # Alert notifications
+│       ├── Card.tsx             # Card wrapper
+│       ├── CommonDataGrid.tsx   # Reusable DevExtreme data grid
+│       ├── Header.tsx           # Navigation header
+│       ├── Loader.tsx           # Loading spinner
+│       ├── Modal.tsx            # Modal dialog
+│       ├── Skeleton.tsx         # Loading skeleton
+│       └── Tooltip.tsx          # Tooltip component
+├── constants/                   # Application constants
+│   ├── attendanceStatus.ts      # Attendance status definitions
+│   ├── index.ts                 # Secret key config
+│   └── navigation.ts           # Navigation menu items
+├── contexts/                    # React contexts
+│   ├── NotifyContext.tsx        # Notification system (toast messages)
+│   └── TanstackProvider.tsx    # TanStack Query client provider
+├── docs/                        # Documentation
+│   ├── AI_ASSISTANT.md          # AI assistant documentation
+│   ├── ATTENDANCE_BACKUP.md     # Backup and restore guide
+│   └── SESSION_MANAGEMENT.md   # Auth and session guide
+├── hooks/                       # Custom React hooks
+│   ├── functions.tsx            # Re-exports (handleLogout, utilities)
+│   ├── useAssignments.ts       # Assignments query/mutations
+│   ├── useAuth.ts              # Authentication hook
+│   ├── useClasses.ts           # Classes query/mutations
+│   ├── useProfessors.ts        # Professors query/mutations
+│   ├── useSessionRefresh.ts    # Automatic session refresh
+│   ├── useStudents.ts          # Students query/mutations
+│   └── useSubjects.ts          # Subjects query/mutations
+├── lib/                         # Shared utility libraries
+│   ├── activityLogger.ts       # Activity logging for audit trail
+│   ├── auth.ts                 # Server-side auth (requireAuth, requireAdmin)
+│   ├── authUtils.ts            # Auth utility functions
+│   ├── devextremeConfig.ts     # DevExtreme configuration
+│   ├── emailService.ts         # Email sending via Nodemailer
+│   ├── export.ts               # createExportHandler() for PDF/Excel
+│   ├── utils.ts                # Shared utilities (cn, formatDate, getLabelColor, etc.)
+│   └── openai/                  # OpenAI integration
+│       ├── functionHandlers.ts  # Function call handlers
+│       └── functions.ts         # Function definitions for AI
+├── services/                    # Service layer (API abstraction)
+│   ├── api-client.ts           # Centralized HTTP client with ApiError
+│   ├── index.ts                # Barrel exports
+│   ├── assignment.service.ts   # Assignment API operations
+│   ├── attendance.service.ts   # Attendance API operations
+│   ├── auth.service.ts         # Auth API operations
+│   ├── class.service.ts        # Class API operations
+│   ├── dashboard.service.ts    # Dashboard API operations
+│   ├── lecture.service.ts      # Lecture API operations
+│   ├── professor.service.ts    # Professor API operations
+│   ├── report.service.ts       # Report API operations
+│   ├── student.service.ts      # Student API operations
+│   └── subject.service.ts      # Subject API operations
+├── prisma/                      # Database configuration
+│   ├── schema.prisma           # Prisma schema (10 models)
+│   ├── prisma.ts               # Prisma client singleton
+│   ├── seed.ts                 # Database seeder
+│   ├── backup-attendance.ts    # Attendance backup script
+│   ├── backup-lectures.ts     # Lectures backup script
+│   ├── seeds/                  # Seed data files
+│   │   ├── students/           # Student data by class
+│   │   ├── attendance-*.ts     # Attendance seed data
+│   │   ├── classes.ts
+│   │   ├── professors.ts
+│   │   ├── programs.ts
+│   │   ├── subjects.ts
+│   │   ├── teaching-assignments.ts
+│   │   └── teaching-types.ts
+│   └── migrations/             # Database migrations
+├── public/                      # Static assets
+│   └── images/                 # Logo and icons
+├── middleware.ts                # Auth middleware (JWT validation)
+├── types.ts                    # Centralized TypeScript type definitions
+├── eslint.config.mjs           # ESLint flat config
+├── tailwind.config.ts          # Tailwind CSS configuration
+├── next.config.ts              # Next.js configuration
+├── tsconfig.json               # TypeScript configuration
+└── package.json                # Dependencies and scripts
 ```
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-| Variable              | Description                    | Required |
-| --------------------- | ------------------------------ | -------- |
-| `DATABASE_URL`        | MySQL connection string        | Yes      |
-| `SHADOW_DATABASE_URL` | Shadow database for migrations | Yes      |
-| `SECRET_KEY`          | JWT signing secret             | Yes      |
+| Variable              | Description                        | Required |
+| --------------------- | ---------------------------------- | -------- |
+| `DATABASE_URL`        | MySQL connection string            | Yes      |
+| `SHADOW_DATABASE_URL` | Shadow database for migrations     | Yes      |
+| `SECRET_KEY`          | JWT signing secret                 | Yes      |
+| `OPENAI_API_KEY`      | OpenAI API key (for AI assistant)  | No       |
+| `EMAIL_USER`          | Nodemailer email address           | No       |
+| `EMAIL_PASS`          | Nodemailer email password          | No       |
 
 ### Application Settings
 
 - **Port**: 9900 (configured in package.json)
-- **Session Duration**: 1 hour (JWT expiry)
+- **Session Duration**: 30 minutes (JWT expiry, auto-refreshed)
 - **Password Hash Rounds**: 10 (bcrypt)
 
 ## 🛠️ Development
@@ -328,43 +458,54 @@ npx prisma migrate reset
    - Run `npx prisma generate`
    - Add TypeScript types to `types.ts`
 
-2. **Create API Endpoints**
+2. **Create Service Layer**
+
+   - Create `services/[feature].service.ts`
+   - Use `apiClient` from `services/api-client.ts` for HTTP calls
+   - Export from `services/index.ts`
+
+3. **Create API Endpoints**
 
    - Create route file in `app/api/[feature]/route.ts`
-   - Implement authentication with `authenticateRequest()`
-   - Add role-based access control
-   - Add alphabetical sorting with `orderBy` clauses for better UX
+   - Use `requireAuth()` or `requireAdmin()` from `lib/auth.ts`
+   - Add `logActivity()` calls for audit trail
+   - Add alphabetical sorting with `orderBy` clauses
 
-3. **Create UI Components**
+4. **Create Custom Hook**
+
+   - Create `hooks/use[Feature].ts`
+   - Use service functions for `queryFn` / `mutationFn`
+   - Follow the mutation pattern: `onSuccess` → invalidate + notify, `onError` → notify error
+
+5. **Create UI Components**
 
    - Add page in `app/(pages)/[feature]/page.tsx` (Server Component)
    - Add client component in `app/(pages)/[feature]/ClientComponent.tsx`
-   - Create forms in `components/Add[Feature]Form.tsx` and `components/Edit[Feature]Form.tsx`
-   - Use React.memo() for components to prevent unnecessary re-renders
-   - Use useCallback() for event handlers
-   - Use useMemo() for computed values
-   - Use placeholderData in TanStack Query to prevent flicker during refetch
+   - Create forms in `components/[feature]/Add[Feature]Form.tsx` and `Edit[Feature]Form.tsx`
+   - Use `CommonDataGrid` from `components/ui/` for data tables
+   - Use `createExportHandler()` from `lib/export.ts` for PDF/Excel export
 
-4. **Add Navigation**
+6. **Add Navigation**
    - Update `constants/navigation.ts` with new menu item
    - Set `adminOnly: true` if admin-restricted
 
 ### Performance Best Practices
 
-- **Avoid Component Flicker**: Use `placeholderData` in React Query to keep previous data visible during refetch
-- **Minimize Re-renders**: Keep dropdown elements as native HTML in parent component, not as separate React components
-- **Optimize Queries**: Use `staleTime`, `refetchOnWindowFocus: false`, `refetchOnMount: false`
+- **Service Layer**: All API calls go through typed service functions — never use raw `fetch` in components
 - **Cascade Filtering**: Include filter parameters in queryKey only when they affect the API response
+- **Stale Data**: Use `staleTime: 0` for filter-dependent queries; remove cache on filter changes with `queryClient.removeQueries()`
 - **Memoization**: Use React.memo(), useCallback(), and useMemo() appropriately
+- **Export**: Use `createExportHandler()` factory from `lib/export.ts` for consistent PDF/Excel export
 
-## � Documentation
+## 📚 Documentation
 
 ### Additional Documentation
 
 - **[Session Management](./docs/SESSION_MANAGEMENT.md)** - Detailed guide on authentication, JWT handling, and session refresh mechanisms
 - **[Attendance Backup](./docs/ATTENDANCE_BACKUP.md)** - Complete guide for backing up and restoring attendance data
+- **[AI Assistant](./docs/AI_ASSISTANT.md)** - AI chat assistant features and function calling integration
 
-## �📝 API Documentation
+## 📝 API Documentation
 
 ### Authentication
 
@@ -395,6 +536,18 @@ Login with username and password.
 #### POST `/api/auth/logout`
 
 Logout and clear session cookie.
+
+#### POST `/api/auth/refresh`
+
+Refresh JWT session token (called automatically by `useSessionRefresh` hook).
+
+#### POST `/api/auth/forgot-password`
+
+Send password reset email.
+
+#### POST `/api/auth/reset-password`
+
+Reset password using token from email.
 
 ### Professors (Admin Only)
 
@@ -500,11 +653,12 @@ The application uses Albanian language labels for the UI:
 ## 🔐 Security Features
 
 - **Password Hashing**: bcrypt with 10 salt rounds
-- **JWT Authentication**: Secure token-based auth
+- **JWT Authentication**: Secure token-based auth with automatic refresh
 - **HTTP-only Cookies**: Prevents XSS attacks
-- **Role-based Access Control**: Admin and Professor roles
+- **Role-based Access Control**: Admin and Professor roles via `requireAuth()` / `requireAdmin()`
 - **Protected Routes**: Middleware validates all protected routes
 - **SQL Injection Prevention**: Prisma ORM parameterized queries
+- **Activity Logging**: All CRUD operations logged for audit trail
 
 ## 🧪 Testing
 
@@ -570,10 +724,12 @@ Contributions are welcome! Please follow these steps:
 
 ### Code Style Guidelines
 
-- Use TypeScript for type safety
-- Follow the existing project structure
+- Use TypeScript for type safety (centralized types in `types.ts`)
+- Follow the service layer pattern for API calls
 - Use Prisma for database operations
-- Implement proper error handling
+- Use `requireAuth()` / `requireAdmin()` for route protection
+- Add `logActivity()` for audit trail on mutations
+- Implement proper error handling with `ApiError`
 - Add comments for complex logic
 - Use meaningful variable names
 
@@ -591,7 +747,9 @@ This project is private and proprietary. All rights reserved.
 
 - Built with [Next.js](https://nextjs.org/)
 - Database managed with [Prisma](https://www.prisma.io/)
-- UI components from [Headless UI](https://headlessui.com/)
+- Data grids by [DevExtreme](https://js.devexpress.com/)
+- AI powered by [OpenAI](https://openai.com/)
+- Server state with [TanStack Query](https://tanstack.com/query)
 - Icons from [Heroicons](https://heroicons.com/)
 - Styling with [Tailwind CSS](https://tailwindcss.com/)
 
