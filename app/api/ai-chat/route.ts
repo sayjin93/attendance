@@ -80,6 +80,12 @@ async function executeFunction(
       case 'get_attendance_statistics':
         return await handlers.getAttendanceStatistics(args);
 
+      // Advanced query operations
+      case 'get_student_attendance_records':
+        return await handlers.getStudentAttendanceRecords(args);
+      case 'get_class_report':
+        return await handlers.getClassReport(args);
+
       // Create operations
       case 'create_lecture':
         return await handlers.createLecture(args, user);
@@ -129,32 +135,48 @@ export async function POST(req: NextRequest) {
     }
 
     // System prompt with user context
-    const systemPrompt = `You are an AI assistant for an attendance management system at a university.
+    const systemPrompt = `You are an AI assistant for an attendance management system at a university in Albania (UET - Universiteti Europian i Tiranës).
 
 Current user:
 - Name: ${user.firstName} ${user.lastName}
-- Role: ${user.isAdmin ? 'Administrator' : 'Professor'}
-- Permissions: ${user.isAdmin ? 'Full access to all operations' : 'Can create lectures and mark attendance for assigned classes'}
+- Role: ${user.isAdmin ? 'Administrator (Admin)' : 'Professor'}
+- Permissions: ${user.isAdmin ? 'Full access to all operations' : 'Can manage lectures and attendance for assigned classes only'}
+
+IMPORTANT CONTEXT:
+- The system uses Albanian language. Users may write in Albanian or English - understand and respond in the SAME language the user uses.
+- Albanian terms you must understand: "mungesa" = absences, "prezencë" = attendance/presence, "lëndë" = subject, "klasë" = class, "studenti/studentja" = student, "me leje" = with permission/leave, "sa herë" = how many times
+- Attendance statuses in the system: PRESENT (i pranishëm), ABSENT (mungon), PARTICIPATED (ka marrë pjesë), LEAVE (me leje)
+- NK (Nuk Kalon) = Student fails because absences exceed the threshold. Thresholds: Leksion ≥50%, Seminar ≥75% attendance required to pass.
+- OK = Student passes (meets attendance threshold)
+- Teaching types: "Leksion" (lecture), "Seminar" (seminar)
+- LEAVE status does NOT count as absence - it is excluded from the total when calculating percentages
+- Both PRESENT and PARTICIPATED count as "attended"
 
 Your capabilities:
-1. Query information: Students, professors, classes, subjects, lectures, attendance records, statistics
-2. Create operations: Lectures, attendance records
-3. Update operations: Attendance status
-4. Delete operations: Lectures (with cascade deletion of attendance)
+1. Query: Students (by name/email/ID), professors, classes, subjects, lectures, attendance records, statistics
+2. Individual Records: Get specific dated attendance records for a student (use get_student_attendance_records)
+3. Reports: NK/OK lists per class/subject/type (use get_class_report)
+4. Create: Lectures, attendance records
+5. Update: Attendance status
+6. Delete: Lectures (cascade deletes attendance)
+
+Function selection guide:
+- "Sa mungesa ka studenti X?" → use get_attendance_statistics with studentName
+- "Datat kur ka munguar X" → use get_student_attendance_records with studentName and statusFilter="ABSENT"
+- "Lista NK per klasen X, lenden Y" → use get_class_report with className, subjectName
+- "Lista NK per seminaret" → use get_class_report with typeName="Seminar"
+- "Kush mungon sot?" → first get_lectures for today, then get_lecture_attendance
+- "Detajet e studentit X" → use get_student_details with studentName
 
 Guidelines:
-- Use natural language to communicate with users
-- When creating lectures or marking attendance, always confirm the action with details
-- Provide helpful error messages if operations fail
-- Use the available functions to access real-time data from the database
-- Be concise but informative
-- Support both English and Albanian language queries
-- When users ask vague questions, help them by suggesting what you can do
-
-Important:
+- When asked about absences ("mungesa"), respond with exact counts and percentages
+- Format responses clearly: use bullet points for lists, show key numbers prominently
+- When listing students (NK lists, etc.), present them in a clear numbered format
+- If a student name matches multiple results, present the candidates and ask user to clarify
+- When creating or modifying data, always confirm the action with details
 - All operations are logged for audit purposes
-- Professors can only create lectures and mark attendance for their assigned classes
-- Administrators have full access to all operations`;
+- Be precise with numbers and dates
+- Keep responses focused and informative`;
 
     // Prepare messages for OpenAI
     const openaiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
@@ -172,7 +194,7 @@ Important:
       tools: attendanceFunctions,
       tool_choice: 'auto',
       temperature: 0.7,
-      max_completion_tokens: 1000,
+      max_completion_tokens: 4000,
     });
 
     let choice = response.choices[0];
@@ -180,7 +202,7 @@ Important:
 
     // Function calling loop - handle multiple function calls if needed
     let iterationCount = 0;
-    const maxIterations = 5; // Prevent infinite loops
+    const maxIterations = 10; // Allow enough iterations for complex queries
 
     while (choice.message.tool_calls && iterationCount < maxIterations) {
       iterationCount++;
@@ -217,7 +239,7 @@ Important:
         tools: attendanceFunctions,
         tool_choice: 'auto',
         temperature: 0.7,
-        max_completion_tokens: 1000,
+        max_completion_tokens: 4000,
       });
 
       choice = response.choices[0];

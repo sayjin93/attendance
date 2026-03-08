@@ -50,7 +50,7 @@ export const attendanceFunctions: ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'get_student_details',
-      description: 'Get detailed information about a specific student including their attendance records',
+      description: 'Get detailed information about a specific student including their recent attendance records. Can search by ID, email, or name.',
       parameters: {
         type: 'object',
         properties: {
@@ -61,6 +61,10 @@ export const attendanceFunctions: ChatCompletionTool[] = [
           email: {
             type: 'string',
             description: 'The email of the student',
+          },
+          studentName: {
+            type: 'string',
+            description: 'Search student by name (first name, last name, or full name)',
           },
         },
         required: [],
@@ -163,6 +167,10 @@ export const attendanceFunctions: ChatCompletionTool[] = [
             type: 'number',
             description: 'Filter by professor ID',
           },
+          typeName: {
+            type: 'string',
+            description: 'Filter by teaching type (e.g., "Leksion", "Seminar")',
+          },
         },
         required: [],
       },
@@ -189,13 +197,17 @@ export const attendanceFunctions: ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'get_attendance_statistics',
-      description: 'Get attendance statistics for a student, class, or subject over a date range',
+      description: 'Get attendance statistics (counts and percentages) for a student, class, or subject. Can filter by teaching type and date range. Returns totals and status breakdown. Use get_student_attendance_records for individual dated records.',
       parameters: {
         type: 'object',
         properties: {
           studentId: {
             type: 'number',
             description: 'Filter by student ID',
+          },
+          studentName: {
+            type: 'string',
+            description: 'Search student by name (alternative to studentId)',
           },
           className: {
             type: 'string',
@@ -204,6 +216,10 @@ export const attendanceFunctions: ChatCompletionTool[] = [
           subjectName: {
             type: 'string',
             description: 'Filter by subject name',
+          },
+          typeName: {
+            type: 'string',
+            description: 'Filter by teaching type (e.g., "Leksion", "Seminar")',
           },
           startDate: {
             type: 'string',
@@ -251,7 +267,7 @@ export const attendanceFunctions: ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'mark_attendance',
-      description: 'Mark attendance for a student in a lecture',
+      description: 'Mark attendance for a student in a lecture. Can identify student by email or name.',
       parameters: {
         type: 'object',
         properties: {
@@ -259,14 +275,18 @@ export const attendanceFunctions: ChatCompletionTool[] = [
             type: 'string',
             description: 'Email of the student',
           },
+          studentName: {
+            type: 'string',
+            description: 'Name of the student (alternative to email)',
+          },
           lectureId: {
             type: 'number',
             description: 'ID of the lecture',
           },
           status: {
             type: 'string',
-            enum: ['present', 'absent', 'late', 'excused'],
-            description: 'Attendance status',
+            enum: ['PRESENT', 'ABSENT', 'PARTICIPATED', 'LEAVE'],
+            description: 'Attendance status: PRESENT, ABSENT, PARTICIPATED, or LEAVE',
           },
           subjectName: {
             type: 'string',
@@ -281,7 +301,7 @@ export const attendanceFunctions: ChatCompletionTool[] = [
             description: 'Date of lecture (YYYY-MM-DD, used if lectureId not provided)',
           },
         },
-        required: ['studentEmail', 'status'],
+        required: ['status'],
       },
     },
   },
@@ -303,8 +323,8 @@ export const attendanceFunctions: ChatCompletionTool[] = [
           },
           status: {
             type: 'string',
-            enum: ['present', 'absent', 'late', 'excused'],
-            description: 'New attendance status',
+            enum: ['PRESENT', 'ABSENT', 'PARTICIPATED', 'LEAVE'],
+            description: 'New attendance status: PRESENT, ABSENT, PARTICIPATED, or LEAVE',
           },
         },
         required: ['attendanceId', 'status'],
@@ -329,6 +349,85 @@ export const attendanceFunctions: ChatCompletionTool[] = [
           },
         },
         required: ['lectureId'],
+      },
+    },
+  },
+
+  // ============================================
+  // ADVANCED QUERY OPERATIONS
+  // ============================================
+  {
+    type: 'function',
+    function: {
+      name: 'get_student_attendance_records',
+      description: 'Get individual attendance records with dates for a student. Use this when asked about specific absence dates, detailed attendance history, or when user needs to see each lecture record. Returns dated records, not just statistics.',
+      parameters: {
+        type: 'object',
+        properties: {
+          studentName: {
+            type: 'string',
+            description: 'Search student by name (first name, last name, or full name)',
+          },
+          studentId: {
+            type: 'number',
+            description: 'Student ID',
+          },
+          className: {
+            type: 'string',
+            description: 'Filter by class name',
+          },
+          subjectName: {
+            type: 'string',
+            description: 'Filter by subject name or code',
+          },
+          typeName: {
+            type: 'string',
+            description: 'Filter by teaching type (e.g., "Leksion", "Seminar")',
+          },
+          statusFilter: {
+            type: 'string',
+            enum: ['PRESENT', 'ABSENT', 'PARTICIPATED', 'LEAVE'],
+            description: 'Filter by specific attendance status (e.g., "ABSENT" to get only absences)',
+          },
+          startDate: {
+            type: 'string',
+            description: 'Start date (YYYY-MM-DD)',
+          },
+          endDate: {
+            type: 'string',
+            description: 'End date (YYYY-MM-DD)',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of records to return (default: 100)',
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_class_report',
+      description: "Get NK/OK attendance report for a class and subject. Shows each student with attendance count, percentage, and pass/fail (NK/OK) status. NK (Nuk Kalon) = student fails due to too many absences. Thresholds: Leksion ≥50%, Seminar ≥75% attendance required to pass.",
+      parameters: {
+        type: 'object',
+        properties: {
+          className: {
+            type: 'string',
+            description: 'Name of the class (e.g., "MSH1INFA", "Infoek202")',
+          },
+          subjectName: {
+            type: 'string',
+            description: 'Name or code of the subject',
+          },
+          typeName: {
+            type: 'string',
+            description: 'Filter by teaching type: "Leksion" or "Seminar". If not specified, returns combined report for all types.',
+          },
+        },
+        required: ['className', 'subjectName'],
       },
     },
   },

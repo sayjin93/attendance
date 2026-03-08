@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
@@ -11,12 +11,92 @@ interface Message {
     isLoading?: boolean;
 }
 
+// Simple markdown-to-React renderer for AI responses
+function FormattedContent({ content }: { content: string }) {
+    const blocks = content.split(/\n\n+/);
+
+    return (
+        <div className="text-sm space-y-2">
+            {blocks.map((block, blockIdx) => {
+                const lines = block.split('\n');
+                // Check if block is a list
+                const listLines = lines.filter(l => l.trim());
+                const isBulletList = listLines.length > 0 && listLines.every(l => /^[-•*]\s/.test(l));
+                const isNumberedList = listLines.length > 0 && listLines.every(l => /^\d+[.)]\s/.test(l));
+
+                if (isBulletList) {
+                    return (
+                        <ul key={blockIdx} className="list-disc list-inside space-y-0.5 ml-1">
+                            {listLines.map((line, i) => (
+                                <li key={i}>{formatInline(line.replace(/^[-•*]\s/, ''))}</li>
+                            ))}
+                        </ul>
+                    );
+                }
+
+                if (isNumberedList) {
+                    return (
+                        <ol key={blockIdx} className="list-decimal list-inside space-y-0.5 ml-1">
+                            {listLines.map((line, i) => (
+                                <li key={i}>{formatInline(line.replace(/^\d+[.)]\s/, ''))}</li>
+                            ))}
+                        </ol>
+                    );
+                }
+
+                return (
+                    <p key={blockIdx}>
+                        {lines.map((line, i) => (
+                            <Fragment key={i}>
+                                {i > 0 && <br />}
+                                {formatInline(line)}
+                            </Fragment>
+                        ))}
+                    </p>
+                );
+            })}
+        </div>
+    );
+}
+
+function formatInline(text: string): React.ReactNode {
+    const parts: React.ReactNode[] = [];
+    const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)/g;
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+
+    while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push(text.slice(lastIndex, match.index));
+        }
+        if (match[2]) {
+            parts.push(<strong key={key++}>{match[2]}</strong>);
+        } else if (match[3]) {
+            parts.push(<em key={key++}>{match[3]}</em>);
+        } else if (match[4]) {
+            parts.push(
+                <code key={key++} className="bg-gray-200 dark:bg-gray-600 px-1 py-0.5 rounded text-xs font-mono">
+                    {match[4]}
+                </code>
+            );
+        }
+        lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? <>{parts}</> : text;
+}
+
 export default function AIAgentChat() {
     const [messages, setMessages] = useState<Message[]>([
         {
             id: '1',
             role: 'system',
-            content: 'Welcome! I\'m your AI assistant for the attendance management system. I can help you with students, professors, classes, subjects, lectures, and attendance records. What would you like to do?',
+            content: 'Përshëndetje! Jam asistenti AI për sistemin e menaxhimit të prezencës. Mund të të ndihmoj me studentë, profesorë, klasa, lëndë, leksione, dhe regjistrin e prezencës.\n\nPyetni diçka si: "Sa mungesa ka studenti X?" ose "Nxirr listën NK për klasën Y"',
             timestamp: new Date(),
         },
     ]);
@@ -27,12 +107,12 @@ export default function AIAgentChat() {
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const suggestions = [
-        'Show system statistics',
-        'List students in Infoek202',
-        'Show me today\'s lectures',
-        'Create lecture for Web Development in Infoek202 tomorrow',
-        'Mark John Doe present in Web Development lecture today',
-        'Delete Web Development lecture for Infoek202 from yesterday',
+        'Sa mungesa ka studenti ...?',
+        'Datat kur ka munguar studenti ...?',
+        'Nxirr listën NK për klasën ... për lëndën ... për seminaret',
+        'Statistikat e sistemit',
+        'Leksionet e sotme',
+        'Studentët e klasës Infoek202',
     ];
 
     const scrollToBottom = () => {
@@ -199,7 +279,11 @@ export default function AIAgentChat() {
                                     </div>
                                 ) : (
                                     <>
-                                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                        {message.role === 'user' ? (
+                                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                        ) : (
+                                            <FormattedContent content={message.content} />
+                                        )}
                                         <p
                                             className={`text-xs mt-1 ${message.role === 'user'
                                                     ? 'text-blue-100'
@@ -248,8 +332,8 @@ export default function AIAgentChat() {
                             ref={inputRef}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Ask me anything about the attendance system..."
+                            onKeyDown={handleKeyPress}
+                            placeholder="Shkruani pyetjen tuaj... (p.sh. 'Sa mungesa ka studenti X?')"
                             disabled={isProcessing}
                             rows={1}
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50"
