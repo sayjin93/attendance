@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import DataGrid, { Column, DataGridTypes } from "devextreme-react/data-grid";
+import React, { useImperativeHandle, useMemo, useRef } from "react";
+import DataGrid, { Column, DataGridTypes, DataGridRef } from "devextreme-react/data-grid";
 
 // Static config objects extracted to module level to preserve referential stability
 // across re-renders. New inline objects on every render cause DevExtreme to re-apply
@@ -60,7 +60,11 @@ interface CommonDataGridProps {
     children?: React.ReactNode;
 }
 
-const CommonDataGrid: React.FC<CommonDataGridProps> = ({
+export interface CommonDataGridHandle {
+    clearSelection: () => void;
+}
+
+const CommonDataGrid = React.forwardRef<CommonDataGridHandle, CommonDataGridProps>(({
     dataSource,
     storageKey,
     showRowNumber = true,
@@ -73,7 +77,15 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
     onExporting,
     onSelectionChanged,
     children,
-}) => {
+}, ref) => {
+    const gridRef = useRef<DataGridRef>(null);
+
+    useImperativeHandle(ref, () => ({
+        clearSelection: () => {
+            gridRef.current?.instance().clearSelection();
+        },
+    }));
+
     const pagingConfig = useMemo(
         () => (paging ? { ...DEFAULT_PAGING, ...paging } : DEFAULT_PAGING),
         [paging]
@@ -86,6 +98,7 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
 
     return (
         <DataGrid
+            ref={gridRef}
             width="100%"
             className="dx-datagrid-borders"
             columnAutoWidth={columnsAutoWidth ?? true}
@@ -132,6 +145,8 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
             {children}
         </DataGrid>
     );
-};
+});
+
+CommonDataGrid.displayName = "CommonDataGrid";
 
 export default CommonDataGrid;

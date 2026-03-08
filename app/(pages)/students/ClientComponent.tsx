@@ -1,5 +1,5 @@
 "use client";
-import { useState, useId, useMemo, useCallback } from "react";
+import { useState, useId, useMemo, useCallback, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import {
@@ -32,7 +32,7 @@ import Card from "@/components/ui/Card";
 import AddStudentForm from "@/components/students/AddStudentForm";
 import EditStudentForm from "@/components/students/EditStudentForm";
 import Modal from "@/components/ui/Modal";
-import CommonDataGrid from "@/components/ui/CommonDataGrid";
+import CommonDataGrid, { CommonDataGridHandle } from "@/components/ui/CommonDataGrid";
 import Tooltip from "@/components/ui/Tooltip";
 
 export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
@@ -159,8 +159,10 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
     }
   };
 
+  const gridRef = useRef<CommonDataGridHandle>(null);
   const clearSelection = () => {
     setSelectedStudents([]);
+    gridRef.current?.clearSelection();
   };
 
   const renderFirstNameCell = (cellData: { data: Student; value: string }) => {
@@ -413,6 +415,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
             )}
 
             <CommonDataGrid
+              ref={gridRef}
               dataSource={studentsWithRowNumbers}
               storageKey="studentsDataGrid"
               onExporting={onExporting}

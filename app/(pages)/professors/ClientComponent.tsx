@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import { EnvelopeIcon, UserPlusIcon } from "@heroicons/react/24/outline";
@@ -25,7 +25,7 @@ import Card from "@/components/ui/Card";
 import AddProfessorForm from "@/components/professors/AddProfessorForm";
 import EditProfessorForm from "@/components/professors/EditProfessorForm";
 import Modal from "@/components/ui/Modal";
-import CommonDataGrid from "@/components/ui/CommonDataGrid";
+import CommonDataGrid, { CommonDataGridHandle } from "@/components/ui/CommonDataGrid";
 
 export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     //#region constants
@@ -167,8 +167,10 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     };
 
     // Clear selection
+    const gridRef = useRef<CommonDataGridHandle>(null);
     const handleClearSelection = () => {
         setSelectedProfessors([]);
+        gridRef.current?.clearSelection();
     };
 
     // Export handler
@@ -352,6 +354,7 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
                         )}
 
                         <CommonDataGrid
+                            ref={gridRef}
                             dataSource={professorsWithRowNumbers}
                             storageKey="professorsDataGrid"
                             onExporting={onExporting}

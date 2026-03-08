@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
@@ -27,7 +27,7 @@ import Alert from "@/components/ui/Alert";
 import AddClassForm from "@/components/classes/AddClassForm";
 import EditClassForm from "@/components/classes/EditClassForm";
 import Modal from "@/components/ui/Modal";
-import CommonDataGrid from "@/components/ui/CommonDataGrid";
+import CommonDataGrid, { CommonDataGridHandle } from "@/components/ui/CommonDataGrid";
 
 export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
@@ -248,8 +248,10 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   };
 
   // Clear selection
+  const gridRef = useRef<CommonDataGridHandle>(null);
   const handleClearSelection = () => {
     setSelectedClasses([]);
+    gridRef.current?.clearSelection();
   };
   //#endregion
 
@@ -308,6 +310,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
             )}
 
             <CommonDataGrid
+              ref={gridRef}
               dataSource={classesWithRowNumbers}
               storageKey="classesDataGrid"
               onExporting={onExporting}

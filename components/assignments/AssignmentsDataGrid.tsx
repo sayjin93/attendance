@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   PencilIcon,
@@ -23,7 +23,7 @@ import { useNotify } from "@/contexts/NotifyContext";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import EditAssignmentForm from "@/components/assignments/EditAssignmentForm";
-import CommonDataGrid from "@/components/ui/CommonDataGrid";
+import CommonDataGrid, { CommonDataGridHandle } from "@/components/ui/CommonDataGrid";
 
 interface AssignmentsDataGridProps {
   assignments: TeachingAssignment[];
@@ -110,8 +110,10 @@ export default function AssignmentsDataGrid({
   };
 
   // Handle clear selection
+  const gridRef = useRef<CommonDataGridHandle>(null);
   const handleClearSelection = () => {
     setSelectedAssignments([]);
+    gridRef.current?.clearSelection();
   };
 
   // Handle bulk delete click
@@ -245,6 +247,7 @@ export default function AssignmentsDataGrid({
             )}
 
             <CommonDataGrid
+              ref={gridRef}
               dataSource={assignmentsWithRowNumbers as unknown as TeachingAssignment[]}
               storageKey="assignmentsDataGrid"
               onExporting={onExporting}

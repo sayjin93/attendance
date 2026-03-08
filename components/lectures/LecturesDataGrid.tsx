@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   PencilIcon,
@@ -84,7 +84,7 @@ import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import EditLectureForm from "@/components/lectures/EditLectureForm";
-import CommonDataGrid from "@/components/ui/CommonDataGrid";
+import CommonDataGrid, { CommonDataGridHandle } from "@/components/ui/CommonDataGrid";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -206,8 +206,10 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
   };
 
   // Handle clear selection
+  const gridRef = useRef<CommonDataGridHandle>(null);
   const handleClearSelection = () => {
     setSelectedLectures([]);
+    gridRef.current?.clearSelection();
   };
 
   // Handle bulk delete click
@@ -441,6 +443,7 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
           )}
 
           <CommonDataGrid
+            ref={gridRef}
             dataSource={lecturesWithRowNumbers as unknown as Lecture[]}
             storageKey="lecturesDataGrid"
             onExporting={onExporting}

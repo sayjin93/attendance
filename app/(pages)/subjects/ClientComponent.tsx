@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
@@ -24,7 +24,7 @@ import Alert from "@/components/ui/Alert";
 import AddSubjectForm from "@/components/subjects/AddSubjectForm";
 import EditSubjectForm from "@/components/subjects/EditSubjectForm";
 import Modal from "@/components/ui/Modal";
-import CommonDataGrid from "@/components/ui/CommonDataGrid";
+import CommonDataGrid, { CommonDataGridHandle } from "@/components/ui/CommonDataGrid";
 
 export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
@@ -184,8 +184,10 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   };
 
   // Clear selection
+  const gridRef = useRef<CommonDataGridHandle>(null);
   const handleClearSelection = () => {
     setSelectedSubjects([]);
+    gridRef.current?.clearSelection();
   };
 
   // Export handler
@@ -316,6 +318,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
             )}
 
             <CommonDataGrid
+              ref={gridRef}
               dataSource={subjectsWithRowNumbers}
               storageKey="subjectsDataGrid"
               onExporting={onExporting}
