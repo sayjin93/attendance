@@ -1,36 +1,25 @@
 import { NextResponse } from "next/server";
 import { testEmailConnection, sendWelcomeEmail } from "@/lib/emailService";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAdmin } from "@/lib/auth";
 
 // POST: Test email functionality (Admin only)
 export async function POST(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të testojnë email-in!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { testType, email } = await req.json();
 
     if (testType === "connection") {
       // Test email server connection
       const connectionResult = await testEmailConnection();
-      return NextResponse.json(connectionResult, { 
-        status: connectionResult.success ? 200 : 500 
+      return NextResponse.json(connectionResult, {
+        status: connectionResult.success ? 200 : 500
       });
     } else if (testType === "send" && email) {
       // Send a test welcome email
       const websiteUrl = `${req.headers.get('origin') || 'http://localhost:9900'}`;
-      
+
       const emailResult = await sendWelcomeEmail({
         to: email,
         professorName: "Test Professor",
@@ -39,8 +28,8 @@ export async function POST(req: Request) {
         websiteUrl: websiteUrl,
       });
 
-      return NextResponse.json(emailResult, { 
-        status: emailResult.success ? 200 : 500 
+      return NextResponse.json(emailResult, {
+        status: emailResult.success ? 200 : 500
       });
     } else {
       return NextResponse.json(

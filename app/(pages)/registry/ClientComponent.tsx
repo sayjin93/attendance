@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Alert from "../../../components/ui/Alert";
 import Skeleton from "../../../components/ui/Skeleton";
 import FilterSection from "./components/FilterSection";
@@ -65,6 +65,7 @@ export default function RegistryPageClient({
     const {
         data: registryData,
         isLoading: loadingRegistry,
+        isFetching: fetchingRegistry,
     } = useQuery<RegistryData>({
         queryKey: ["registry-table", professorId, selectedClassId, selectedSubjectId, selectedTypeId, selectedProfessorId],
         queryFn: async () => {
@@ -83,20 +84,18 @@ export default function RegistryPageClient({
             return response.json();
         },
         enabled: !!canShowTable,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 0, // Always refetch when filters change
         refetchOnWindowFocus: false,
         refetchOnMount: false,
-        placeholderData: (previousData) => previousData,
     });
     //#endregion
+
+    const queryClient = useQueryClient();
 
     // Helper functions for resetting dependent selections with useCallback to prevent rerenders
     const resetSelections = useCallback((fromLevel: 'professor' | 'class' | 'subject' | 'type') => {
         if (fromLevel === 'professor') {
             setSelectedClassId("");
-            setSelectedSubjectId("");
-            setSelectedTypeId("");
-        } else if (fromLevel === 'class') {
             setSelectedSubjectId("");
             setSelectedTypeId("");
         } else if (fromLevel === 'subject') {
@@ -112,8 +111,9 @@ export default function RegistryPageClient({
 
     const handleClassChange = useCallback((value: string) => {
         setSelectedClassId(value);
-        resetSelections('class');
-    }, [resetSelections]);
+        // Invalidate table data so stale cache is not reused for the new class
+        queryClient.removeQueries({ queryKey: ["registry-table"] });
+    }, [queryClient]);
 
     const handleSubjectChange = useCallback((value: string) => {
         setSelectedSubjectId(value);
@@ -133,6 +133,17 @@ export default function RegistryPageClient({
     const professors = filterData?.professors || [];
     const lectures = registryData?.lectures || [];
     const registryRows = registryData?.registryRows || [];
+
+    // After filter data updates for a new class, clear invalid subject/type selections
+    useEffect(() => {
+        if (!selectedClassId) return;
+        if (selectedSubjectId && subjects.length > 0 && !subjects.some((s: RegistrySubject) => s.id === selectedSubjectId)) {
+            setSelectedSubjectId("");
+            setSelectedTypeId("");
+        } else if (selectedTypeId && types.length > 0 && !types.some((t: RegistryTeachingType) => t.id === selectedTypeId)) {
+            setSelectedTypeId("");
+        }
+    }, [subjects, types, selectedClassId, selectedSubjectId, selectedTypeId]);
 
     // Selected items
     const selectedClass = classes.find((c: RegistryClass) => c.id === selectedClassId);
@@ -177,7 +188,7 @@ export default function RegistryPageClient({
                     />
 
                     {/* Registry Table - Only renders when data is available */}
-                    {canShowTable && registryRows.length > 0 && (
+                    {canShowTable && !fetchingRegistry && registryRows.length > 0 && (
                         <RegistryTable
                             programs={programs}
                             professors={professors}
@@ -192,12 +203,17 @@ export default function RegistryPageClient({
                         />
                     )}
 
+                    {/* Show loading skeleton while table is fetching new data */}
+                    {canShowTable && fetchingRegistry && (
+                        <Skeleton />
+                    )}
+
                     {/* Empty States - Handles both no data and no filters selected */}
                     <EmptyState
                         canShowTable={canShowTable}
                         registryRows={registryRows}
                         isAdminUser={isAdminUser}
-                        isLoading={loadingRegistry}
+                        isLoading={loadingRegistry || fetchingRegistry}
                     />
                 </>
             )}

@@ -1,26 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import bcrypt from "bcryptjs";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAdmin } from "@/lib/auth";
 import { sendWelcomeEmail } from "@/lib/emailService";
 import { logActivity, getChangedFields } from "@/lib/activityLogger";
 
 // GET: Fetch all professors (Admin only)
 export async function GET(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të shikojnë profesorët!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search");
@@ -88,19 +77,8 @@ export async function GET(req: Request) {
 // POST: Create a new professor (Admin only)
 export async function POST(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të krijojnë profesorë!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { firstName, lastName, email, username, password } = await req.json();
 
@@ -210,19 +188,8 @@ export async function POST(req: Request) {
 // PUT: Update a professor (Admin only)
 export async function PUT(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të modifikojnë profesorët!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id, firstName, lastName, email, username, password } = await req.json();
 
@@ -349,19 +316,8 @@ export async function PUT(req: Request) {
 // DELETE: Remove a professor (Admin only)
 export async function DELETE(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të fshijnë profesorët!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");

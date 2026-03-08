@@ -1,22 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
 import { Column, DataGridTypes } from "devextreme-react/data-grid";
-import { exportDataGrid } from "devextreme/pdf_exporter";
-import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
-import { jsPDF } from "jspdf";
-import { Workbook } from "exceljs";
-import { saveAs } from "file-saver";
 
 //types
 import { Class } from "@/types";
 
-//hooks
-import { fetchClasses, deleteClass } from "@/hooks/fetchFunctions";
+//services
+import { classService } from "@/services";
+
+//utils
+import { getLabelColor } from "@/lib/utils";
+import { createExportHandler } from "@/lib/export";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -35,27 +34,6 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
   const router = useRouter();
-
-  // Color palette for courses - consistent colors based on course ID
-  const courseColors = [
-    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' },
-    { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100' },
-    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100' },
-    { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100' },
-    { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-100' },
-    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100' },
-    { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-100' },
-    { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100' },
-    { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-100' },
-    { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-100' },
-    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
-    { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-100' },
-  ];
-
-  // Function to get consistent color for a course based on its ID
-  const getCourseColor = (courseId: number) => {
-    return courseColors[courseId % courseColors.length];
-  };
   //#endregion
 
   //#region states
@@ -68,12 +46,12 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#region useQuery
   const { data: classes = [], isLoading, error } = useQuery<Class[]>({
     queryKey: ["classes"],
-    queryFn: () => fetchClasses(),
+    queryFn: () => classService.getAll(),
     enabled: isAdmin === "true",
   });
 
   // Add row numbers to classes data
-  const classesWithRowNumbers = classes?.map((classItem: Class, index: number) => {
+  const classesWithRowNumbers = useMemo(() => classes?.map((classItem: Class, index: number) => {
     // Format subjects for export
     const uniqueSubjects = classItem.teachingAssignments
       ? Array.from(
@@ -97,20 +75,16 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
       studentCount: classItem.students?.length || 0,
       subjectsText: subjectsText,
     };
-  }) || [];
+  }) || [], [classes]);
   //#endregion
 
   //#region mutations
   const deleteClassMutation = useMutation({
-    mutationFn: (id: number) => deleteClass(id),
-    onSuccess: (data) => {
-      if (data.error) {
-        showMessage(data.error, "error");
-      } else {
-        showMessage("Klasa u fshi me sukses!", "success");
-        queryClient.invalidateQueries({ queryKey: ["classes"] });
-        setDeletingClass(null);
-      }
+    mutationFn: (id: number) => classService.delete(id),
+    onSuccess: () => {
+      showMessage("Klasa u fshi me sukses!", "success");
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      setDeletingClass(null);
     },
     onError: () => {
       showMessage("Dështoi fshirja e klasës!", "error");
@@ -121,7 +95,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   const bulkDeleteClassesMutation = useMutation({
     mutationFn: async (classIds: number[]) => {
       const results = await Promise.allSettled(
-        classIds.map(id => deleteClass(id))
+        classIds.map(id => classService.delete(id))
       );
       return results;
     },
@@ -149,91 +123,12 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#endregion
 
   //#region functions
-  const onExporting = (e: DataGridTypes.ExportingEvent) => {
-    if (e.format === 'pdf') {
-      const doc = new jsPDF();
-
-      // Add header
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Lista e Klasave', 15, 20);
-
-      // Add total classes count
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Gjithsej ${classes?.length || 0} klas${classes?.length !== 1 ? 'a' : 'ë'}`, 15, 30);
-
-      // Add date
-      doc.setFontSize(10);
-      doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
-
-      exportDataGrid({
-        jsPDFDocument: doc,
-        component: e.component,
-        indent: 5,
-        topLeft: { x: 10, y: 50 },
-        columnWidths: [15, 30, 70, 20, 20], // Increased first column width for row number
-        customizeCell: (options) => {
-          // Remove borders by setting strokeColor to transparent
-          if (options.gridCell && options.pdfCell &&
-            (options.gridCell.rowType === 'data' || options.gridCell.rowType === 'header')) {
-            options.pdfCell.borderColor = '#FFFFFF';
-            // Set smaller font size for table content
-            if (options.gridCell.rowType === 'header') {
-              options.pdfCell.font = { size: 9 }; // Header font size
-            } else {
-              options.pdfCell.font = { size: 8 }; // Data font size
-            }
-          }
-        },
-      }).then(() => {
-        // Add footer to all pages
-        const totalPages = doc.getNumberOfPages();
-
-        for (let i = 1; i <= totalPages; i++) {
-          doc.setPage(i);
-
-          // Footer positioning
-          const pageHeight = doc.internal.pageSize.height;
-          const footerY = pageHeight - 15;
-
-          // Set footer font
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(100, 100, 100); // Gray color
-
-          // Left side - Website attribution
-          doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
-
-          // Center - Developer credit
-          const centerText = 'Developed by JK';
-          const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
-          doc.text(centerText, centerX, footerY);
-
-          // Right side - Page numbering
-          const pageText = `${i}/${totalPages}`;
-          const pageWidth = doc.internal.pageSize.width;
-          const pageTextWidth = doc.getTextWidth(pageText);
-          doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
-        }
-
-        doc.save('Klasat.pdf');
-      });
-    } else if (e.format === 'xlsx') {
-      const workbook = new Workbook();
-      const worksheet = workbook.addWorksheet('Klasat');
-
-      exportDataGridToExcel({
-        component: e.component,
-        worksheet: worksheet,
-        autoFilterEnabled: true,
-      }).then(() => {
-        workbook.xlsx.writeBuffer().then((buffer) => {
-          saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Klasat.xlsx');
-        });
-      });
-    }
-  };
+  const onExporting = useMemo(() => createExportHandler({
+    title: "Lista e Klasave",
+    subtitle: `Gjithsej ${classes?.length || 0} klas${classes?.length !== 1 ? "a" : "ë"}`,
+    fileName: "Klasat",
+    columnWidths: [15, 30, 70, 20, 20],
+  }), [classes?.length]);
 
   const handleDeleteClass = () => {
     if (deletingClass) {
@@ -260,7 +155,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
     return (
       <div className="flex flex-wrap gap-1">
         {uniqueSubjects.slice(0, 2).map((subject) => {
-          const colors = getCourseColor(subject.id);
+          const colors = getLabelColor(subject.id);
           return (
             <span
               key={subject.id}
@@ -329,9 +224,9 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   };
 
   // Handle selection changes in DataGrid
-  const handleSelectionChanged = (e: DataGridTypes.SelectionChangedEvent) => {
+  const handleSelectionChanged = useCallback((e: DataGridTypes.SelectionChangedEvent) => {
     setSelectedClasses(e.selectedRowsData);
-  };
+  }, []);
 
   // Handle bulk delete
   const handleBulkDeleteClick = () => {
@@ -358,13 +253,13 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
   //#endregion
 
   // Filter programs from classes
-  const programs = Array.from(
+  const programs = useMemo(() => Array.from(
     new Map(
       classes
         .filter(c => c.program) // Filter out undefined
         .map(c => [c.program!.id, c.program!]) // Non-null assertion
     ).values()
-  );
+  ), [classes]);
 
   return (
     <div className="flex flex-col gap-4">

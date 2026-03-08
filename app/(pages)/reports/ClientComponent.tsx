@@ -15,10 +15,9 @@ import CommonDataGrid from "../../../components/ui/CommonDataGrid";
 import Skeleton from "../../../components/ui/Skeleton";
 import Tooltip from "../../../components/ui/Tooltip";
 import { useNotify } from "../../../contexts/NotifyContext";
-import { fetchReportData, fetchClassesByProfessor } from "../../../hooks/fetchFunctions";
-import {
-  RegistryClass as Class,
-  RegistrySubject as Subject,
+import { reportService, classService } from "@/services";
+import type {
+  Class,
   StudentReport,
   ReportData
 } from "@/types";
@@ -43,22 +42,27 @@ export default function ReportsPageClient({
     error: errorClasses,
   } = useQuery<Class[]>({
     queryKey: ["classes-for-reports", professorId],
-    queryFn: () => fetchClassesByProfessor(professorId),
+    queryFn: () => classService.getByProfessor(professorId),
     enabled: !!professorId,
   });
 
   // Find selected class first (needed for other queries)
-  const selectedClass = classes?.find(c => c.id === selectedClassId) || null;
+  const selectedClass = classes?.find(c => String(c.id) === selectedClassId) || null;
 
   // Fetch subjects when class is selected
   const {
     data: subjectsData,
     isLoading: loadingSubjects,
-  } = useQuery<{ subjects: Subject[] }>({
+  } = useQuery<ReportData>({
     queryKey: ["report-subjects", professorId, selectedClassId],
-    queryFn: () => fetchReportData(professorId, selectedClass?.programId || "", selectedClassId, ""),
+    queryFn: () => reportService.getReportData({
+      professorId,
+      programId: selectedClass?.programId ? String(selectedClass.programId) : "",
+      classId: selectedClassId,
+    }),
     enabled: !!professorId && !!selectedClassId,
     select: (data) => ({
+      ...data,
       subjects: data.subjects || []
     })
   });
@@ -70,7 +74,12 @@ export default function ReportsPageClient({
     error: errorReports,
   } = useQuery<ReportData>({
     queryKey: ["reports", professorId, selectedClass?.programId, selectedClassId, selectedSubjectId],
-    queryFn: () => fetchReportData(professorId, selectedClass?.programId || "", selectedClassId, selectedSubjectId),
+    queryFn: () => reportService.getReportData({
+      professorId,
+      programId: selectedClass?.programId ? String(selectedClass.programId) : "",
+      classId: selectedClassId,
+      subjectId: selectedSubjectId,
+    }),
     enabled: !!professorId && !!selectedClassId && !!selectedSubjectId,
   });
   //#endregion
@@ -278,7 +287,7 @@ export default function ReportsPageClient({
                       : "Zgjidhni një lëndë..."}
               </option>
               {selectedClassId && subjects && subjects.length > 0 &&
-                subjects.map((subject: Subject) => (
+                subjects.map((subject) => (
                   <option key={subject.id} value={subject.id}>
                     {subject.name}
                   </option>

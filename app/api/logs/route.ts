@@ -1,23 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import {  requireAdmin } from "@/lib/auth";
 
 // GET: Fetch activity logs (Admin only)
 export async function GET(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të shikojnë logs!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { searchParams } = new URL(req.url);
     const entity = searchParams.get("entity");

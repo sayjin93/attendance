@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   PencilIcon,
@@ -8,17 +8,13 @@ import {
 
 // DevExtreme imports
 import { Column } from "devextreme-react/data-grid";
-import { exportDataGrid } from "devextreme/pdf_exporter";
-import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
-import { jsPDF } from "jspdf";
-import { Workbook } from "exceljs";
-import { saveAs } from "file-saver";
 
 //types
 import { TeachingAssignment, Professor, Subject, Class, TeachingType } from "@/types";
 
-//hooks
-import { deleteAssignment } from "@/hooks/functions";
+//services & utils
+import { assignmentService } from "@/services";
+import { createExportHandler } from "@/lib/export";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -69,7 +65,7 @@ export default function AssignmentsDataGrid({
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteAssignment(id),
+    mutationFn: (id: number) => assignmentService.delete(id),
     onSuccess: () => {
       showMessage("Caktimi u fshi me sukses!", "success");
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
@@ -83,7 +79,7 @@ export default function AssignmentsDataGrid({
   const bulkDeleteAssignmentsMutation = useMutation({
     mutationFn: async (assignmentIds: number[]) => {
       const results = await Promise.allSettled(
-        assignmentIds.map(id => deleteAssignment(id))
+        assignmentIds.map(id => assignmentService.delete(id))
       );
       return results;
     },
@@ -144,73 +140,12 @@ export default function AssignmentsDataGrid({
     }
   };
 
-  // Export functions
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onExporting = (e: any) => {
-    if (e.format === 'pdf') {
-      const doc = new jsPDF();
-
-      // Add title
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Caktimet', 15, 25);
-
-      // Add generation date
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Gjeneruar më: ${new Date().toLocaleDateString('sq-AL')}`, 15, 35);
-
-      exportDataGrid({
-        jsPDFDocument: doc,
-        component: e.component,
-        indent: 5,
-        topLeft: { x: 10, y: 50 },
-        columnWidths: [15, 25, 30, 30, 25, 20, 30],
-        customizeCell: (options) => {
-          if (options.gridCell && options.pdfCell &&
-            (options.gridCell.rowType === 'data' || options.gridCell.rowType === 'header')) {
-            options.pdfCell.borderColor = '#FFFFFF';
-            if (options.gridCell.rowType === 'header') {
-              options.pdfCell.font = { size: 9 };
-            } else {
-              options.pdfCell.font = { size: 8 };
-            }
-          }
-        },
-      }).then(() => {
-        const totalPages = doc.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-          doc.setPage(i);
-          const pageHeight = doc.internal.pageSize.height;
-          const footerY = pageHeight - 15;
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(100, 100, 100);
-          doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
-          const centerText = 'Developed by JK';
-          const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
-          doc.text(centerText, centerX, footerY);
-          const pageText = `${i}/${totalPages}`;
-          const pageWidth = doc.internal.pageSize.width;
-          const pageTextWidth = doc.getTextWidth(pageText);
-          doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
-        }
-        doc.save('Caktimet.pdf');
-      });
-    } else if (e.format === 'xlsx') {
-      const workbook = new Workbook();
-      const worksheet = workbook.addWorksheet('Caktimet');
-      exportDataGridToExcel({
-        component: e.component,
-        worksheet: worksheet,
-        autoFilterEnabled: true,
-      }).then(() => {
-        workbook.xlsx.writeBuffer().then((buffer) => {
-          saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Caktimet.xlsx');
-        });
-      });
-    }
-  };
+  // Export handler
+  const onExporting = createExportHandler({
+    title: "Caktimet",
+    fileName: "Caktimet",
+    columnWidths: [15, 25, 30, 30, 25, 20, 30],
+  });
 
   // Cell renderers
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

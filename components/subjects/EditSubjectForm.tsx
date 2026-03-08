@@ -5,8 +5,8 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 //types
 import { EditSubjectFormProps } from "@/types";
 
-//hooks
-import { updateSubject } from "@/hooks/fetchFunctions";
+//services
+import { subjectService } from "@/services";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -28,15 +28,11 @@ export default function EditSubjectForm({ subject, programs, onClose }: EditSubj
 
   //#region mutations
   const updateSubjectMutation = useMutation({
-    mutationFn: () => updateSubject(subject.id, code, name, programId),
-    onSuccess: (data) => {
-      if (data.error) {
-        showMessage(data.error, "error");
-      } else {
-        showMessage("Lënda u modifikua me sukses!", "success");
-        queryClient.invalidateQueries({ queryKey: ["subjects"] });
-        onClose();
-      }
+    mutationFn: () => subjectService.update({ id: subject.id, code, name, programId }),
+    onSuccess: () => {
+      showMessage("Lënda u modifikua me sukses!", "success");
+      queryClient.invalidateQueries({ queryKey: ["subjects"] });
+      onClose();
     },
     onError: () => {
       showMessage("Dështoi modifikimi i lëndës!", "error");

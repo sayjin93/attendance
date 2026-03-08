@@ -2,46 +2,57 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { authService } from "@/services";
+
+interface AuthState {
+  isAuthenticated: boolean | null;
+  professorId: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  isAdmin: boolean;
+}
 
 export function useAuth() {
   const router = useRouter();
-
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [professorId, setProfessorId] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState<string | null>(null);
-  const [lastName, setLastName] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [auth, setAuth] = useState<AuthState>({
+    isAuthenticated: null,
+    professorId: null,
+    firstName: null,
+    lastName: null,
+    isAdmin: false,
+  });
 
   useEffect(() => {
+    let cancelled = false;
+
     const checkAuth = async () => {
       try {
-        const res = await fetch("/api/auth/session", {
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setIsAuthenticated(true);
-          setProfessorId(data.professorId);
-          setFirstName(data.firstName);
-          setLastName(data.lastName);
-          setIsAdmin(data.isAdmin);
-        } else {
-          setIsAuthenticated(false);
+        const data = await authService.getSession();
+        if (!cancelled) {
+          setAuth({
+            isAuthenticated: true,
+            professorId: String(data.professorId),
+            firstName: data.firstName,
+            lastName: data.lastName,
+            isAdmin: data.isAdmin,
+          });
         }
       } catch {
-        setIsAuthenticated(false);
+        if (!cancelled) {
+          setAuth(prev => ({ ...prev, isAuthenticated: false }));
+        }
       }
     };
 
     checkAuth();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated === false) {
-      setTimeout(() => router.push("/login"), 0); // ✅ Prevents redirect loop
+    if (auth.isAuthenticated === false) {
+      router.push("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [auth.isAuthenticated, router]);
 
-  return { isAuthenticated, professorId, firstName, lastName, isAdmin };
+  return auth;
 }

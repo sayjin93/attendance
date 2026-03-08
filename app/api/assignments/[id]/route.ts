@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAdmin } from "@/lib/auth";
 
 // ✅ PUT: Update a teaching assignment (Only Admins)
 export async function PUT(
@@ -8,19 +8,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await authenticateRequest();
-    if ('error' in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të modifikojnë caktimet!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id } = await params;
     const assignmentId = parseInt(id, 10);
@@ -178,19 +167,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await authenticateRequest();
-    if ('error' in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të fshijnë caktimet!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id } = await params;
     const assignmentId = parseInt(id, 10);

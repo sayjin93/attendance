@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { PlusIcon } from "@heroicons/react/16/solid";
 
 //components
@@ -18,13 +18,13 @@ interface AddAssignmentCardProps {
   teachingTypes: TeachingType[];
 }
 
-export default function AddAssignmentCard({ 
-  isAdmin, 
-  professors, 
-  subjects, 
-  classes, 
-  programs, 
-  teachingTypes 
+export default function AddAssignmentCard({
+  isAdmin,
+  professors,
+  subjects,
+  classes,
+  programs,
+  teachingTypes
 }: AddAssignmentCardProps) {
   const [showAddAssignmentForm, setShowAddAssignmentForm] = useState(false);
 

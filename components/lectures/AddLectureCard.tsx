@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import  { useState } from "react";
 import { PlusIcon } from "@heroicons/react/16/solid";
 
 //components

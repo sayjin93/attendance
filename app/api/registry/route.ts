@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAuth } from "@/lib/auth";
 
 interface RegistryStudent {
   id: string;
@@ -32,18 +32,8 @@ interface StudentRegistryRow {
 
 export async function GET(request: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
+    const decoded = await requireAuth();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { searchParams } = new URL(request.url);
     const classId = searchParams.get("classId");
@@ -80,7 +70,7 @@ export async function GET(request: Request) {
         orderBy: { firstName: "asc" }
       });
       
-      professors = allProfessors.map(p => ({
+      professors = allProfessors.map((p: typeof allProfessors[number]) => ({
         id: p.id.toString(),
         firstName: p.firstName,
         lastName: p.lastName
@@ -130,7 +120,7 @@ export async function GET(request: Request) {
       });
     }
     
-    classes = classesData.map(c => ({
+    classes = classesData.map((c: typeof classesData[number]) => ({
       id: c.id.toString(),
       name: c.name,
       programId: c.programId.toString()
@@ -150,7 +140,7 @@ export async function GET(request: Request) {
         distinct: ['subjectId']
       });
 
-      subjects = assignments.map(a => ({
+      subjects = assignments.map((a: typeof assignments[number]) => ({
         id: a.subject.id.toString(),
         name: a.subject.name,
         code: a.subject.code
@@ -171,7 +161,7 @@ export async function GET(request: Request) {
         distinct: ['typeId']
       });
 
-      types = assignments.map(a => ({
+      types = assignments.map((a: typeof assignments[number]) => ({
         id: a.type.id.toString(),
         name: a.type.name
       }));
@@ -191,7 +181,7 @@ export async function GET(request: Request) {
         ]
       });
 
-      students = studentsData.map(s => ({
+      students = studentsData.map((s: typeof studentsData[number]) => ({
         id: s.id.toString(),
         firstName: s.firstName,
         lastName: s.lastName,
@@ -229,7 +219,7 @@ export async function GET(request: Request) {
       
       // Remove the typeId filtering since we're already filtering by typeId in the query above
 
-      lectures = lecturesData.map(l => ({
+      lectures = lecturesData.map((l: typeof lecturesData[number]) => ({
         id: l.id.toString(),
         date: l.date.toISOString(),
         typeId: typeId,
@@ -260,7 +250,7 @@ export async function GET(request: Request) {
 
         console.log('Found attendance records:', attendanceData.length);
 
-        attendance = attendanceData.map(a => ({
+        attendance = attendanceData.map((a: typeof attendanceData[number]) => ({
           studentId: a.studentId.toString(),
           lectureId: a.lectureId.toString(),
           status: a.status
@@ -309,7 +299,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      programs: programs.map(p => ({ id: p.id.toString(), name: p.name })),
+      programs: programs.map((p: typeof programs[number]) => ({ id: p.id.toString(), name: p.name })),
       classes,
       subjects,
       types,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Column } from "devextreme-react/data-grid";
 import type { ExportingEvent } from "devextreme/ui/data_grid";
 import { SelectBox } from "devextreme-react/select-box";
@@ -119,7 +119,6 @@ export default function ClientComponent() {
 
     useEffect(() => {
         fetchLogs();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pagination.page, pagination.limit, showAll]);
 
     const handleApplyFilters = () => {

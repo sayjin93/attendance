@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, useMemo, useCallback } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 import {
@@ -14,17 +14,13 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
 import { Column, DataGridTypes } from "devextreme-react/data-grid";
-import { exportDataGrid } from "devextreme/pdf_exporter";
-import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
-import { jsPDF } from "jspdf";
-import { Workbook } from "exceljs";
-import { saveAs } from "file-saver";
 
 //types
 import { Class, Program, Student } from "@/types";
 
-//hooks
-import { fetchClasses, fetchStudents, deleteStudent } from "@/hooks/fetchFunctions";
+//services & utils
+import { classService, studentService } from "@/services";
+import { createExportHandler } from "@/lib/export";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -81,7 +77,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
     error: classesError,
   } = useQuery<Class[]>({
     queryKey: ["classes"],
-    queryFn: () => fetchClasses(),
+    queryFn: () => classService.getAll(),
     enabled: isAdmin === "true",
   });
 
@@ -91,30 +87,27 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
     error: studentsError,
   } = useQuery({
     queryKey: ["students", classId], // Re-fetch when classId changes
-    queryFn: () => fetchStudents(classId),
+    queryFn: () => studentService.getByClass(classId),
     enabled: classId > 0, // Prevent fetch when classId is null
   });
 
   // Add row numbers to students data
-  const studentsWithRowNumbers = studentsData?.map((student: Student, index: number) => ({
-    ...student,
-    rowNumber: index + 1
-  })) || [];
+  const studentsWithRowNumbers = useMemo(() => 
+    studentsData?.map((student: Student, index: number) => ({
+      ...student,
+      rowNumber: index + 1
+    })) || []
+  , [studentsData]);
   //#endregion
 
   //#region mutations
   const deleteStudentMutation = useMutation({
-    mutationFn: (id: number) => deleteStudent(id),
-    onSuccess: (data) => {
-      if (data.error) {
-        showMessage(data.error, "error");
-      } else {
-        showMessage("Studenti u fshi me sukses!", "success");
-        queryClient.invalidateQueries({ queryKey: ["students", classId] });
-        setDeletingStudent(null);
-        // Clear selection if the deleted student was selected
-        setSelectedStudents(prev => prev.filter(s => s.id !== data.id));
-      }
+    mutationFn: (id: number) => studentService.delete(id),
+    onSuccess: () => {
+      showMessage("Studenti u fshi me sukses!", "success");
+      queryClient.invalidateQueries({ queryKey: ["students", classId] });
+      setDeletingStudent(null);
+      setSelectedStudents([]);
     },
     onError: () => {
       showMessage("Dështoi fshirja e studentit!", "error");
@@ -123,7 +116,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
 
   const deleteMultipleStudentsMutation = useMutation({
     mutationFn: async (studentIds: number[]) => {
-      const promises = studentIds.map(id => deleteStudent(id));
+      const promises = studentIds.map(id => studentService.delete(id));
       const results = await Promise.allSettled(promises);
       return results;
     },
@@ -148,120 +141,15 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   //#endregion
 
   //#region functions
-  const onExporting = (e: DataGridTypes.ExportingEvent) => {
-    if (e.format === 'pdf') {
-      const doc = new jsPDF();
-
-      // Add header with class name and student count
-      const className = selectedClass?.name || 'Lista e studentëve';
-      const studentCount = studentsData?.length || 0;
-
-      // Set font and add title
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text(className, 15, 20);
-
-      // Add student count
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Gjithsej ${studentCount} student${studentCount !== 1 ? 'ë' : ''}`, 15, 30);
-
-      // Add date
-      doc.setFontSize(10);
-      doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
-
-      exportDataGrid({
-        jsPDFDocument: doc,
-        component: e.component,
-        indent: 5,
-        topLeft: { x: 10, y: 50 }, // Start the table below the header
-      }).then(() => {
-        // Add footer to all pages
-        const totalPages = doc.getNumberOfPages();
-
-        for (let i = 1; i <= totalPages; i++) {
-          doc.setPage(i);
-
-          // Footer positioning
-          const pageHeight = doc.internal.pageSize.height;
-          const footerY = pageHeight - 15;
-
-          // Set footer font
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(100, 100, 100); // Gray color
-
-          // Left side - Website attribution
-          doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
-
-          // Center - Developer credit
-          const centerText = 'Developed by JK';
-          const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
-          doc.text(centerText, centerX, footerY);
-
-          // Right side - Page numbering
-          const pageText = `${i}/${totalPages}`;
-          const pageWidth = doc.internal.pageSize.width;
-          const pageTextWidth = doc.getTextWidth(pageText);
-          doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
-        }
-
-        doc.save(`Studentet_${selectedClass?.name || 'Lista'}.pdf`);
-      });
-    } else if (e.format === 'xlsx') {
-      const workbook = new Workbook();
-      const worksheet = workbook.addWorksheet('Studentet');
-
-      exportDataGridToExcel({
-        component: e.component,
-        worksheet: worksheet,
-        autoFilterEnabled: true,
-        customizeCell: (options) => {
-          // Enable text wrapping for all cells
-          if (options.excelCell) {
-            options.excelCell.alignment = {
-              wrapText: true,
-              vertical: 'top',
-              horizontal: 'left'
-            };
-          }
-        }
-      }).then(() => {
-        // Set column widths and row heights after export
-        worksheet.columns = [
-          { width: 8 },   // # column
-          { width: 20 },  // Emri
-          { width: 20 },  // Atësia
-          { width: 20 },  // Mbiemri
-          { width: 30 },  // Email institucional
-          { width: 30 },  // Email personal
-          { width: 15 },  // Telefoni
-          { width: 10 }   // Nr. rradhës
-        ];
-
-        // Set minimum row height for data rows
-        worksheet.eachRow((row, rowNumber) => {
-          if (rowNumber > 1) { // Skip header row
-            row.height = 25; // Minimum height for better text visibility
-          }
-        });
-      }).then(() => {
-        workbook.xlsx.writeBuffer().then((buffer) => {
-          saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `Studentet_${selectedClass?.name || 'Lista'}.xlsx`);
-        });
-      });
-    }
-  };
-
   const handleDeleteStudent = () => {
     if (deletingStudent) {
       deleteStudentMutation.mutate(deletingStudent.id);
     }
   };
 
-  const handleSelectionChanged = (e: DataGridTypes.SelectionChangedEvent) => {
+  const handleSelectionChanged = useCallback((e: DataGridTypes.SelectionChangedEvent) => {
     setSelectedStudents(e.selectedRowsData);
-  };
+  }, []);
 
   const handleDeleteSelectedStudents = () => {
     if (selectedStudents.length > 0) {
@@ -340,6 +228,12 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
   const selectedClass = filteredClasses?.find(
     (cls: Class) => cls.id === classId
   );
+
+  const onExporting = createExportHandler({
+    title: selectedClass?.name || "Lista e studentëve",
+    subtitle: `Gjithsej ${studentsData?.length || 0} studentë`,
+    fileName: `Studentet_${selectedClass?.name || "Lista"}`,
+  });
 
   return (
     <div className="flex flex-col gap-4">

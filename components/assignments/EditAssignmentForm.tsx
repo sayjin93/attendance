@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useNotify } from "@/contexts/NotifyContext";
-import { updateAssignment } from "@/hooks/functions";
+import { assignmentService } from "@/services";
 
 import { EditAssignmentFormProps } from "@/types";
 
@@ -28,7 +28,7 @@ export default function EditAssignmentForm({
 
   const updateMutation = useMutation({
     mutationFn: (data: typeof formData) =>
-      updateAssignment(assignment.id, data),
+      assignmentService.update(assignment.id, data),
     onSuccess: () => {
       showMessage("Caktimi u përditësua me sukses!", "success");
       queryClient.invalidateQueries({ queryKey: ["assignments"] });

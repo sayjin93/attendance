@@ -14,13 +14,9 @@ import { AttendanceRecord, Class, Lecture } from "@/types";
 // constants
 import { ATTENDANCE_STATUS, DEFAULT_STATUS } from "@/constants/attendanceStatus";
 
-// hooks
-import { formatDate } from "@/hooks/functions";
-import {
-  fetchAttendance,
-  fetchClassesIncludesLecturesAndStudents,
-  updateAttendanceBatch,
-} from "@/hooks/fetchFunctions";
+// hooks & utils
+import { formatDate } from "@/lib/utils";
+import { classService, attendanceService } from "@/services";
 
 // contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -77,11 +73,11 @@ export default function AttendancePageClient({
   } = useQuery<ClassWithLectures[]>({
     queryKey: ["classes", professorId],
     queryFn: async () => {
-      const result = await fetchClassesIncludesLecturesAndStudents(professorId);
+      const result = await classService.getWithLecturesAndStudents(professorId);
 
       // Check if the result is an error object
       if (result && typeof result === 'object' && 'error' in result) {
-        throw new Error(result.error);
+        throw new Error(String(result.error));
       }
 
       if (!Array.isArray(result)) {
@@ -89,7 +85,7 @@ export default function AttendancePageClient({
       }
 
       // Transform the data to flatten lectures from teachingAssignments
-      const transformedClasses = result.map((classItem: ClassWithLectures) => ({
+      const transformedClasses = (result as ClassWithLectures[]).map((classItem) => ({
         ...classItem,
         lectures: classItem.teachingAssignments?.flatMap((assignment: TeachingAssignmentWithLectures) =>
           assignment.lectures?.map((lecture: Lecture) => ({
@@ -110,7 +106,11 @@ export default function AttendancePageClient({
     error: attendanceError,
   } = useQuery<AttendanceRecord[]>({
     queryKey: ["attendance", classId, lectureId],
-    queryFn: () => fetchAttendance(professorId, classId?.toString() || "", lectureId?.toString() || ""),
+    queryFn: () => attendanceService.getByLecture({
+      professorId,
+      classId: classId?.toString() || "",
+      lectureId: lectureId?.toString() || "",
+    }),
     enabled: !!professorId && !!classId && !!lectureId,
   });
   //#endregion
@@ -197,7 +197,6 @@ export default function AttendancePageClient({
     } else if (!lectureId) {
       setSelectedDate(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classes, searchParams, lectureId]);
   //#endregion
 
@@ -211,7 +210,7 @@ export default function AttendancePageClient({
         statusId: student.status.id, // Use status.id instead of status string
       }));
 
-      return await updateAttendanceBatch(attendanceUpdates);
+      return await attendanceService.updateBatch(attendanceUpdates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

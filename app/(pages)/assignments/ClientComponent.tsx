@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-//hooks
-import { fetchAssignments } from "@/hooks/fetchFunctions";
+//services
+import { assignmentService } from "@/services";
 
 //components
 import Loader from "@/components/ui/Loader";
@@ -18,7 +18,7 @@ export default function AssignmentsPageClient({
 }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["assignments"],
-    queryFn: () => fetchAssignments(),
+    queryFn: () => assignmentService.getAll(),
     enabled: isAdmin === "true",
   });
 

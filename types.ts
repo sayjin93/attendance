@@ -274,6 +274,7 @@ export interface DashboardStats {
 // Reports API
 export interface ReportData {
   students: StudentReport[];
+  subjects?: { id: string; name: string; code: string }[];
   summary: {
     totalStudents: number;
     passedStudents: number;
@@ -437,6 +438,9 @@ export interface ClassWithLectures extends Class {
 }
 
 // ============================================================================
-// LEGACY INTERFACES (for backward compatibility)
-// TODO: Remove these once all components are updated
+// SHARED UTILITY TYPES
 // ============================================================================
+
+export type NotificationType = "default" | "success" | "error" | "warning";
+
+export type AlertType = "default" | "warning" | "error" | "success" | "info";

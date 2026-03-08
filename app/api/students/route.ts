@@ -1,24 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAuth, requireAdmin } from "@/lib/auth";
 import { logActivity, getChangedFields, getIpAddress } from "@/lib/activityLogger";
 
-// ✅ GET: Fetch students for a specific class
+// GET: Fetch students for a specific class
 export async function GET(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
+    const decoded = await requireAuth();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { searchParams } = new URL(req.url);
     const classId = searchParams.get("classId");
@@ -47,18 +36,8 @@ export async function GET(req: Request) {
 }
 export async function POST(req: NextRequest) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
+    const decoded = await requireAuth();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { firstName, lastName, institutionEmail, classId, memo, father, personalEmail, phone, orderId } = await req.json();
 
@@ -143,31 +122,8 @@ export async function POST(req: NextRequest) {
 // PUT: Update a student (Only Admins)
 export async function PUT(req: NextRequest) {
   try {
-    const auth = await authenticateRequest();
-
-    // Check auth
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    // Ensure user is authenticated
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
-
-    const isAdmin = decoded.isAdmin;
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të modifikojnë studentë!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id, firstName, lastName, classId, memo, father, personalEmail, phone, orderId } = await req.json();
 
@@ -274,31 +230,8 @@ export async function PUT(req: NextRequest) {
 // DELETE: Delete a student (Only Admins)
 export async function DELETE(req: NextRequest) {
   try {
-    const auth = await authenticateRequest();
-
-    // Check auth
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    // Ensure user is authenticated
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
-
-    const isAdmin = decoded.isAdmin;
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të fshijnë studentë!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id } = await req.json();
 

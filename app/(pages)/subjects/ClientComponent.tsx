@@ -5,17 +5,14 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
 import { Column, DataGridTypes } from "devextreme-react/data-grid";
-import { exportDataGrid } from "devextreme/pdf_exporter";
-import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
-import { jsPDF } from "jspdf";
-import { Workbook } from "exceljs";
-import { saveAs } from "file-saver";
 
 //types
 import { Subject } from "@/types";
 
-//hooks
-import { fetchSubjects, deleteSubject } from "@/hooks/fetchFunctions";
+//services & utils
+import { subjectService } from "@/services";
+import { getLabelColor } from "@/lib/utils";
+import { createExportHandler } from "@/lib/export";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -33,27 +30,6 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region constants
   const { showMessage } = useNotify();
   const queryClient = useQueryClient();
-
-  // Color palette for classes - consistent colors based on class ID
-  const classColors = [
-    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' },
-    { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100' },
-    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100' },
-    { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100' },
-    { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-100' },
-    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100' },
-    { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-100' },
-    { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100' },
-    { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-100' },
-    { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-100' },
-    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
-    { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-100' },
-  ];
-
-  // Function to get consistent color for a class based on its ID
-  const getClassColor = (classId: number) => {
-    return classColors[classId % classColors.length];
-  };
   //#endregion
 
   //#region state
@@ -75,22 +51,18 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   //#region useQuery
   const { data, isLoading, error } = useQuery({
     queryKey: ["subjects"],
-    queryFn: () => fetchSubjects(),
+    queryFn: () => subjectService.getAll(),
     enabled: isAdmin === "true",
   });
   //#endregion
 
   //#region mutations
   const deleteSubjectMutation = useMutation({
-    mutationFn: (id: number) => deleteSubject(id),
-    onSuccess: (data) => {
-      if (data.error) {
-        showMessage(data.error, "error");
-      } else {
-        showMessage("Lënda u fshi me sukses!", "success");
-        queryClient.invalidateQueries({ queryKey: ["subjects"] });
-        setDeletingSubject(null);
-      }
+    mutationFn: (id: number) => subjectService.delete(id),
+    onSuccess: () => {
+      showMessage("Lënda u fshi me sukses!", "success");
+      queryClient.invalidateQueries({ queryKey: ["subjects"] });
+      setDeletingSubject(null);
     },
     onError: () => {
       showMessage("Dështoi fshirja e lëndës!", "error");
@@ -101,7 +73,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
   const bulkDeleteSubjectsMutation = useMutation({
     mutationFn: async (subjectIds: number[]) => {
       const results = await Promise.allSettled(
-        subjectIds.map(id => deleteSubject(id))
+        subjectIds.map(id => subjectService.delete(id))
       );
       return results;
     },
@@ -216,82 +188,12 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
     setSelectedSubjects([]);
   };
 
-  // Export functions for DevExtreme
-  const onExporting = (e: DataGridTypes.ExportingEvent) => {
-    if (e.format === 'pdf') {
-      const doc = new jsPDF();
-
-      // Add header with title and subject count
-      const subjectCount = sortedSubjects?.length || 0;
-
-      // Set font and add title
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Lista e Lëndëve', 15, 20);
-
-      // Add subject count
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Gjithsej ${subjectCount} lëndë`, 15, 30);
-
-      // Add date
-      doc.setFontSize(10);
-      doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
-
-      exportDataGrid({
-        jsPDFDocument: doc,
-        component: e.component,
-        indent: 5,
-        topLeft: { x: 10, y: 50 }, // Start the table below the header
-      }).then(() => {
-        // Add footer to all pages
-        const totalPages = doc.getNumberOfPages();
-
-        for (let i = 1; i <= totalPages; i++) {
-          doc.setPage(i);
-
-          // Footer positioning
-          const pageHeight = doc.internal.pageSize.height;
-          const footerY = pageHeight - 15;
-
-          // Set footer font
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(100, 100, 100); // Gray color
-
-          // Left side - Website attribution
-          doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
-
-          // Center - Developer credit
-          const centerText = 'Developed by JK';
-          const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
-          doc.text(centerText, centerX, footerY);
-
-          // Right side - Page numbering
-          const pageText = `${i}/${totalPages}`;
-          const pageWidth = doc.internal.pageSize.width;
-          const pageTextWidth = doc.getTextWidth(pageText);
-          doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
-        }
-
-        doc.save('Lendët.pdf');
-      });
-    } else if (e.format === 'xlsx') {
-      const workbook = new Workbook();
-      const worksheet = workbook.addWorksheet('Lendët');
-
-      exportDataGridToExcel({
-        component: e.component,
-        worksheet: worksheet,
-        autoFilterEnabled: true
-      }).then(() => {
-        workbook.xlsx.writeBuffer().then((buffer: ArrayBuffer) => {
-          saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Lendët.xlsx');
-        });
-      });
-    }
-    e.cancel = true;
-  };
+  // Export handler
+  const onExporting = createExportHandler({
+    title: "Lista e Lëndëve",
+    subtitle: `Gjithsej ${sortedSubjects?.length || 0} lëndë`,
+    fileName: "Lendët",
+  });
 
   // Render action buttons for each row
   const renderActionsCell = (cellData: { data: Subject }) => {
@@ -336,7 +238,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
     return (
       <div className="flex flex-wrap gap-1">
         {uniqueClasses.slice(0, 2).map((cls) => {
-          const colors = getClassColor(cls.id);
+          const colors = getLabelColor(cls.id);
           return (
             <span
               key={cls.id}
@@ -569,7 +471,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
           <div className="bg-gray-100 text-black text-xs rounded-lg py-2 px-3 max-w-xs shadow-xl border border-gray-200">
             <div className="flex flex-wrap gap-1">
               {tooltipData.classes.map((cls) => {
-                const colors = getClassColor(cls.id);
+                const colors = getLabelColor(cls.id);
                 return (
                   <span
                     key={cls.id}

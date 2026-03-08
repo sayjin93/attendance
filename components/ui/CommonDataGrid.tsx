@@ -6,35 +6,37 @@ interface CommonDataGridProps {
     storageKey?: string;
     showRowNumber?: boolean;
     keyExpr?: string;
+    columnsAutoWidth?: boolean;
+    wordWrapEnabled?: boolean;
+    paging?: { enabled?: boolean; pageSize?: number };
+    columnChooser?: { enabled: boolean; title?: string; emptyPanelText?: string };
+    selection?: DataGridTypes.Properties["selection"];
     onExporting?: (e: DataGridTypes.ExportingEvent) => void;
     onSelectionChanged?: (e: DataGridTypes.SelectionChangedEvent) => void;
     children?: React.ReactNode;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any; // Allow any additional props
 }
 
 const CommonDataGrid: React.FC<CommonDataGridProps> = ({
     dataSource,
     storageKey,
     showRowNumber = true,
-    keyExpr,
+    keyExpr = "id",
+    columnsAutoWidth,
+    wordWrapEnabled,
+    paging,
+    columnChooser,
+    selection,
     onExporting,
     onSelectionChanged,
     children,
-    ...rest
 }) => {
-    // Remove conflicting props from rest
-    const { keyExpr: restKeyExpr, ...restWithoutKeyExpr } = rest;
-
-    // Use keyExpr from props, fallback to "id"
-    const finalKeyExpr = keyExpr || restKeyExpr || "id";
 
     return (
         <DataGrid
             width="100%"
             className="dx-datagrid-borders"
-            columnAutoWidth={true}
-            columnChooser={{ enabled: true, title: "Zgjidh Kolonat", emptyPanelText: "Shtoni kolona këtu për ta fshehur atë" }}
+            columnAutoWidth={columnsAutoWidth ?? true}
+            columnChooser={columnChooser ?? { enabled: true, title: "Zgjidh Kolonat", emptyPanelText: "Shtoni kolona këtu për ta fshehur atë" }}
             columnFixing={{
                 enabled: true,
                 texts: {
@@ -59,7 +61,7 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
             groupPanel={{ visible: false, emptyPanelText: "Bëji drag një header kolone këtu për ta grupuar sipas asaj kolone" }}
             headerFilter={{ visible: true }}
             hoverStateEnabled={true}
-            keyExpr={finalKeyExpr}
+            keyExpr={keyExpr}
             loadPanel={{ enabled: false }}
             noDataText="Nuk ka të dhëna."
             onExporting={onExporting}
@@ -70,13 +72,14 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
                 showInfo: true,
                 showNavigationButtons: true
             }}
-            paging={{ enabled: true, pageSize: 25 }}
+            paging={{ enabled: true, pageSize: 25, ...paging }}
             rowAlternationEnabled={true}
             searchPanel={{ visible: true, highlightCaseSensitive: true, placeholder: "Kërko..." }}
-            selection={{ mode: "multiple", showCheckBoxesMode: "onClick" }}
+            selection={selection ?? { mode: "multiple" as const, showCheckBoxesMode: "onClick" as const }}
             showBorders={true}
             showColumnLines={true}
             showRowLines={true}
+            wordWrapEnabled={wordWrapEnabled}
             sorting={{
                 mode: "multiple",
                 ascendingText: "Rendit në rritje",
@@ -92,7 +95,6 @@ const CommonDataGrid: React.FC<CommonDataGridProps> = ({
                     }
                     : { enabled: false }
             }
-            {...restWithoutKeyExpr}
         >
             {/* Row Number Column - Always First (unless showRowNumber is false) */}
             {showRowNumber && (

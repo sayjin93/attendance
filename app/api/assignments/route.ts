@@ -1,23 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAuth, requireAdmin } from "@/lib/auth";
 
 // ✅ GET: Fetch all teaching assignments + professors + subjects + teaching types
 export async function GET() {
   try {
-    const auth = await authenticateRequest();
-    if ('error' in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
+    const decoded = await requireAuth();
+    if (decoded instanceof NextResponse) return decoded;
 
     // ✅ Fetch all professors (excluding admins)
     const professors = await prisma.professor.findMany({
@@ -136,7 +125,7 @@ export async function GET() {
       });
     } else {
       assignments = await prisma.teachingAssignment.findMany({
-        where: { professorId: parseInt(decoded.professorId as string, 10) },
+        where: { professorId: decoded.professorId },
         include: {
           subject: {
             select: {
@@ -193,19 +182,8 @@ export async function GET() {
 // ✅ POST: Assign a professor to a subject (Only Admins)
 export async function POST(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ('error' in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded || !decoded.isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të caktojnë lëndë për profesorët!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { professorId, subjectId, classId, typeId } = await req.json();
 

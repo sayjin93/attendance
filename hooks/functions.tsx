@@ -1,63 +1,16 @@
+/**
+ * Shared utility functions.
+ * For API calls, use the service layer in @/services instead.
+ */
+import { authService } from "@/services";
+
 export const handleLogout = async () => {
     try {
-        await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-        window.location.href = "/login"; // Redirect to login page after logout
+        await authService.logout();
+        window.location.href = "/login";
     } catch (error) {
         console.error("Logout failed:", error);
     }
 };
 
-export const getTodayDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
-
-export const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // Get month (0-based)
-    const day = date.getUTCDate().toString().padStart(2, '0'); // Get day
-    const year = date.getUTCFullYear(); // Get full year
-
-    return `${month}/${day}/${year}`;
-}
-
-export const classNames = (...classes: (string | false | null | undefined)[]): string => {
-    return classes.filter(Boolean).join(" ");
-}
-
-// Assignment functions
-export const updateAssignment = async (id: number, data: {
-    professorId: number;
-    subjectId: number;
-    classId: number;
-    typeId: number;
-}) => {
-    const response = await fetch(`/api/assignments/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Gabim gjatë përditësimit të caktimit");
-    }
-
-    return response.json();
-};
-
-export const deleteAssignment = async (id: number) => {
-    const response = await fetch(`/api/assignments/${id}`, {
-        method: "DELETE",
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Gabim gjatë fshirjes së caktimit");
-    }
-
-    return response.json();
-};
+export { getTodayDate, formatDate, cn as classNames } from "@/lib/utils";

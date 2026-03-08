@@ -1,26 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAuth, requireAdmin } from "@/lib/auth";
 import { logActivity, getChangedFields } from "@/lib/activityLogger";
 
 // GET: Fetch all classes for the logged-in professor or all classes for admins
 export async function GET(req: Request) {
   try {
-    const auth = await authenticateRequest();
-
-    // Check auth
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
+    const decoded = await requireAuth();
+    if (decoded instanceof NextResponse) return decoded;
 
     // Parse query parameters
     const { searchParams } = new URL(req.url);
@@ -103,31 +90,8 @@ export async function GET(req: Request) {
 // POST: Create a new class (Only Admins)
 export async function POST(req: Request) {
   try {
-    const auth = await authenticateRequest();
-
-    // Check auth
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    // Ensure user is authenticated
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
-
-    const isAdmin = decoded.isAdmin;
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të krijojnë klasa!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { name, programId } = await req.json();
 
@@ -194,31 +158,8 @@ export async function POST(req: Request) {
 // PUT: Update a class (Only Admins)
 export async function PUT(req: Request) {
   try {
-    const auth = await authenticateRequest();
-
-    // Check auth
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    // Ensure user is authenticated
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
-
-    const isAdmin = decoded.isAdmin;
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të modifikojnë klasa!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id, name, programId } = await req.json();
 
@@ -312,31 +253,8 @@ export async function PUT(req: Request) {
 // DELETE: Delete a class (Only Admins)
 export async function DELETE(req: Request) {
   try {
-    const auth = await authenticateRequest();
-
-    // Check auth
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    // Ensure user is authenticated
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
-
-    const isAdmin = decoded.isAdmin;
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të fshijnë klasa!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id } = await req.json();
 

@@ -43,7 +43,7 @@ async function authenticateUser(): Promise<User> {
     };
   } catch (error) {
     console.error('JWT verification failed:', error);
-    throw new Error('Unauthorized: Invalid token');
+    throw new Error('Unauthorized: Invalid token', { cause: error });
   }
 }
 

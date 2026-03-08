@@ -5,8 +5,8 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 //types
 import { EditStudentFormProps } from "@/types";
 
-//hooks
-import { updateStudent } from "@/hooks/fetchFunctions";
+//services
+import { studentService } from "@/services";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -33,25 +33,21 @@ export default function EditStudentForm({ student, classes, onClose }: EditStude
 
   //#region mutations
   const updateStudentMutation = useMutation({
-    mutationFn: () => updateStudent(
-      student.id, 
+    mutationFn: () => studentService.update({
+      id: student.id, 
       firstName, 
       lastName, 
       classId, 
-      memo.trim() || null,
-      father.trim() || null,
-      personalEmail.trim() || null,
-      phone.trim() || null,
-      orderId.trim() ? parseInt(orderId.trim()) : null
-    ),
-    onSuccess: (data) => {
-      if (data.error) {
-        showMessage(data.error, "error");
-      } else {
-        showMessage("Studenti u modifikua me sukses!", "success");
-        queryClient.invalidateQueries({ queryKey: ["students"] });
-        onClose();
-      }
+      memo: memo.trim() || null,
+      father: father.trim() || null,
+      personalEmail: personalEmail.trim() || null,
+      phone: phone.trim() || null,
+      orderId: orderId.trim() ? parseInt(orderId.trim()) : null
+    }),
+    onSuccess: () => {
+      showMessage("Studenti u modifikua me sukses!", "success");
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      onClose();
     },
     onError: () => {
       showMessage("Dështoi modifikimi i studentit!", "error");

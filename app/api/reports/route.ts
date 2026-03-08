@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAuth } from "@/lib/auth";
 
 // Types for report responses
 interface ReportClass {
@@ -34,18 +34,8 @@ interface ReportStudent {
 
 export async function GET(request: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
+    const decoded = await requireAuth();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { searchParams } = new URL(request.url);
     const programId = searchParams.get("programId");
@@ -94,7 +84,7 @@ export async function GET(request: Request) {
         });
       }
       
-      classes = classesData.map(c => ({
+      classes = classesData.map((c: typeof classesData[number]) => ({
         id: c.id.toString(),
         name: c.name,
         programId: c.programId.toString()
@@ -131,7 +121,7 @@ export async function GET(request: Request) {
         distinct: ['subjectId']
       });
 
-      subjects = assignments.map(a => ({
+      subjects = assignments.map((a: typeof assignments[number]) => ({
         id: a.subject.id.toString(),
         name: `${a.subject.code} - ${a.subject.name}`,
         code: a.subject.code
@@ -194,7 +184,7 @@ export async function GET(request: Request) {
       });
 
       // Calculate statistics for each student
-      students = studentsData.map((student, index) => {
+      students = studentsData.map((student: typeof studentsData[number], index: number) => {
         let totalLectures = 0;
         let attendedLectures = 0;
         let participatedLectures = 0;
@@ -205,16 +195,16 @@ export async function GET(request: Request) {
         let leaveSeminars = 0;
 
         // Group lectures by assignment type
-        assignments.forEach(assignment => {
+        assignments.forEach((assignment: typeof assignments[number]) => {
           const isLecture = assignment.type.name === "Lecture";
           const isSeminar = assignment.type.name === "Seminar";
 
           // Find lectures for this assignment's professor
           const assignmentLectures = lectures.filter(
-            lecture => lecture.teachingAssignment.professorId === assignment.professorId
+            (lecture: typeof lectures[number]) => lecture.teachingAssignment.professorId === assignment.professorId
           );
 
-          assignmentLectures.forEach(lecture => {
+          assignmentLectures.forEach((lecture: typeof lectures[number]) => {
             const studentAttendance = lecture.attendance.find(
               (a: { studentId: number; status: { id: number; name: string } }) => a.studentId === student.id
             );
@@ -301,7 +291,7 @@ export async function GET(request: Request) {
     }
 
     const response = {
-      programs: programs.map(p => ({ id: p.id.toString(), name: p.name })),
+      programs: programs.map((p: typeof programs[number]) => ({ id: p.id.toString(), name: p.name })),
       classes: classes.map(c => ({ 
         id: c.id.toString(), 
         name: c.name,

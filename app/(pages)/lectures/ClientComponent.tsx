@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { useQuery } from "@tanstack/react-query";
 
 //components
@@ -8,18 +7,13 @@ import Alert from "@/components/ui/Alert";
 import AddLectureCard from "@/components/lectures/AddLectureCard";
 import LecturesDataGrid from "@/components/lectures/LecturesDataGrid";
 import { LecturesResponse } from "@/types";
+import { lectureService } from "@/services";
 
 export default function LecturesPageClient() {
   // Fetch lectures and assignments
   const { data, isLoading, error } = useQuery<LecturesResponse>({
     queryKey: ["lectures"],
-    queryFn: async () => {
-      const response = await fetch("/api/lectures");
-      if (!response.ok) {
-        throw new Error("Failed to fetch lectures");
-      }
-      return response.json();
-    },
+    queryFn: () => lectureService.getAll(),
   });
 
   if (isLoading) return <Loader />;

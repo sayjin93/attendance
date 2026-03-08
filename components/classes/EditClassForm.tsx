@@ -5,8 +5,8 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 //types
 import { EditClassFormProps } from "@/types";
 
-//hooks
-import { updateClass } from "@/hooks/fetchFunctions";
+//services
+import { classService } from "@/services";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -27,15 +27,11 @@ export default function EditClassForm({ classItem, programs, onClose }: EditClas
 
   //#region mutations
   const updateClassMutation = useMutation({
-    mutationFn: () => updateClass(classItem.id, name, programId),
-    onSuccess: (data) => {
-      if (data.error) {
-        showMessage(data.error, "error");
-      } else {
-        showMessage("Klasa u modifikua me sukses!", "success");
-        queryClient.invalidateQueries({ queryKey: ["classes"] });
-        onClose();
-      }
+    mutationFn: () => classService.update({ id: classItem.id, name, programId }),
+    onSuccess: () => {
+      showMessage("Klasa u modifikua me sukses!", "success");
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      onClose();
     },
     onError: () => {
       showMessage("Dështoi modifikimi i klasës!", "error");

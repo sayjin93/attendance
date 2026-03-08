@@ -135,7 +135,7 @@ const RegistryTable = ({
       // Add attendance data for each lecture
       lectures.forEach((lecture: Lecture) => {
         const status = row.attendanceByLecture[lecture.id];
-        let displayText = '';
+        let displayText;
 
         if (status?.name === 'ABSENT') displayText = 'm';
         else if (status?.name === 'PARTICIPATED') displayText = '+';

@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useRef, useCallback, ReactNode } from "react";
+import type { NotificationType } from "@/types";
 
 // Define context type
 type NotifyContextType = {
-    showMessage: (text: string, type: "default" | "success" | "error" | "warning", duration?: number) => void;
+    showMessage: (text: string, type: NotificationType, duration?: number) => void;
 };
 
 // Create context
@@ -12,12 +13,20 @@ const NotifyContext = createContext<NotifyContextType | undefined>(undefined);
 
 // Message Provider
 export default function NotifyProvider({ children }: { children: ReactNode }) {
-    const [message, setMessage] = useState<{ text: string; type: "default" | "success" | "error" | "warning" } | null>(null);
+    const [message, setMessage] = useState<{ text: string; type: NotificationType } | null>(null);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const showMessage = (text: string, type: "default" | "success" | "error" | "warning", duration = 3000) => {
+    const showMessage = useCallback((text: string, type: NotificationType, duration = 3000) => {
+        // Clear any existing timer to prevent stale dismissals
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
         setMessage({ text, type });
-        setTimeout(() => setMessage(null), duration);
-    };
+        timerRef.current = setTimeout(() => {
+            setMessage(null);
+            timerRef.current = null;
+        }, duration);
+    }, []);
 
     return (
         <NotifyContext.Provider value={{ showMessage }}>

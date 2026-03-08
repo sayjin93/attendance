@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAuth } from "@/lib/auth";
 
 export async function GET() {
-  const auth = await authenticateRequest();
-  if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
-
-  const { decoded } = auth;
+  const decoded = await requireAuth();
+  if (decoded instanceof NextResponse) return decoded;
 
   try {
     // Base stats interface
@@ -103,7 +99,7 @@ export async function GET() {
 
       // Extract unique classes with their types
       const classMap = new Map();
-      assignmentData.forEach(a => {
+      assignmentData.forEach((a: typeof assignmentData[number]) => {
         const classId = a.class.id;
         if (!classMap.has(classId)) {
           classMap.set(classId, {
@@ -120,7 +116,7 @@ export async function GET() {
 
       // Extract unique subjects with their types
       const subjectMap = new Map();
-      subjectData.forEach(s => {
+      subjectData.forEach((s: typeof subjectData[number]) => {
         const subjectId = s.subject.id;
         if (!subjectMap.has(subjectId)) {
           subjectMap.set(subjectId, {

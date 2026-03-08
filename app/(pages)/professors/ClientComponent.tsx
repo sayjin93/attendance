@@ -7,17 +7,13 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // DevExtreme imports
 import { Column, DataGridTypes } from "devextreme-react/data-grid";
-import { exportDataGrid } from "devextreme/pdf_exporter";
-import { exportDataGrid as exportDataGridToExcel } from "devextreme/excel_exporter";
-import { jsPDF } from "jspdf";
-import { Workbook } from "exceljs";
-import { saveAs } from "file-saver";
 
 //types
 import { Professor } from "@/types";
 
-//hooks
-import { fetchProfessors, deleteProfessor } from "@/hooks/fetchFunctions";
+//services & utils
+import { professorService } from "@/services";
+import { createExportHandler } from "@/lib/export";
 
 //contexts
 import { useNotify } from "@/contexts/NotifyContext";
@@ -54,22 +50,18 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
         error: professorsError,
     } = useQuery<Professor[]>({
         queryKey: ["professors"],
-        queryFn: () => fetchProfessors(),
+        queryFn: () => professorService.getAll(),
         enabled: isAdmin === "true",
     });
     //#endregion
 
     //#region mutations
     const deleteProfessorMutation = useMutation({
-        mutationFn: (id: number) => deleteProfessor(id),
-        onSuccess: (data) => {
-            if (data.error) {
-                showMessage(data.error, "error");
-            } else {
-                showMessage("Profesori u fshi me sukses!", "success");
-                queryClient.invalidateQueries({ queryKey: ["professors"] });
-                setDeletingProfessor(null);
-            }
+        mutationFn: (id: number) => professorService.delete(id),
+        onSuccess: () => {
+            showMessage("Profesori u fshi me sukses!", "success");
+            queryClient.invalidateQueries({ queryKey: ["professors"] });
+            setDeletingProfessor(null);
         },
         onError: () => {
             showMessage("Dështoi fshirja e profesorit!", "error");
@@ -80,7 +72,7 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
     const bulkDeleteProfessorsMutation = useMutation({
         mutationFn: async (professorIds: number[]) => {
             const results = await Promise.allSettled(
-                professorIds.map(id => deleteProfessor(id))
+                professorIds.map(id => professorService.delete(id))
             );
             return results;
         },
@@ -179,83 +171,13 @@ export default function ProfessorsPageClient({ isAdmin }: { isAdmin: string }) {
         setSelectedProfessors([]);
     };
 
-    // Export functions for DevExtreme
-    const onExporting = (e: DataGridTypes.ExportingEvent) => {
-        if (e.format === 'pdf') {
-            const doc = new jsPDF();
-
-            // Add header with title and professor count
-            const professorCount = professorsWithRowNumbers?.length || 0;
-
-            // Set font and add title
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Lista e Profesorëve', 15, 20);
-
-            // Add professor count
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Gjithsej ${professorCount} profesor${professorCount !== 1 ? 'ë' : ''}`, 15, 30);
-
-            // Add date
-            doc.setFontSize(10);
-            doc.text(`Data: ${new Date().toLocaleDateString('sq-AL')}`, 15, 40);
-
-            exportDataGrid({
-                jsPDFDocument: doc,
-                component: e.component,
-                indent: 5,
-                topLeft: { x: 10, y: 50 }, // Start the table below the header
-                columnWidths: [15, 45, 50, 35, 20], // #, Emri i plotë, Email, Username, Caktime
-            }).then(() => {
-                // Add footer to all pages
-                const totalPages = doc.getNumberOfPages();
-
-                for (let i = 1; i <= totalPages; i++) {
-                    doc.setPage(i);
-
-                    // Footer positioning
-                    const pageHeight = doc.internal.pageSize.height;
-                    const footerY = pageHeight - 15;
-
-                    // Set footer font
-                    doc.setFontSize(8);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setTextColor(100, 100, 100); // Gray color
-
-                    // Left side - Website attribution
-                    doc.text('Gjeneruar nga www.mungesa.app', 15, footerY);
-
-                    // Center - Developer credit
-                    const centerText = 'Developed by JK';
-                    const centerX = (doc.internal.pageSize.width / 2) - (doc.getTextWidth(centerText) / 2);
-                    doc.text(centerText, centerX, footerY);
-
-                    // Right side - Page numbering
-                    const pageText = `${i}/${totalPages}`;
-                    const pageWidth = doc.internal.pageSize.width;
-                    const pageTextWidth = doc.getTextWidth(pageText);
-                    doc.text(pageText, pageWidth - pageTextWidth - 15, footerY);
-                }
-
-                doc.save('Profesoret.pdf');
-            });
-        } else if (e.format === 'xlsx') {
-            const workbook = new Workbook();
-            const worksheet = workbook.addWorksheet('Profesoret');
-
-            exportDataGridToExcel({
-                component: e.component,
-                worksheet: worksheet,
-                autoFilterEnabled: true
-            }).then(() => {
-                workbook.xlsx.writeBuffer().then((buffer: ArrayBuffer) => {
-                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Profesoret.xlsx');
-                });
-            });
-        }
-        e.cancel = true;
-    };
+    // Export handler
+    const onExporting = createExportHandler({
+        title: "Lista e Profesorëve",
+        subtitle: `Gjithsej ${professors?.length || 0} profesorë`,
+        fileName: "Profesoret",
+        columnWidths: [15, 45, 50, 35, 20],
+    });
 
     // Render action buttons for each row
     const renderActionsCell = (cellData: { data: Professor }) => {

@@ -1,24 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAuth, requireAdmin } from "@/lib/auth";
 import { logActivity, getChangedFields } from "@/lib/activityLogger";
 
 // ✅ GET: Fetch all subjects for the logged-in professor or all subjects for admins
 export async function GET() {
   try {
-    const auth = await authenticateRequest();
-    if ('error' in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
+    const decoded = await requireAuth();
+    if (decoded instanceof NextResponse) return decoded;
 
     // ✅ Fetch subjects AND include Program data + classes through teaching assignments
     const subjects = await prisma.subject.findMany({
@@ -48,29 +37,8 @@ export async function GET() {
 // ✅ POST: Create a new subject (Only Admins)
 export async function POST(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ('error' in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    // ✅ Ensure user is authenticated
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
-
-    const isAdmin = decoded.isAdmin;
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të krijojnë klasa!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { code, name, programId } = await req.json();
 
@@ -138,31 +106,8 @@ export async function POST(req: Request) {
 // PUT: Update a subject (Only Admins)
 export async function PUT(req: Request) {
   try {
-    const auth = await authenticateRequest();
-
-    // Check auth
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    // Ensure user is authenticated
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
-
-    const isAdmin = decoded.isAdmin;
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të modifikojnë lëndët!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id, code, name, programId } = await req.json();
 
@@ -261,31 +206,8 @@ export async function PUT(req: Request) {
 // DELETE: Delete a subject (Only Admins)
 export async function DELETE(req: Request) {
   try {
-    const auth = await authenticateRequest();
-
-    // Check auth
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-
-    // Ensure user is authenticated
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
-
-    const isAdmin = decoded.isAdmin;
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Vetëm administratorët mund të fshijnë lëndët!" },
-        { status: 403 }
-      );
-    }
+    const decoded = await requireAdmin();
+    if (decoded instanceof NextResponse) return decoded;
 
     const { id } = await req.json();
 
@@ -318,7 +240,7 @@ export async function DELETE(req: Request) {
 
     // Check if subject has teaching assignments or lectures
     const hasTeachingAssignments = existingSubject.teachingAssignments && existingSubject.teachingAssignments.length > 0;
-    const hasLectures = existingSubject.teachingAssignments.some(assignment => 
+    const hasLectures = existingSubject.teachingAssignments.some((assignment: typeof existingSubject.teachingAssignments[number]) => 
       assignment.lectures && assignment.lectures.length > 0
     );
 

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import CountUp from "react-countup";
 import {
@@ -18,19 +18,9 @@ import {
 //components
 import Card from "@/components/ui/Card";
 
-import { TeachingType, DashboardClientProps } from "@/types";
-
-interface DashboardStats {
-  classes: number;
-  students: number;
-  professors: number;
-  subjects: number;
-  assignments: number;
-  lectures: number;
-  attendance?: number;
-  assignmentClasses?: Array<{ id: number; name: string; types: TeachingType[] }>;
-  subjectList?: Array<{ id: number; name: string; code: string; types: TeachingType[] }>;
-}
+import { DashboardStats, DashboardClientProps } from "@/types";
+import { dashboardService } from "@/services";
+import { getLabelColor } from "@/lib/utils";
 
 export default function DashboardClient({ fullName, isAdmin }: DashboardClientProps) {
   // Tooltip state
@@ -47,38 +37,16 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
   // Fetch dashboard statistics
   const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["dashboardStats"],
-    queryFn: async () => {
-      const response = await fetch("/api/dashboard/stats");
-      if (!response.ok) {
-        throw new Error("Failed to fetch statistics");
-      }
-      return response.json();
-    },
+    queryFn: () => dashboardService.getStats(),
   });
 
-  // Color palette for labels
-  const labelColors = [
-    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-    { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-    { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
-    { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
-    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
-    { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
-    { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-  ];
-
-  const getLabelColor = (id: number) => {
-    return labelColors[id % labelColors.length];
-  };
-
-  const formatTeachingTypes = (types: TeachingType[]) => {
+  const formatTeachingTypes = useCallback((types: { id: number; name: string }[]) => {
     if (!types || types.length === 0) return "Nuk ka tip";
     return types.map(type => type.name).join(", ");
-  };
+  }, []);
 
   // Tooltip handlers
-  const handleTooltipShow = (event: React.MouseEvent, content: string) => {
+  const handleTooltipShow = useCallback((event: React.MouseEvent, content: string) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setTooltipData({
       show: true,
@@ -88,11 +56,11 @@ export default function DashboardClient({ fullName, isAdmin }: DashboardClientPr
         y: rect.top - 10
       }
     });
-  };
+  }, []);
 
-  const handleTooltipHide = () => {
+  const handleTooltipHide = useCallback(() => {
     setTooltipData(prev => ({ ...prev, show: false }));
-  };
+  }, []);
 
   const adminActions = [
     {

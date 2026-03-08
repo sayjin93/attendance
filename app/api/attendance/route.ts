@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { logActivity } from "@/lib/activityLogger";
-import { authenticateRequest } from "@/app/(pages)/utils/authenticateRequest";
+import { requireAuth } from "@/lib/auth";
 
 // ✅ Fetch Attendance API
 export async function GET(req: Request) {
@@ -44,9 +44,9 @@ export async function GET(req: Request) {
     });
 
     // ✅ Merge attendance status with students list
-    const studentsWithAttendance = students.map((student) => {
+    const studentsWithAttendance = students.map((student: typeof students[number]) => {
       const attendance = attendanceRecords.find(
-        (att) => att.studentId === student.id
+        (att: typeof attendanceRecords[number]) => att.studentId === student.id
       );
       return {
         id: student.id,
@@ -70,18 +70,8 @@ export async function GET(req: Request) {
 // ✅ Update/Create Attendance API - Supports both single and batch updates
 export async function PUT(req: Request) {
   try {
-    const auth = await authenticateRequest();
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    const { decoded } = auth;
-    if (!decoded) {
-      return NextResponse.json(
-        { error: "Invalid session or not authenticated!" },
-        { status: 401 }
-      );
-    }
+    const decoded = await requireAuth();
+    if (decoded instanceof NextResponse) return decoded;
 
     const body = await req.json();
 
@@ -125,7 +115,7 @@ export async function PUT(req: Request) {
 
       for (const update of attendanceUpdates) {
         const studentIdInt = parseInt(update.studentId, 10);
-        const existing = existingAttendances.find(a => a.studentId === studentIdInt);
+        const existing = existingAttendances.find((a: typeof existingAttendances[number]) => a.studentId === studentIdInt);
         
         if (existing) {
           updates.push(
