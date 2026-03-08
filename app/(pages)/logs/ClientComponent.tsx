@@ -208,7 +208,7 @@ export default function ClientComponent() {
             professors: "Profesorë",
             classes: "Klasa",
             subjects: "Lëndë",
-            lectures: "Ligjërata",
+            lectures: "Leksione",
             attendance: "Prezencat",
             assignments: "Caktime",
         };
