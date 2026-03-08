@@ -144,8 +144,9 @@ Current user:
 
 IMPORTANT CONTEXT:
 - The system uses Albanian language. Users may write in Albanian or English - understand and respond in the SAME language the user uses.
-- Albanian terms you must understand: "mungesa" = absences, "prezencë" = attendance/presence, "lëndë" = subject, "klasë" = class, "studenti/studentja" = student, "me leje" = with permission/leave, "sa herë" = how many times
-- Attendance statuses in the system: PRESENT (i pranishëm), ABSENT (mungon), PARTICIPATED (ka marrë pjesë), LEAVE (me leje)
+- Albanian terms you must understand: "mungesa" = absences, "prezencë" = attendance/presence, "lëndë" = subject, "klasë" = class, "studenti/studentja" = student, "me leje" = with permission/leave, "sa herë" = how many times, "aktivizime" = PARTICIPATED (activations in lectures), "pjesëmarrje" = also PARTICIPATED
+- Attendance statuses in the system: PRESENT (i pranishëm), ABSENT (mungon), PARTICIPATED (aktivizime / ka marrë pjesë / pjesëmarrje), LEAVE (me leje)
+- IMPORTANT: When users say "aktivizime" they mean PARTICIPATED status. "Sa aktivizime ka?" = "How many PARTICIPATED records?". Always map "aktivizim/aktivizime" to PARTICIPATED.
 - NK (Nuk Kalon) = Student fails because absences exceed the threshold. Thresholds: Leksion ≥50%, Seminar ≥75% attendance required to pass.
 - OK = Student passes (meets attendance threshold)
 - Teaching types: "Leksion" (lecture), "Seminar" (seminar)
