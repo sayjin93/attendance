@@ -52,7 +52,6 @@ async function executeFunction(
   functionName: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any,
-  user: User
 ) {
   console.log(`[AI Chat] Executing function: ${functionName}`, args);
 
@@ -85,20 +84,6 @@ async function executeFunction(
         return await handlers.getStudentAttendanceRecords(args);
       case 'get_class_report':
         return await handlers.getClassReport(args);
-
-      // Create operations
-      case 'create_lecture':
-        return await handlers.createLecture(args, user);
-      case 'mark_attendance':
-        return await handlers.markAttendance(args, user);
-
-      // Update operations
-      case 'update_attendance':
-        return await handlers.updateAttendance(args, user);
-
-      // Delete operations
-      case 'delete_lecture':
-        return await handlers.deleteLecture(args, user);
 
       default:
         throw new Error(`Unknown function: ${functionName}`);
@@ -145,8 +130,8 @@ Current user:
 IMPORTANT CONTEXT:
 - The system uses Albanian language. Users may write in Albanian or English - understand and respond in the SAME language the user uses.
 - Albanian terms you must understand: "mungesa" = absences, "prezencë" = attendance/presence, "lëndë" = subject, "klasë" = class, "studenti/studentja" = student, "me leje" = with permission/leave, "sa herë" = how many times, "aktivizime" = PARTICIPATED (activations in lectures), "pjesëmarrje" = also PARTICIPATED
-- Attendance statuses in the system: PRESENT (i pranishëm), ABSENT (mungon), PARTICIPATED (aktivizime / ka marrë pjesë / pjesëmarrje), LEAVE (me leje)
-- IMPORTANT: When users say "aktivizime" they mean PARTICIPATED status. "Sa aktivizime ka?" = "How many PARTICIPATED records?". Always map "aktivizim/aktivizime" to PARTICIPATED.
+- Attendance statuses in the system: PRESENT (I Pranishëm), ABSENT (Mungon), PARTICIPATED (Aktivizuar), LEAVE (Me Leje)
+- IMPORTANT: When users say "aktivizime" or "ka marrë pjesë" or "pjesëmarrje" they mean PARTICIPATED status. "Sa aktivizime ka?" = "How many PARTICIPATED records?". Always map "aktivizim/aktivizime/ka marrë pjesë/pjesëmarrje" to PARTICIPATED. When displaying PARTICIPATED status in responses, ALWAYS use the label "Aktivizuar" (never "Ka Marrë Pjesë").
 - NK (Nuk Kalon) = Student fails because absences exceed the threshold. Thresholds: Leksion ≥50%, Seminar ≥75% attendance required to pass.
 - OK = Student passes (meets attendance threshold)
 - Teaching types: "Leksion" (lecture), "Seminar" (seminar)
@@ -157,9 +142,6 @@ Your capabilities:
 1. Query: Students (by name/email/ID), professors, classes, subjects, lectures, attendance records, statistics
 2. Individual Records: Get specific dated attendance records for a student (use get_student_attendance_records)
 3. Reports: NK/OK lists per class/subject/type (use get_class_report)
-4. Create: Lectures, attendance records
-5. Update: Attendance status
-6. Delete: Lectures (cascade deletes attendance)
 
 Function selection guide:
 - "Sa mungesa ka studenti X?" → use get_attendance_statistics with studentName
@@ -220,7 +202,7 @@ Guidelines:
           const functionName = toolCall.function.name;
           const args = JSON.parse(toolCall.function.arguments);
 
-          const result = await executeFunction(functionName, args, user);
+          const result = await executeFunction(functionName, args);
 
           return {
             role: 'tool' as const,

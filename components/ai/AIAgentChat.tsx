@@ -159,7 +159,7 @@ export default function AIAgentChat() {
             const response = await fetch('/api/ai-chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     messages: messages
                         .filter(m => m.role !== 'system' || m.id === '1') // Keep only the initial system message
                         .map(m => ({
@@ -267,10 +267,10 @@ export default function AIAgentChat() {
                         >
                             <div
                                 className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                                        ? 'bg-blue-500 text-white'
-                                        : message.role === 'system'
-                                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
-                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                    ? 'bg-blue-500 text-white'
+                                    : message.role === 'system'
+                                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
+                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                                     }`}
                             >
                                 {message.isLoading ? (
@@ -291,8 +291,8 @@ export default function AIAgentChat() {
                                         )}
                                         <p
                                             className={`text-xs mt-1 ${message.role === 'user'
-                                                    ? 'text-blue-100'
-                                                    : 'text-gray-500 dark:text-gray-400'
+                                                ? 'text-blue-100'
+                                                : 'text-gray-500 dark:text-gray-400'
                                                 }`}
                                         >
                                             {isMounted
@@ -340,7 +340,7 @@ export default function AIAgentChat() {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyPress}
-                            placeholder="Shkruani pyetjen tuaj... (p.sh. 'Sa mungesa ka studenti X?')"
+                            placeholder="Shkruani pyetjen tuaj..."
                             disabled={isProcessing}
                             rows={1}
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50"
