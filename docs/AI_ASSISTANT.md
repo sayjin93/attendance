@@ -1,6 +1,6 @@
 # 🤖 AI Assistant - OpenAI Function Calling
 
-AI Assistant për sistemin e prezencës që përdor OpenAI GPT-4 me Function Calling për query dhe raporte.
+AI Assistant për sistemin e prezencës që përdor OpenAI GPT-5.4 me Function Calling për query dhe raporte.
 
 ## 🚀 Setup (5 minuta)
 
@@ -30,7 +30,7 @@ npm run dev
 ```
 Ju shkruani mesazh në shqip ose anglisht
     ↓
-GPT-4 kupton qëllimin tuaj
+GPT-5.4 kupton qëllimin tuaj
     ↓
 Zgjedh automatikisht funksionin e duhur
     ↓
@@ -68,7 +68,7 @@ Kthen përgjigje në gjuhë natyrale
 
 ```
 lib/openai/
-  ├── functions.ts          # Funksionet query që GPT mund të thërrasë
+  ├── functions.ts          # Funksionet query që GPT-5.4 mund të thërrasë
   └── functionHandlers.ts   # Implementimi i funksioneve (Prisma, read-only)
 
 app/api/
@@ -113,7 +113,7 @@ case 'get_assignments':
   return await handlers.getAssignments(args);
 ```
 
-**Gati!** GPT do ta kuptojë automatikisht kur ta përdorë.
+**Gati!** GPT-5.4 do ta kuptojë automatikisht kur ta përdorë.
 
 ## 📊 Performance & Cost
 
@@ -121,7 +121,7 @@ case 'get_assignments':
 |---------|-------|
 | **Shpejtësia mesatare** | 2-4 sekonda |
 | **Kosto për query** | ~$0.005 |
-| **Model** | GPT-4o (i shpejtë & i aftë) |
+| **Model** | GPT-5.4 (i shpejtë & i aftë) |
 | **Gjuha** | Shqip & Anglisht |
 
 **Kosto mujore (1000 users, 50 queries):** ~$250/month

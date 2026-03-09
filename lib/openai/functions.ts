@@ -2,7 +2,7 @@ import { ChatCompletionTool } from 'openai/resources/chat/completions';
 
 /**
  * OpenAI Function definitions for the Attendance Management System
- * These functions can be called by GPT to perform operations
+ * These functions can be called by GPT-5.4 to perform operations
  */
 
 export const attendanceFunctions: ChatCompletionTool[] = [

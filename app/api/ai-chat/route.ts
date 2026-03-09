@@ -172,12 +172,12 @@ Guidelines:
 
     // Initial API call with function definitions
     let response = await openai.chat.completions.create({
-      model: 'gpt-4o', // Fast and capable model
+      model: 'gpt-5.4', // Fast and capable model
       messages: openaiMessages,
       tools: attendanceFunctions,
       tool_choice: 'auto',
-      temperature: 0.7,
-      max_completion_tokens: 4000,
+      temperature: 0.5,
+      max_completion_tokens: 16384,
     });
 
     let choice = response.choices[0];
@@ -217,12 +217,12 @@ Guidelines:
 
       // Get next response from OpenAI
       response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-5.4',
         messages: conversationMessages,
         tools: attendanceFunctions,
         tool_choice: 'auto',
-        temperature: 0.7,
-        max_completion_tokens: 4000,
+        temperature: 0.5,
+        max_completion_tokens: 16384,
       });
 
       choice = response.choices[0];

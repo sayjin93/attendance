@@ -9,9 +9,9 @@
 
 ## Abstrakt
 
-Ky punim paraqet dizajnin, implementimin dhe vlerësimin e një asistenti të inteligjencës artificiale (AI) të integruar në një sistem web për menaxhimin e prezencës universitare. Sistemi përdor modelin GPT-4o të OpenAI me mekanizmin Function Calling për t'u mundësuar përdoruesve (profesorëve dhe administratorëve) të ndërveprojnë me bazën e të dhënave përmes gjuhës natyrale në shqip dhe anglisht. Arkitektura e propozuar eliminon nevojën për ndërfaqe komplekse navigimi duke mundësuar query-e të avancuara, statistika prezence dhe raporte NK/OK përmes një ndërfaqe bisedore (chat). Rezultatet tregojnë se qasja me Function Calling ofron performancë 2-4 sekonda për query, kosto të ulët operacionale (~$0.005/query), dhe përdorim intuitiv pa trajnim paraprak.
+Ky punim paraqet dizajnin, implementimin dhe vlerësimin e një asistenti të inteligjencës artificiale (AI) të integruar në një sistem web për menaxhimin e prezencës universitare. Sistemi përdor modelin GPT-5.4 të OpenAI me mekanizmin Function Calling për t'u mundësuar përdoruesve (profesorëve dhe administratorëve) të ndërveprojnë me bazën e të dhënave përmes gjuhës natyrale në shqip dhe anglisht. Arkitektura e propozuar eliminon nevojën për ndërfaqe komplekse navigimi duke mundësuar query-e të avancuara, statistika prezence dhe raporte NK/OK përmes një ndërfaqe bisedore (chat). Rezultatet tregojnë se qasja me Function Calling ofron performancë 2-4 sekonda për query, kosto të ulët operacionale (~$0.005/query), dhe përdorim intuitiv pa trajnim paraprak.
 
-**Fjalë kyçe:** Inteligjencë Artificiale, Function Calling, Menaxhimi i Prezencës, Përpunimi i Gjuhës Natyrale, GPT-4o, Next.js, Sisteme Universitare
+**Fjalë kyçe:** Inteligjencë Artificiale, Function Calling, Menaxhimi i Prezencës, Përpunimi i Gjuhës Natyrale, GPT-5.4, Next.js, Sisteme Universitare
 
 ---
 
@@ -48,7 +48,7 @@ Seksioni 2 paraqet punët e ndërlidhura. Seksioni 3 përshkruan arkitekturën e
 
 ### 2.1 Modelet e Gjuhës së Madhe në Sistemet Informative
 
-Modelet e gjuhës së madhe (LLM) kanë transformuar mënyrën se si përdoruesit ndërveprojnë me sistemet softuerike [1]. GPT-4 i OpenAI demonstroi aftësi të jashtëzakonshme në kuptimin e kontekstit dhe gjenerimin e përgjigjeve koherente [2]. Aplikimi i tyre në domain-e specifike, si menaxhimi i prezencës, kërkon mekanizma të kontrolluar për akses në bazën e të dhënave.
+Modelet e gjuhës së madhe (LLM) kanë transformuar mënyrën se si përdoruesit ndërveprojnë me sistemet softuerike [1]. GPT-4 i OpenAI demonstroi aftësi të jashtëzakonshme në kuptimin e kontekstit dhe gjenerimin e përgjigjeve koherente [2], ndërsa GPT-5.4 ka avancuar më tej këto aftësi. Aplikimi i tyre në domain-e specifike, si menaxhimi i prezencës, kërkon mekanizma të kontrolluar për akses në bazën e të dhënave.
 
 ### 2.2 Function Calling vs. Qasje Alternative
 
@@ -90,7 +90,7 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 ┌──────────────────────▼──────────────────────────────┐
 │                  SHTRESA E LOGJIKËS                  │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────┐ │
-│  │ Autentifikim│  │ OpenAI GPT-4o│  │ Function   │ │
+│  │ Autentifikim│  │ OpenAI GPT-  │  │ Function   │ │
 │  │ JWT (jose)  │──│ API Client   │──│ Dispatcher │ │
 │  └─────────────┘  └──────────────┘  └────────────┘ │
 │                                           │         │
@@ -120,7 +120,7 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 | Gjuha | TypeScript | 5.9.3 |
 | ORM | Prisma | 6.19.0 |
 | Database | MySQL | 8.x |
-| AI Model | OpenAI GPT-4o | SDK 6.27.0 |
+| AI Model | OpenAI GPT-5.4 | SDK 6.27.0 |
 | Autentifikim | jose (JWT) | 6.2.0 |
 | Stilizim | Tailwind CSS | 4.2.1 |
 | State Management | TanStack React Query | 5.90.21 |
@@ -181,8 +181,8 @@ Përdoruesi shkruan mesazh
 └──────────┬───────────┘
            ▼
 ┌──────────────────────┐
-│  OpenAI GPT-4o API   │ model: "gpt-4o"
-│  temperature: 0.7    │ max_tokens: 4000
+│  OpenAI GPT-5.4 API  │ model: "gpt-5.4"
+│  temperature: 0.5    │ max_tokens: 16384
 │  tools: 12 funksione │
 └──────────┬───────────┘
            │
@@ -202,7 +202,7 @@ Përdoruesi shkruan mesazh
 
 ### 4.2 System Prompt - Konteksti Gjuhësor
 
-Një element kryesor i arkitekturës është system prompt-i që informon modelin GPT-4o rreth:
+Një element kryesor i arkitekturës është system prompt-i që informon modelin GPT-5.4 rreth:
 
 ```
 1. Konteksti i përdoruesit (emri, roli, lejet)
@@ -228,7 +228,7 @@ Mekanizmi Function Calling funksionon si vijon:
 ```typescript
 // Pseudokod i thjeshtësuar
 let response = await openai.chat.completions.create({
-  model: "gpt-4o",
+  model: "gpt-5.4",
   messages: [systemPrompt, ...userMessages],
   tools: attendanceFunctions,  // 12 definime funksionesh
 });
@@ -244,7 +244,7 @@ while (response.tool_calls && iterations < MAX_ITERATIONS) {
     // Shto rezultatin në bisedë si mesazh "tool"
     messages.push({ role: "tool", content: JSON.stringify(result) });
   }
-  // Merr përgjigjen e radhës nga GPT
+  // Merr përgjigjen e radhës nga GPT-5.4
   response = await openai.chat.completions.create({ messages });
   iterations++;
 }
@@ -423,7 +423,7 @@ Arkitektura e propozuar mund të adaptohet lehtë për sisteme të tjera univers
 
 [1] Brown, T., et al. "Language Models are Few-Shot Learners." *NeurIPS*, 2020.
 
-[2] OpenAI. "GPT-4 Technical Report." *arXiv preprint arXiv:2303.08774*, 2023.
+[2] OpenAI. "GPT-4 Technical Report." *arXiv preprint arXiv:2303.08774*, 2023. (Sistemi tani përdor GPT-5.4)
 
 [3] Rajkumar, N., et al. "Evaluating the Text-to-SQL Capabilities of Large Language Models." *arXiv preprint arXiv:2204.00498*, 2023.
 
