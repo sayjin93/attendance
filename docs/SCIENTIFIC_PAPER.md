@@ -50,11 +50,11 @@ Ky punim propozon dhe implementon një arkitekturë të bazuar në OpenAI Functi
 
 ### 1.4 Struktura e Punimit
 
-Seksioni 2 paraqet punët e ndërlidhura. Seksioni 3 përshkruan arkitekturën e sistemit. Seksioni 4 detajon implementimin teknik. Seksioni 5 paraqet funksionet e AI. Seksioni 6 diskuton sigurinë. Seksioni 7 paraqet rezultatet dhe vlerësimin. Seksioni 8 përfundon punimin.
+Seksioni 2 paraqet rishikimin e literaturës. Seksioni 3 përshkruan arkitekturën e sistemit. Seksioni 4 detajon implementimin teknik. Seksioni 5 paraqet funksionet e AI. Seksioni 6 diskuton sigurinë. Seksioni 7 paraqet rezultatet dhe vlerësimin. Seksioni 8 përfundon punimin.
 
 ---
 
-## 2. Punë të Ndërlidhura
+## 2. Rishikimi i Literaturës
 
 ### 2.1 Modelet e Gjuhës së Madhe në Sistemet Informative
 
