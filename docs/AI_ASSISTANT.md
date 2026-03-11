@@ -42,10 +42,37 @@ Kthen përgjigje në gjuhë natyrale
 **Shembuj:**
 ```
 "Trego studentët në Infoek202"
-"Sa mungesa ka studenti X ?"
-"Datat kur ka munguar studenti X ?"
+"Sa mungesa ka studenti X ?"  → AI pyet për lëndën dhe tipin (Leksion/Seminar)
+"Datat kur ka munguar studenti X ?"  → AI pyet për lëndën dhe tipin
+"Endrit Mustafaj, Projektim DB, Seminar"  → Fuzzy matching zgjidh emrin e lëndës automatikisht
 "Nxirr listen NK per klasen ... per lenden ... per seminaret"
 ```
+
+## 🧠 Sjellja Inteligjente e Funksioneve
+
+### Pyetje për Lëndën dhe Tipin
+Kur pyetet për mungesat e një studenti pa specifikuar lëndën dhe tipin e mësimit, funksionet kthejnë automatikisht listën e lëndëve/tipeve të disponueshme:
+
+```
+Përdoruesi: "Sa mungesa ka Endrit Mustafaj?"
+
+AI: Ju lutem specifikoni lëndën dhe tipin e mësimit:
+  - Projektim dhe analizë e bazave të të dhënave: Leksion, Seminar
+  - Matematikë: Leksion
+  - Programim Web: Leksion, Seminar
+
+Përdoruesi: "Projektim DB, Seminar"
+
+AI: Endrit Mustafaj ka 1 mungesë në Projektim dhe analizë e bazave
+    të të dhënave (Seminar)...
+```
+
+### Fuzzy Subject Name Matching
+Emrat e lëndëve zgjidhen automatikisht me fuzzy matching:
+- **Normalizim diakritikash:** "analize" → matcho "analizë", "çeshtje" → matcho "çështje"
+- **Fjalë kyçe:** "Projektim DB" → matcho "Projektim dhe analizë e bazave të të dhënave"
+- **Stop words shqip:** Injoronen fjalët: dhe, e, te, i, ne, per, me, nga, se
+- **Kodi i lëndës:** Mund të përdoret edhe kodi (p.sh. "INF201")
 
 ## 📋 Operacionet e Disponueshme
 
@@ -56,20 +83,27 @@ Kthen përgjigje në gjuhë natyrale
 - Classes - `"Trego klasat"`
 - Lectures - `"Leksionet e sotme"`
 - Attendance - `"Prezenca për leksion 123"`
-- Statistics - `"Sa mungesa ka studenti X?"`
+- Statistics - `"Sa mungesa ka studenti X?"` (pyet për lëndën/tipin nëse mungon)
 
 ### 📈 Raporte
 - NK/OK lista - `"Lista NK për klasën X, lëndën Y"`
-- Rekordet individuale - `"Datat kur ka munguar studenti X"`
+- Rekordet individuale - `"Datat kur ka munguar studenti X"` (pyet për lëndën/tipin nëse mungon)
 
 > **Shënim:** AI Assistant ka vetëm akses leximi (read-only). Nuk mund të krijojë, ndryshojë ose fshijë të dhëna.
+> 
+> **Shënim:** Emrat e lëndëve pranojnë fuzzy matching — shkruani shkurtimisht ("Projektim DB" në vend të emrit të plotë).
 
 ## 🏗️ Struktura Teknike
 
 ```
 lib/openai/
   ├── functions.ts          # Funksionet query që GPT-5.4 mund të thërrasë
+  │                         # (description përfshin rregullat e biznesit)
   └── functionHandlers.ts   # Implementimi i funksioneve (Prisma, read-only)
+  │                         # - resolveSubjectByName: fuzzy matching lëndësh
+  │                         # - resolveStudentByName: fuzzy matching studentësh  
+  │                         # - normalizeAlbanian: normalizim diakritikash (ë→e, ç→c)
+  │                         # - needsMoreInfo: kërkon lëndë/tip kur mungon
 
 app/api/
   └── ai-chat/route.ts      # Endpoint kryesor
@@ -192,6 +226,13 @@ case 'get_assignments':
 ```
 "Lista NK për klasën Infoek202, lëndën Web Development, për seminaret"
 → Pritni listë studentësh NK/OK
+```
+
+### Test Fuzzy Subject Matching
+```
+"Sa mungesa ka Endrit Mustafaj?" → Pritni pyetje për lëndën dhe tipin
+"Projektim DB, Seminar" → Pritni statistika (matcho emrin e plotë të lëndës)
+"analize db" → Matcho "Analizë e bazave të të dhënave"
 ```
 
 ### Test Rekordet Individuale

@@ -9,7 +9,7 @@
 
 ## Abstrakt
 
-Ky punim paraqet dizajnin, implementimin dhe vlerësimin e një asistenti të inteligjencës artificiale (AI) të integruar në një sistem web për menaxhimin e prezencës universitare. Sistemi përdor modelin GPT-5.4 të OpenAI me mekanizmin Function Calling për t'u mundësuar përdoruesve (profesorëve dhe administratorëve) të ndërveprojnë me bazën e të dhënave përmes gjuhës natyrale në shqip dhe anglisht. Arkitektura e propozuar eliminon nevojën për ndërfaqe komplekse navigimi duke mundësuar query-e të avancuara, statistika prezence dhe raporte NK/OK përmes një ndërfaqe bisedore (chat). Rezultatet tregojnë se qasja me Function Calling ofron performancë 2-4 sekonda për query, kosto të ulët operacionale (~$0.005/query), dhe përdorim intuitiv pa trajnim paraprak.
+Ky punim paraqet dizajnin, implementimin dhe vlerësimin e një asistenti të inteligjencës artificiale (AI) të integruar në një sistem web për menaxhimin e prezencës universitare. Sistemi përdor modelin GPT-5.4 të OpenAI me mekanizmin Function Calling për t'u mundësuar përdoruesve (profesorëve dhe administratorëve) të ndërveprojnë me bazën e të dhënave përmes gjuhës natyrale në shqip dhe anglisht. Arkitektura e propozuar eliminon nevojën për ndërfaqe komplekse navigimi duke mundësuar query-e të avancuara, statistika prezence dhe raporte NK/OK përmes një ndërfaqe bisedore (chat) me menaxhim të plotë sesionesh (ruajtja e historikut, rifillimi i bisedave, fshirja). Rezultatet tregojnë se qasja me Function Calling ofron performancë 2-4 sekonda për query, kosto të ulët operacionale (~$0.005/query), dhe përdorim intuitiv pa trajnim paraprak.
 
 **Fjalë kyçe:** Inteligjencë Artificiale, Function Calling, Menaxhimi i Prezencës, Përpunimi i Gjuhës Natyrale, GPT-5.4, Next.js, Sisteme Universitare
 
@@ -81,8 +81,9 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 ```
 ┌─────────────────────────────────────────────────────┐
 │                  SHTRESA E PREZANTIMIT               │
-│  AIAgentChat.tsx (React 19 + Framer Motion)         │
+│  AIAgentChat.tsx (React 19 + DevExtreme Chat)       │
 │  Formatim: Markdown, Lista, Bold/Italic             │
+│  Menaxhim sesionesh chat (histori, fshirje)         │
 │  Sugjerime kontekstuale në shqip                    │
 └──────────────────────┬──────────────────────────────┘
                        │ HTTP POST /api/ai-chat
@@ -104,10 +105,10 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 ┌──────────────────────▼──────────────────────────────┐
 │                 SHTRESA E TË DHËNAVE                 │
 │  MySQL Database                                      │
-│  11 tabela: Professor, Student, Class, Subject,     │
+│  13 tabela: Professor, Student, Class, Subject,     │
 │  TeachingAssignment, Lecture, Attendance,            │
 │  AttendanceStatus, TeachingType, Program,            │
-│  ActivityLog                                         │
+│  ActivityLog, ChatSession, ChatMessage              │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -122,13 +123,14 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 | Database | MySQL | 8.x |
 | AI Model | OpenAI GPT-5.4 | SDK 6.27.0 |
 | Autentifikim | jose (JWT) | 6.2.0 |
-| Stilizim | Tailwind CSS | 4.2.1 |
+| Stilizim | Tailwind CSS + Sass | 4.2.1 / 1.98.0 |
+| UI Components | DevExtreme React | 25.2.5 |
 | State Management | TanStack React Query | 5.90.21 |
 | Animacione | Framer Motion | 12.35.1 |
 
 ### 3.3 Modeli i Bazës së të Dhënave
 
-Skema e bazës së të dhënave përmban 11 tabela me marrëdhënie relacionale:
+Skema e bazës së të dhënave përmban 13 tabela me marrëdhënie relacionale:
 
 ```
 Professor ──(1:N)──→ TeachingAssignment ←──(N:1)── Class
@@ -146,13 +148,20 @@ Professor ──(1:N)──→ TeachingAssignment ←──(N:1)── Class
                                         AttendanceStatus
                                     {PRESENT, ABSENT,
                                      PARTICIPATED, LEAVE}
+
+Professor ──(1:N)──→ ChatSession ──(1:N)──→ ChatMessage
+                      (Historiku i bisedave AI)
 ```
+
+**Tabelat ChatSession dhe ChatMessage** ruajnë historikun e bisedave me AI Assistant-in, duke mundësuar rifillimin e bisedave të mëparshme dhe menaxhimin e sesioneve.
 
 **Kufizime kritike:**
 - `Attendance(studentId, lectureId)` → unik (një regjistrim për student për leksion)
 - `Lecture(teachingAssignmentId, date)` → unik (një leksion për ditë për caktim)
 - Statuset: PRESENT, ABSENT, PARTICIPATED (Aktivizuar), LEAVE (Me Leje)
 - LEAVE përjashtohet nga llogaritja e përqindjes
+- `ChatMessage.sessionId` → CASCADE delete (fshirja e sesionit fshin mesazhet)
+- `Student` ka fusha shtesë: `father` (emri i babait), `orderId` (numri rendor), `memo` (shënime)
 
 ---
 
@@ -205,20 +214,30 @@ Përdoruesi shkruan mesazh
 Një element kryesor i arkitekturës është system prompt-i që informon modelin GPT-5.4 rreth:
 
 ```
-1. Konteksti i përdoruesit (emri, roli, lejet)
+1. Konteksti i sistemit:
+   - UET (Universiteti Europian i Tiranës) — sistem prezence
+   - Roli i përdoruesit (Administrator ose Profesor)
+   - Emri i përdoruesit për personalizim
 2. Terminologjia shqipe:
-   - "mungesa" = ABSENT
-   - "prezencë" = PRESENT
-   - "aktivizime" = PARTICIPATED (Aktivizuar)
+   - "mungesa" = absences (ABSENT)
+   - "prezencë" = attendance/presence (PRESENT)
+   - "aktivizime" / "pjesëmarrje" / "ka marrë pjesë" = PARTICIPATED
    - "me leje" = LEAVE
+   - "lëndë" = subject, "klasë" = class
 3. Rregullat e biznesit:
    - NK (Nuk Kalon): kur mungesat tejkalojnë pragun
    - Pragu: Leksion ≥50%, Seminar ≥75%
    - LEAVE nuk llogaritet si mungesë
+   - PRESENT + PARTICIPATED = "attended" për llogaritje
 4. Udhëzuesi i zgjedhjes së funksionit:
    - "Sa mungesa ka studenti X?" → get_attendance_statistics
    - "Datat kur ka munguar X" → get_student_attendance_records
    - "Lista NK" → get_class_report
+   - "Kush mungon sot?" → get_lectures + get_lecture_attendance
+5. Sjellja inteligjente e funksioneve:
+   - Kur mungon lënda/tipi, funksionet kthejnë needsMoreInfo me opsionet e disponueshme
+   - AI i paraqet përdoruesit opsionet dhe pyet për zgjedhjen
+   - Subject matching fuzzy — emra të shkurtuar pranohen
 ```
 
 ### 4.3 Cikli i Function Calling
@@ -253,6 +272,35 @@ return response.choices[0].message.content;
 ```
 
 **Kufizimi i iteracioneve** (MAX_ITERATIONS = 10) parandalon cikle të pafundme dhe kontrollon koston.
+
+### 4.4 Menaxhimi i Sesioneve Chat
+
+Sistemi implementon ruajtje të plotë të historikut të bisedave përmes dy tabelave të reja në bazën e të dhënave:
+
+```
+┌──────────────────────────────────────────────────────┐
+│                MENAXHIMI I SESIONEVE                  │
+│                                                      │
+│  ┌─────────────┐     ┌──────────────────────────┐   │
+│  │ ChatSession  │────→│ ChatMessage               │   │
+│  │ id, title    │     │ id, sessionId, role       │   │
+│  │ professorId  │     │ content, createdAt        │   │
+│  │ createdAt    │     │ CASCADE delete            │   │
+│  └─────────────┘     └──────────────────────────┘   │
+│                                                      │
+│  API Endpoints:                                      │
+│  GET    /api/ai-chat/sessions       → Lista sesioneve│
+│  POST   /api/ai-chat/sessions       → Krijo sesion   │
+│  PUT    /api/ai-chat/sessions/{id}  → Përditëso titull│
+│  DELETE /api/ai-chat/sessions/{id}  → Fshi sesionin  │
+└──────────────────────────────────────────────────────┘
+```
+
+**Veçoritë kryesore:**
+- **Ruajtja automatike** — Çdo bisedë ruhet me titull të gjeneruar nga mesazhi i parë (max 30 karaktere)
+- **Rifillimi i bisedave** — Përdoruesi mund të kthehet te biseda e mëparshme me kontekstin e plotë
+- **Fshirja** — Me dialog konfirmimi, fshirja CASCADE fshin edhe mesazhet
+- **Historiku** — Paneli anësor tregon të gjitha bisedat e mëparshme
 
 ---
 
@@ -309,6 +357,53 @@ Input: "Endrit Mustafaj"
   5. Nëse 1 rezultat → Vazhdo me query-n
 ```
 
+### 5.4 Rezolucioni Fuzzy i Emrave të Lëndëve
+
+Një mekanizëm i avancuar për zgjidhjen e emrave të lëndëve që përdoruesit shkruajnë shkurtimisht ose pa diakritika:
+
+```
+Input: "Projektim dhe analize db"
+  1. Tentativë CONTAINS eksakt → nuk gjendet
+  2. Normalizim diakritikash: ë→e, ç→c (normalizeAlbanian)
+  3. Ndarja në fjalë kyçe: ["projektim", "analize", "db"]
+     - Hiq stop words: dhe, e, te, i, ne, per, me, nga, se
+  4. Kërko: të GJITHA fjalët në emrin e lëndës → nuk matcho ("db" nuk gjendet)
+  5. Fallback scoring: "projektim" ✓ + "analize" ✓ = 2 matche
+     → Matcho: "Projektim dhe analizë e bazave të të dhënave"
+```
+
+Ky mekanizëm përdoret në `getAttendanceStatistics`, `getStudentAttendanceRecords` dhe `getClassReport`.
+
+### 5.5 Sjellja Inteligjente e Funksioneve (needsMoreInfo)
+
+Në vend të rregullave të rënda në system prompt, funksionet vetë zbatojnë logjikën e biznesit:
+
+```
+Përdoruesi: "Sa mungesa ka Endrit Mustafaj?"
+  ↓
+AI thirrët: get_attendance_statistics(studentName: "Endrit Mustafaj")
+  ↓
+Funksioni shikon: mungon subjectName DHE typeName
+  ↓
+Kthen: {
+  needsMoreInfo: true,
+  message: "Duhet të specifikoni lëndën dhe tipin...",
+  availableSubjectsAndTypes: [
+    { subjectName: "Projektim dhe analizë...", types: ["Leksion", "Seminar"] },
+    { subjectName: "Matematikë", types: ["Leksion"] }
+  ]
+}
+  ↓
+AI i paraqet opsionet përdoruesit → Përdoruesi zgjedh
+  ↓
+AI thirrët: get_attendance_statistics(studentName: "Endrit", 
+  subjectName: "Projektim DB", typeName: "Seminar")
+  ↓
+Fuzzy matching zgjidh emrin e plotë → Statistikat kthehen
+```
+
+Kjo qasje është më e besueshme se rregullat në system prompt sepse **funksionet e detyrojnë sjelljen**, jo udhëzimet tekstuale që AI mund t'i injorojë.
+
 ---
 
 ## 6. Siguria
@@ -325,6 +420,7 @@ Input: "Endrit Mustafaj"
 | **Kufizimi i ciklit** | Max 10 iteracione | Parandalon cikle të pafundme |
 | **Validimi** | JSON Schema | Çdo funksion ka skemë parametrash |
 | **Audit trail** | ActivityLog | Regjistrim i të gjitha veprimeve |
+| **Sesione chat** | ChatSession/ChatMessage | Izolim i bisedave për përdorues |
 
 ### 6.2 Dizajni Read-Only
 
@@ -350,21 +446,25 @@ Një vendim arkitektural kyç është kufizimi i AI Assistant-it në modalitetin
 
 ### 7.2 Shembuj Ndërveprimi
 
-**Shembulli 1: Statistika Prezence**
+**Shembulli 1: Statistika Prezence (me needsMoreInfo)**
 ```
 Përdoruesi: "Sa mungesa ka studenti Endrit Mustafaj?"
 
-AI: Studenti Endrit Mustafaj ka këto statistika të prezencës:
-    • Total Prezenca: 11
-    • I Pranishëm: 9
-    • Aktivizuar: 1
+AI: Për cilin lëndë dhe tip mësimi dëshironi të kontrolloj?
+  - Projektim dhe analizë e bazave të të dhënave: Leksion, Seminar
+  - Matematikë: Leksion
+  - Programim Web: Leksion, Seminar
+
+Përdoruesi: "Projektim DB, Seminar"
+
+AI: Endrit Mustafaj në lëndën Projektim dhe analizë e bazave të të dhënave (Seminar):
     • Mungesa: 1
-    • Me Leje: 0
-    
-    Përqindja e Prezencës: 91%
-    Përqindja e Mungesës: 9%
+    • Prezenca totale efektive: 11
+    • Përqindja e mungesave: 9%
+    • Përqindja e frekuentimit: 91%
 ```
-*Funksioni i thirrur: `get_attendance_statistics(studentName: "Endrit Mustafaj")`*
+*Funksionet e thirrura: `get_attendance_statistics(studentName)` → needsMoreInfo → `get_attendance_statistics(studentName, subjectName, typeName)`*
+*Emri "Projektim DB" u zgjidh automatikisht me fuzzy matching*
 
 **Shembulli 2: Raport NK**
 ```
@@ -405,7 +505,9 @@ Ky punim demonstroi se integrimi i OpenAI Function Calling në një sistem menax
 2. **Performancë të lartë** — Përgjigje brenda 2-4 sekondave;
 3. **Siguri robuste** — Modalitet read-only, JWT, Prisma ORM;
 4. **Mbështetje gjuhësore** — Funksionon njësoj mirë në shqip dhe anglisht;
-5. **Kosto të ulët** — ~$0.005 për query, e përballueshme për institucione arsimore.
+5. **Kosto të ulët** — ~$0.005 për query, e përballueshme për institucione arsimore;
+6. **Persistencë bisedash** — Historiku i plotë i bisedave ruhet dhe mund të rifillet;
+7. **Fuzzy matching i avancuar** — Emrat e lëndëve dhe studentëve zgjidhen edhe me shkurtimisht.
 
 Arkitektura e propozuar mund të adaptohet lehtë për sisteme të tjera universitare (nota, orare, regjistrime).
 
@@ -415,7 +517,8 @@ Arkitektura e propozuar mund të adaptohet lehtë për sisteme të tjera univers
 - **Caching i query-eve** — Reduktim i kostove për pyetje të përsëritura;
 - **Analitika prediktive** — Parashikim i studentëve në rrezik NK;
 - **Voice input** — Ndërveprim me zë për akses më të shpejtë;
-- **Fine-tuning** — Model i personalizuar për terminologjinë akademike shqipe.
+- **Fine-tuning** — Model i personalizuar për terminologjinë akademike shqipe;
+- **Eksport bisedash** — Mundësia e eksportimit të bisedave AI në PDF/Excel.
 
 ---
 
@@ -457,11 +560,15 @@ lib/openai/
   ├── functions.ts          # 12 definime funksionesh (JSON Schema)
   └── functionHandlers.ts   # Implementimi me Prisma ORM (read-only)
 
-app/api/
-  └── ai-chat/route.ts      # Endpoint: autentifikim, dispatch, cikël FC
+app/api/ai-chat/
+  ├── route.ts              # Endpoint: autentifikim, dispatch, cikël FC
+  └── sessions/
+      ├── route.ts           # GET/POST sesione chat
+      └── [id]/route.ts      # PUT/DELETE sesion individual
 
 components/ai/
-  └── AIAgentChat.tsx        # Ndërfaqja bisedore (React + Framer Motion)
+  ├── AIAgentChat.tsx        # Ndërfaqja bisedore (DevExtreme Chat)
+  └── AiAgentChat.scss       # Stilizimi i komponentit chat
 ```
 
 ### C. Shembull Definimi Funksioni
@@ -471,7 +578,11 @@ components/ai/
   type: 'function',
   function: {
     name: 'get_attendance_statistics',
-    description: 'Get attendance statistics for a student, class, or subject',
+    description: 'Get attendance statistics for a student, class, or subject. '
+      + 'IMPORTANT: When querying for a specific student, you MUST provide '
+      + 'subjectName AND typeName. If called for a student without both, '
+      + 'the function returns the available subjects and types so you can '
+      + 'ask the user to choose. Subject name matching is fuzzy.',
     parameters: {
       type: 'object',
       properties: {
@@ -485,7 +596,7 @@ components/ai/
         },
         subjectName: {
           type: 'string',
-          description: 'Filter by subject name',
+          description: 'Filter by subject name (fuzzy matching supported)',
         },
         typeName: {
           type: 'string',
@@ -496,6 +607,38 @@ components/ai/
     },
   },
 }
+```
+
+### D. Mekanizmi needsMoreInfo
+
+Kur funksioni thirret për një student pa lëndë/tip, kthen:
+
+```json
+{
+  "needsMoreInfo": true,
+  "message": "Duhet të specifikoni lëndën dhe tipin e mësimit...",
+  "availableSubjectsAndTypes": [
+    {
+      "subjectId": 5,
+      "subjectName": "Projektim dhe analizë e bazave të të dhënave",
+      "types": ["Leksion", "Seminar"]
+    }
+  ]
+}
+```
+
+### E. Fuzzy Subject Resolution
+
+```typescript
+// Normalizim diakritikash shqip
+function normalizeAlbanian(text: string): string {
+  return text.toLowerCase()
+    .replace(/ë/g, 'e').replace(/ç/g, 'c')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Stop words që injoronen: dhe, e, te, i, ne, per, me, nga, se
+// Matching: të gjitha fjalët OR scoring fallback
 ```
 
 ### D. Shembull Handler Funksioni

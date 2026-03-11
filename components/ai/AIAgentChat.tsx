@@ -1,28 +1,115 @@
 'use client';
 
-import React, { useState, useRef, useEffect, Fragment } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import "./AiAgentChat.scss";
 
-interface Message {
-    id: string;
-    role: 'user' | 'assistant' | 'system';
+import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import Chat, { Editing } from 'devextreme-react/chat';
+import { Button } from 'devextreme-react/button';
+import { Popover } from 'devextreme-react/popover';
+import { List } from 'devextreme-react/list';
+import { Popup } from 'devextreme-react/popup';
+import type { Message, User, MessageEnteredEvent, MessageUpdatedEvent } from 'devextreme/ui/chat';
+
+//#region Types
+type ChatMessage = Message & {
+    role?: 'user' | 'assistant' | 'system';
+};
+
+interface DbMessage {
+    id: number;
+    role: string;
     content: string;
-    timestamp: Date;
-    isLoading?: boolean;
+    createdAt: string;
 }
 
-// Simple markdown-to-React renderer for AI responses
+interface DbSession {
+    id: number;
+    title: string;
+    messages: DbMessage[];
+    updatedAt: string;
+}
+
+const assistant: User = {
+    id: 'assistant',
+    name: 'AI Assistant',
+};
+
+const currentUser: User = {
+    id: 'user',
+    name: 'You',
+};
+//#endregion
+
+//#region constants
+const WELCOME_TEXT =
+    'Përshëndetje! Jam asistenti AI për sistemin e menaxhimit të prezencës. Mund të të ndihmoj me studentë, profesorë, klasa, lëndë, leksione, dhe regjistrin e prezencës.\n\nPyetni diçka si: "Sa mungesa ka studenti X?" ose "Nxirr listën NK për klasën Y"';
+
+const initialMessages: ChatMessage[] = [
+    {
+        author: assistant,
+        id: 'welcome',
+        role: 'system',
+        text: WELCOME_TEXT,
+        timestamp: new Date(),
+    },
+];
+//#endregion
+
+//#region helper functions
+function dbToChat(dbMessages: DbMessage[]): ChatMessage[] {
+    return dbMessages.map((m) => ({
+        author: m.role === 'user' ? currentUser : assistant,
+        id: m.id,
+        role: m.role as ChatMessage['role'],
+        text: m.content,
+        timestamp: new Date(m.createdAt),
+    }));
+}
+
+function formatInline(text: string): React.ReactNode {
+    const parts: React.ReactNode[] = [];
+    const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)/g;
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+
+    while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push(text.slice(lastIndex, match.index));
+        }
+        if (match[2]) {
+            parts.push(<strong key={key++}>{match[2]}</strong>);
+        } else if (match[3]) {
+            parts.push(<em key={key++}>{match[3]}</em>);
+        } else if (match[4]) {
+            parts.push(
+                <code key={key++} className="bg-gray-200 dark:bg-gray-600 px-1 py-0.5 rounded text-xs font-mono">
+                    {match[4]}
+                </code>
+            );
+        }
+        lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? <>{parts}</> : text;
+}
+
 function FormattedContent({ content }: { content: string }) {
     const blocks = content.split(/\n\n+/);
 
     return (
-        <div className="text-sm space-y-2">
+        <div className="space-y-2">
             {blocks.map((block, blockIdx) => {
                 const lines = block.split('\n');
-                // Check if block is a list
-                const listLines = lines.filter(l => l.trim());
-                const isBulletList = listLines.length > 0 && listLines.every(l => /^[-•*]\s/.test(l));
-                const isNumberedList = listLines.length > 0 && listLines.every(l => /^\d+[.)]\s/.test(l));
+                const listLines = lines.filter((l) => l.trim());
+                const isBulletList =
+                    listLines.length > 0 && listLines.every((l) => /^[-•*]\s/.test(l));
+                const isNumberedList =
+                    listLines.length > 0 && listLines.every((l) => /^\d+[.)]\s/.test(l));
 
                 if (isBulletList) {
                     return (
@@ -59,161 +146,189 @@ function FormattedContent({ content }: { content: string }) {
     );
 }
 
-function formatInline(text: string): React.ReactNode {
-    const parts: React.ReactNode[] = [];
-    const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)/g;
-    let lastIndex = 0;
-    let match;
-    let key = 0;
-
-    while ((match = regex.exec(text)) !== null) {
-        if (match.index > lastIndex) {
-            parts.push(text.slice(lastIndex, match.index));
-        }
-        if (match[2]) {
-            parts.push(<strong key={key++}>{match[2]}</strong>);
-        } else if (match[3]) {
-            parts.push(<em key={key++}>{match[3]}</em>);
-        } else if (match[4]) {
-            parts.push(
-                <code key={key++} className="bg-gray-200 dark:bg-gray-600 px-1 py-0.5 rounded text-xs font-mono">
-                    {match[4]}
-                </code>
-            );
-        }
-        lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < text.length) {
-        parts.push(text.slice(lastIndex));
-    }
-
-    return parts.length > 0 ? <>{parts}</> : text;
+function renderMessage({ message }: { message?: Message }) {
+    const text = (message as ChatMessage)?.text || '';
+    return <FormattedContent content={text} />;
 }
 
-export default function AIAgentChat() {
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            role: 'system',
-            content: 'Përshëndetje! Jam asistenti AI për sistemin e menaxhimit të prezencës. Mund të të ndihmoj me studentë, profesorë, klasa, lëndë, leksione, dhe regjistrin e prezencës.\n\nPyetni diçka si: "Sa mungesa ka studenti X?" ose "Nxirr listën NK për klasën Y"',
-            timestamp: new Date(),
-        },
-    ]);
-    const [input, setInput] = useState('');
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [showSuggestions, setShowSuggestions] = useState(true);
-    const [isMounted, setIsMounted] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLTextAreaElement>(null);
+function generateChatTitle(message: string): string {
+    const maxLength = 30;
+    const cleaned = message.trim();
+    return cleaned.length > maxLength ? `${cleaned.substring(0, maxLength)}...` : cleaned;
+}
+//#endregion
 
-    const suggestions = [
-        'Sa mungesa ka studenti ...?',
-        'Datat kur ka munguar studenti ...?',
-        'Nxirr listën NK për klasën ... për lëndën ... për seminaret',
-        'Statistikat e sistemit',
-        'Leksionet e sotme',
-        'Studentët e klasës Infoek202',
-    ];
+const AIAgentChat = () => {
+    //#region states
+    const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+    const [chatHistory, setChatHistory] = useState<DbSession[]>([]);
+    const [currentChatId, setCurrentChatId] = useState<number | null>(null);
+    const [typingUsers, setTypingUsers] = useState<User[]>([]);
+    const [historyPopoverVisible, setHistoryPopoverVisible] = useState(false);
+    const [deletePopupVisible, setDeletePopupVisible] = useState(false);
+    //#endregion
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+    //#region refs
+    const historyButtonRef = useRef<HTMLDivElement>(null);
+    //#endregion
 
+    //#region Derived values
+    const hasActiveChat = currentChatId !== null;
+    //#endregion
+
+    //#region Effects
     useEffect(() => {
-        setIsMounted(true);
+        // Load chat history on mount
+
+        fetch('/api/ai-chat/sessions')
+            .then((res) => (res.ok ? res.json() : []))
+            .then((sessions: DbSession[]) => setChatHistory(sessions))
+            .catch(() => { });
+    }, []);
+    //#endregion
+
+    //#region functions
+    const handleMessageEntered = useCallback(
+        async (e: MessageEnteredEvent) => {
+            const userMessage = e.message as ChatMessage;
+            userMessage.role = 'user';
+            const userText = userMessage.text || '';
+
+            setMessages((prev) => [...prev, userMessage]);
+            setTypingUsers([assistant]);
+
+            try {
+                // Call AI API
+                const aiResponse = await fetch('/api/ai-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: messages
+                            .map((m) => ({
+                                role: m.role || (m.author?.id === 'user' ? 'user' : 'assistant'),
+                                content: m.text || '',
+                            }))
+                            .concat([{ role: 'user', content: userText }]),
+                    }),
+                });
+
+                if (!aiResponse.ok) throw new Error(`API error: ${aiResponse.status}`);
+
+                const data = await aiResponse.json();
+
+                const assistantMessage: ChatMessage = {
+                    author: assistant,
+                    id: Date.now(),
+                    role: 'assistant',
+                    text: data.response,
+                    timestamp: new Date(),
+                };
+
+                setMessages((prev) => [...prev, assistantMessage]);
+
+                // Persist to DB
+                const newMessages = [
+                    { role: 'user', content: userText },
+                    { role: 'assistant', content: data.response },
+                ];
+
+                if (currentChatId) {
+                    // Append to existing session
+                    const res = await fetch(`/api/ai-chat/sessions/${currentChatId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ messages: newMessages }),
+                    });
+                    if (res.ok) {
+                        const updated: DbSession = await res.json();
+                        setChatHistory((prev) =>
+                            prev.map((s) => (s.id === currentChatId ? updated : s))
+                        );
+                    }
+                } else {
+                    // Create new session — include the welcome system message
+                    const allMessages = [
+                        { role: 'system', content: WELCOME_TEXT },
+                        ...newMessages,
+                    ];
+                    const title = generateChatTitle(userText);
+                    const res = await fetch('/api/ai-chat/sessions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, messages: allMessages }),
+                    });
+                    if (res.ok) {
+                        const created: DbSession = await res.json();
+                        setCurrentChatId(created.id);
+                        setChatHistory((prev) => [created, ...prev]);
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                const errorMessage: ChatMessage = {
+                    author: assistant,
+                    id: Date.now(),
+                    role: 'assistant',
+                    text: 'Na vjen keq, ndodhi një gabim gjatë përpunimit të kërkesës suaj. Ju lutem provoni përsëri.',
+                    timestamp: new Date(),
+                };
+                setMessages((prev) => [...prev, errorMessage]);
+            } finally {
+                setTypingUsers([]);
+            }
+        },
+        [currentChatId, messages]
+    );
+
+    const handleMessageUpdated = useCallback((e: MessageUpdatedEvent) => {
+        setMessages((prev) =>
+            prev.map((msg) => (msg.id === e.message.id ? { ...msg, text: e.text } : msg))
+        );
     }, []);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+    const handleHistoryToggle = useCallback(() => {
+        setHistoryPopoverVisible((prev) => !prev);
+    }, []);
 
-    const handleSendMessage = async (messageText?: string) => {
-        const text = messageText || input.trim();
-        if (!text || isProcessing) return;
+    const handleHistoryItemClick = useCallback(
+        (e: { itemData?: DbSession }) => {
+            if (!e.itemData) return;
+            setCurrentChatId(e.itemData.id);
+            setMessages(dbToChat(e.itemData.messages));
+            setHistoryPopoverVisible(false);
+        },
+        []
+    );
 
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            role: 'user',
-            content: text,
-            timestamp: new Date(),
-        };
+    const handleNewChat = useCallback(() => {
+        setCurrentChatId(null);
+        setMessages(initialMessages);
+    }, []);
 
-        setMessages((prev) => [...prev, userMessage]);
-        setInput('');
-        setShowSuggestions(false);
-        setIsProcessing(true);
+    const handleDeleteChat = useCallback(() => {
+        if (!hasActiveChat) return;
+        setDeletePopupVisible(true);
+    }, [hasActiveChat]);
 
-        // Add loading message
-        const loadingMessage: Message = {
-            id: `${Date.now()}-loading`,
-            role: 'assistant',
-            content: '',
-            timestamp: new Date(),
-            isLoading: true,
-        };
-        setMessages((prev) => [...prev, loadingMessage]);
-
+    const confirmDeleteChat = useCallback(async () => {
+        if (!currentChatId) return;
         try {
-            // Call the new AI chat API with OpenAI function calling
-            const response = await fetch('/api/ai-chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: messages
-                        .filter(m => m.role !== 'system' || m.id === '1') // Keep only the initial system message
-                        .map(m => ({
-                            role: m.role,
-                            content: m.content
-                        }))
-                        .concat([{ role: 'user', content: text }])
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // Remove loading message and add response
-            setMessages((prev) => {
-                const filtered = prev.filter((m) => m.id !== loadingMessage.id);
-                return [
-                    ...filtered,
-                    {
-                        id: Date.now().toString(),
-                        role: 'assistant',
-                        content: data.response,
-                        timestamp: new Date(),
-                    },
-                ];
-            });
+            await fetch(`/api/ai-chat/sessions/${currentChatId}`, { method: 'DELETE' });
+            setChatHistory((prev) => prev.filter((s) => s.id !== currentChatId));
         } catch (error) {
-            console.error('Error sending message:', error);
-            setMessages((prev) => {
-                const filtered = prev.filter((m) => m.id !== loadingMessage.id);
-                return [
-                    ...filtered,
-                    {
-                        id: Date.now().toString(),
-                        role: 'assistant',
-                        content: 'Sorry, I encountered an error processing your request. Please try again.',
-                        timestamp: new Date(),
-                    },
-                ];
-            });
-        } finally {
-            setIsProcessing(false);
+            console.error('Error deleting session:', error);
         }
-    };
+        setCurrentChatId(null);
+        setMessages(initialMessages);
+        setDeletePopupVisible(false);
+    }, [currentChatId]);
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
-    };
+    const renderHistoryItem = (item: DbSession) => (
+        <div className="py-1">
+            <span className="text-sm">{item.title}</span>
+        </div>
+    );
+    //#endregion
 
     return (
         <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-lg shadow-lg">
@@ -244,156 +359,100 @@ export default function AIAgentChat() {
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="flex h-2 w-2 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                    </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Online</span>
-                </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-                <AnimatePresence>
-                    {messages.map((message) => (
-                        <motion.div
-                            key={message.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'
-                                }`}
-                        >
-                            <div
-                                className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                                    ? 'bg-blue-500 text-white'
-                                    : message.role === 'system'
-                                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
-                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                                    }`}
-                            >
-                                {message.isLoading ? (
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex space-x-1">
-                                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                        </div>
-                                        <span className="text-sm text-gray-500">Processing...</span>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {message.role === 'user' ? (
-                                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                                        ) : (
-                                            <FormattedContent content={message.content} />
-                                        )}
-                                        <p
-                                            className={`text-xs mt-1 ${message.role === 'user'
-                                                ? 'text-blue-100'
-                                                : 'text-gray-500 dark:text-gray-400'
-                                                }`}
-                                        >
-                                            {isMounted
-                                                ? message.timestamp.toLocaleTimeString([], {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                })
-                                                : '\u00A0'}
-                                        </p>
-                                    </>
-                                )}
-                            </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Suggestions */}
-            {showSuggestions && messages.length <= 1 && (
-                <div className="px-6 py-2">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                        Try asking:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                        {suggestions.map((suggestion, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleSendMessage(suggestion)}
-                                className="text-xs px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                            >
-                                {suggestion}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Input */}
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-2">
-                    <div className="flex flex-1 relative align-center">
-                        <textarea
-                            ref={inputRef}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyPress}
-                            placeholder="Shkruani pyetjen tuaj..."
-                            disabled={isProcessing}
-                            rows={1}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50"
-                            style={{ minHeight: '48px', maxHeight: '120px' }}
+                <div className="flex items-center gap-1">
+                    <div ref={historyButtonRef}>
+                        <Button
+                            hint="History"
+                            icon="clock"
+                            onClick={handleHistoryToggle}
+                            stylingMode="text"
                         />
                     </div>
-                    <button
-                        onClick={() => handleSendMessage()}
-                        disabled={!input.trim() || isProcessing}
-                        className="px-4 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-h-12"
-                    >
-                        {isProcessing ? (
-                            <svg
-                                className="animate-spin h-5 w-5"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                ></circle>
-                                <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                        ) : (
-                            <svg
-                                className="w-5 h-5 transform rotate-90"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                                />
-                            </svg>
-                        )}
-                    </button>
+                    <Button
+                        hint="New Chat"
+                        icon="plus"
+                        onClick={handleNewChat}
+                        stylingMode="text"
+                    />
+                    <Button
+                        disabled={!hasActiveChat}
+                        hint="Delete Chat"
+                        icon="trash"
+                        onClick={handleDeleteChat}
+                        stylingMode="text"
+                    />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    Press Enter to send, Shift+Enter for new line
-                </p>
+            </div>
+
+            {/* History Popover */}
+            <Popover
+                hideOnOutsideClick={true}
+                onHiding={() => setHistoryPopoverVisible(false)}
+                showTitle={true}
+                target={historyButtonRef.current || undefined}
+                title="History"
+                visible={historyPopoverVisible}
+                width={280}
+            >
+                {chatHistory.length > 0 ? (
+                    <List
+                        dataSource={chatHistory}
+                        itemRender={renderHistoryItem}
+                        onItemClick={handleHistoryItemClick as (e: { itemData?: unknown }) => void}
+                    />
+                ) : (
+                    <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Nuk ka histori bisedash.
+                    </div>
+                )}
+            </Popover>
+
+            {/* Delete Confirmation Popup */}
+            <Popup
+                visible={deletePopupVisible}
+                onHiding={() => setDeletePopupVisible(false)}
+                title="Konfirmo Fshirjen"
+                showCloseButton={true}
+                width={360}
+                height="auto"
+            >
+                <div className="p-4">
+                    <p className="text-sm mb-4">
+                        Jeni i sigurt që dëshironi të fshini këtë bisedë? Ky veprim nuk mund të zhbëhet.
+                    </p>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            text="Anulo"
+                            stylingMode="outlined"
+                            onClick={() => setDeletePopupVisible(false)}
+                        />
+                        <Button
+                            text="Fshi"
+                            type="danger"
+                            stylingMode="contained"
+                            onClick={confirmDeleteChat}
+                        />
+                    </div>
+                </div>
+            </Popup>
+
+            {/* DevExtreme Chat */}
+            <div className="flex-1 overflow-hidden">
+                <Chat
+                    className="ai-assistant"
+                    items={messages}
+                    messageRender={renderMessage}
+                    onMessageEntered={handleMessageEntered}
+                    onMessageUpdated={handleMessageUpdated}
+                    showDayHeaders={true}
+                    typingUsers={typingUsers}
+                    user={currentUser}
+                >
+                    <Editing allowUpdating={true} />
+                </Chat>
             </div>
         </div>
     );
 }
+
+export default AIAgentChat;
