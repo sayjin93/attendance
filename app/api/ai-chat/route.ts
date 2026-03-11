@@ -24,8 +24,8 @@ interface Message {
 
 // Authenticate user from JWT
 async function authenticateUser(): Promise<User> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("session")?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
 
   if (!token) {
     throw new Error('Unauthorized: No authentication token');
@@ -144,12 +144,13 @@ Your capabilities:
 3. Reports: NK/OK lists per class/subject/type (use get_class_report)
 
 Function selection guide:
-- "Sa mungesa ka studenti X?" → use get_attendance_statistics with studentName
-- "Datat kur ka munguar X" → use get_student_attendance_records with studentName and statusFilter="ABSENT"
+- "Sa mungesa ka studenti X?" → call get_attendance_statistics with studentName. If the function returns needsMoreInfo with available subjects/types, present them to the user and ask them to choose.
+- "Datat kur ka munguar X" → call get_student_attendance_records with studentName. Same: if needsMoreInfo is returned, present options to user.
 - "Lista NK per klasen X, lenden Y" → use get_class_report with className, subjectName
 - "Lista NK per seminaret" → use get_class_report with typeName="Seminar"
 - "Kush mungon sot?" → first get_lectures for today, then get_lecture_attendance
 - "Detajet e studentit X" → use get_student_details with studentName
+- When user provides subject and type (e.g., "Endrit Mustafaj, Projektim DB, Seminar"), pass them directly — fuzzy matching will resolve partial names automatically.
 
 Guidelines:
 - When asked about absences ("mungesa"), respond with exact counts and percentages

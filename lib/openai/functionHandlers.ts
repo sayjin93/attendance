@@ -2,6 +2,78 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Common Albanian stop words to ignore when matching subject names
+const STOP_WORDS = new Set(['dhe', 'e', 'te', 'i', 'ne', 'per', 'me', 'nga', 'se']);
+
+// Normalize Albanian diacritical characters for comparison
+function normalizeAlbanian(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/ë/g, 'e')
+    .replace(/ç/g, 'c')
+    .replace(/Ë/g, 'e')
+    .replace(/Ç/g, 'c')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+// Helper: resolve subject by name (fuzzy matching with word splitting)
+async function resolveSubjectByName(subjectName: string) {
+  const trimmed = subjectName.trim();
+
+  // First try exact contains match
+  const exactMatch = await prisma.subject.findMany({
+    where: {
+      OR: [
+        { name: { contains: trimmed } },
+        { code: { contains: trimmed } },
+      ],
+    },
+  });
+  if (exactMatch.length > 0) return exactMatch;
+
+  // Split into words, filter out stop words and very short words
+  const words = normalizeAlbanian(trimmed)
+    .split(/\s+/)
+    .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+
+  if (words.length === 0) return [];
+
+  // Find subjects where ALL significant words appear in the name or code (normalized)
+  const allSubjects = await prisma.subject.findMany();
+  const matched = allSubjects.filter((s) => {
+    const nameNorm = normalizeAlbanian(s.name);
+    const codeNorm = normalizeAlbanian(s.code || '');
+    return words.every((word) => nameNorm.includes(word) || codeNorm.includes(word));
+  });
+
+  if (matched.length > 0) return matched;
+
+  // Fallback: find subjects matching ANY of the significant words (ranked by match count)
+  const scored = allSubjects
+    .map((s) => {
+      const nameNorm = normalizeAlbanian(s.name);
+      const codeNorm = normalizeAlbanian(s.code || '');
+      const matchCount = words.filter((word) => nameNorm.includes(word) || codeNorm.includes(word)).length;
+      return { subject: s, matchCount };
+    })
+    .filter((s) => s.matchCount > 0)
+    .sort((a, b) => b.matchCount - a.matchCount);
+
+  if (scored.length === 0) return [];
+
+  // If the best match has significantly more matches than the rest, return it
+  const bestScore = scored[0].matchCount;
+  const bestMatches = scored.filter((s) => s.matchCount === bestScore);
+
+  // Return best matches if at least 2 words match, or if only 1-2 significant words were searched
+  if (bestScore >= 2 || words.length <= 2) {
+    return bestMatches.map((s) => s.subject);
+  }
+
+  return [];
+}
+
 // Helper: resolve student by name search
 async function resolveStudentByName(studentName: string) {
   const trimmed = studentName.trim();
@@ -512,6 +584,61 @@ export async function getAttendanceStatistics(params: {
     studentId = candidates[0].id;
   }
 
+  // If querying for a specific student but missing subjectName or typeName, return available options
+  if (studentId && (!subjectName || !typeName)) {
+    const studentAssignments = await prisma.attendance.findMany({
+      where: { studentId },
+      select: {
+        lecture: {
+          select: {
+            teachingAssignment: {
+              select: {
+                subject: { select: { id: true, name: true, code: true } },
+                type: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
+      distinct: ['lectureId'],
+    });
+
+    const subjectTypeMap = new Map<string, Set<string>>();
+    for (const a of studentAssignments) {
+      const subj = a.lecture.teachingAssignment.subject;
+      const type = a.lecture.teachingAssignment.type;
+      const key = `${subj.id}:${subj.name}`;
+      if (!subjectTypeMap.has(key)) subjectTypeMap.set(key, new Set());
+      subjectTypeMap.get(key)!.add(type.name);
+    }
+
+    const availableOptions = Array.from(subjectTypeMap.entries()).map(([key, types]) => {
+      const [id, name] = [key.split(':')[0], key.split(':').slice(1).join(':')];
+      return { subjectId: Number(id), subjectName: name, types: Array.from(types) };
+    });
+
+    return {
+      needsMoreInfo: true,
+      message: 'Duhet të specifikoni lëndën dhe tipin e mësimit (Leksion ose Seminar) për të marrë statistikat e prezencës.',
+      availableSubjectsAndTypes: availableOptions,
+    };
+  }
+
+  // Resolve subject by name if needed (fuzzy matching)
+  let resolvedSubjectId: number | undefined;
+  if (subjectName) {
+    const subjectCandidates = await resolveSubjectByName(subjectName);
+    if (subjectCandidates.length === 0) throw new Error(`No subject found matching "${subjectName}"`);
+    if (subjectCandidates.length > 1) {
+      return {
+        multipleMatches: true,
+        message: `Multiple subjects match "${subjectName}". Please specify:`,
+        candidates: subjectCandidates.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+      };
+    }
+    resolvedSubjectId = subjectCandidates[0].id;
+  }
+
   const attendance = await prisma.attendance.findMany({
     where: {
       AND: [
@@ -527,13 +654,11 @@ export async function getAttendanceStatistics(params: {
               },
             }
           : {},
-        subjectName
+        resolvedSubjectId
           ? {
               lecture: {
                 teachingAssignment: {
-                  subject: {
-                    OR: [{ name: { contains: subjectName } }, { code: { contains: subjectName } }],
-                  },
+                  subjectId: resolvedSubjectId,
                 },
               },
             }
@@ -599,8 +724,6 @@ export async function getAttendanceStatistics(params: {
   };
 }
 
-// (Create, update, and delete operations removed)
-
 // ============================================
 // ADVANCED QUERY OPERATIONS
 // ============================================
@@ -640,6 +763,61 @@ export async function getStudentAttendanceRecords(params: {
     resolvedStudentName = `${candidates[0].firstName} ${candidates[0].lastName}`;
   }
 
+  // If querying for a specific student but missing subjectName or typeName, return available options
+  if (studentId && (!subjectName || !typeName)) {
+    const studentAssignments = await prisma.attendance.findMany({
+      where: { studentId },
+      select: {
+        lecture: {
+          select: {
+            teachingAssignment: {
+              select: {
+                subject: { select: { id: true, name: true, code: true } },
+                type: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
+      distinct: ['lectureId'],
+    });
+
+    const subjectTypeMap = new Map<string, Set<string>>();
+    for (const a of studentAssignments) {
+      const subj = a.lecture.teachingAssignment.subject;
+      const type = a.lecture.teachingAssignment.type;
+      const key = `${subj.id}:${subj.name}`;
+      if (!subjectTypeMap.has(key)) subjectTypeMap.set(key, new Set());
+      subjectTypeMap.get(key)!.add(type.name);
+    }
+
+    const availableOptions = Array.from(subjectTypeMap.entries()).map(([key, types]) => {
+      const [id, name] = [key.split(':')[0], key.split(':').slice(1).join(':')];
+      return { subjectId: Number(id), subjectName: name, types: Array.from(types) };
+    });
+
+    return {
+      needsMoreInfo: true,
+      message: 'Duhet të specifikoni lëndën dhe tipin e mësimit (Leksion ose Seminar) për të marrë regjistrat e prezencës.',
+      availableSubjectsAndTypes: availableOptions,
+    };
+  }
+
+  // Resolve subject by name if needed (fuzzy matching)
+  let resolvedSubjectId: number | undefined;
+  if (subjectName) {
+    const subjectCandidates = await resolveSubjectByName(subjectName);
+    if (subjectCandidates.length === 0) throw new Error(`No subject found matching "${subjectName}"`);
+    if (subjectCandidates.length > 1) {
+      return {
+        multipleMatches: true,
+        message: `Multiple subjects match "${subjectName}". Please specify:`,
+        candidates: subjectCandidates.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+      };
+    }
+    resolvedSubjectId = subjectCandidates[0].id;
+  }
+
   const records = await prisma.attendance.findMany({
     where: {
       AND: [
@@ -648,13 +826,11 @@ export async function getStudentAttendanceRecords(params: {
         className
           ? { lecture: { teachingAssignment: { class: { name: { contains: className } } } } }
           : {},
-        subjectName
+        resolvedSubjectId
           ? {
               lecture: {
                 teachingAssignment: {
-                  subject: {
-                    OR: [{ name: { contains: subjectName } }, { code: { contains: subjectName } }],
-                  },
+                  subjectId: resolvedSubjectId,
                 },
               },
             }
@@ -727,11 +903,10 @@ export async function getClassReport(params: {
 
   if (!classObj) throw new Error(`Class "${className}" not found`);
 
-  // Find subject
-  const subject = await prisma.subject.findFirst({
-    where: { OR: [{ name: { contains: subjectName } }, { code: { contains: subjectName } }] },
-  });
-  if (!subject) throw new Error(`Subject "${subjectName}" not found`);
+  // Find subject (fuzzy matching)
+  const subjectCandidates = await resolveSubjectByName(subjectName);
+  if (subjectCandidates.length === 0) throw new Error(`Subject "${subjectName}" not found`);
+  const subject = subjectCandidates[0];
 
   // Find teaching assignments
   const assignments = await prisma.teachingAssignment.findMany({

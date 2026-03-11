@@ -197,7 +197,7 @@ export const attendanceFunctions: ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'get_attendance_statistics',
-      description: 'Get attendance statistics (counts and percentages) for a student, class, or subject. Can filter by teaching type and date range. Returns totals and status breakdown. Use get_student_attendance_records for individual dated records.',
+      description: 'Get attendance statistics (counts and percentages) for a student, class, or subject. IMPORTANT: When querying for a specific student, you MUST provide subjectName AND typeName. If called for a student without both, the function returns the available subjects and types for that student so you can ask the user to choose. Subject name matching is fuzzy — partial or abbreviated names work (e.g., "Projektim db" matches "Projektim dhe analizë e bazave të të dhënave"). Use get_student_attendance_records for individual dated records.',
       parameters: {
         type: 'object',
         properties: {
@@ -215,7 +215,7 @@ export const attendanceFunctions: ChatCompletionTool[] = [
           },
           subjectName: {
             type: 'string',
-            description: 'Filter by subject name',
+            description: 'Filter by subject name (fuzzy matching supported — partial/abbreviated names work)',
           },
           typeName: {
             type: 'string',
@@ -234,7 +234,6 @@ export const attendanceFunctions: ChatCompletionTool[] = [
       },
     },
   },
-
   // ============================================
   // ADVANCED QUERY OPERATIONS
   // ============================================
@@ -242,7 +241,7 @@ export const attendanceFunctions: ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'get_student_attendance_records',
-      description: 'Get individual attendance records with dates for a student. Use this when asked about specific absence dates, detailed attendance history, or when user needs to see each lecture record. Returns dated records, not just statistics.',
+      description: 'Get individual attendance records with dates for a student. IMPORTANT: When querying for a specific student, you MUST provide subjectName AND typeName. If called for a student without both, the function returns the available subjects and types for that student so you can ask the user to choose. Subject name matching is fuzzy — partial/abbreviated names work. Use this when asked about specific absence dates, detailed attendance history, or when user needs to see each lecture record.',
       parameters: {
         type: 'object',
         properties: {
@@ -260,7 +259,7 @@ export const attendanceFunctions: ChatCompletionTool[] = [
           },
           subjectName: {
             type: 'string',
-            description: 'Filter by subject name or code',
+            description: 'Filter by subject name or code (fuzzy matching supported — partial/abbreviated names work)',
           },
           typeName: {
             type: 'string',
