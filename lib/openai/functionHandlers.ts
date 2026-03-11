@@ -628,7 +628,48 @@ export async function getAttendanceStatistics(params: {
   let resolvedSubjectId: number | undefined;
   if (subjectName) {
     const subjectCandidates = await resolveSubjectByName(subjectName);
-    if (subjectCandidates.length === 0) throw new Error(`No subject found matching "${subjectName}"`);
+    if (subjectCandidates.length === 0) {
+      // Subject not found - return available subjects for this student
+      if (studentId) {
+        const studentAssignments = await prisma.attendance.findMany({
+          where: { studentId },
+          select: {
+            lecture: {
+              select: {
+                teachingAssignment: {
+                  select: {
+                    subject: { select: { id: true, name: true, code: true } },
+                    type: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
+          distinct: ['lectureId'],
+        });
+
+        const stMap = new Map<string, Set<string>>();
+        for (const a of studentAssignments) {
+          const subj = a.lecture.teachingAssignment.subject;
+          const type = a.lecture.teachingAssignment.type;
+          const key = `${subj.id}:${subj.name}`;
+          if (!stMap.has(key)) stMap.set(key, new Set());
+          stMap.get(key)!.add(type.name);
+        }
+
+        const opts = Array.from(stMap.entries()).map(([key, types]) => {
+          const [id, name] = [key.split(':')[0], key.split(':').slice(1).join(':')];
+          return { subjectId: Number(id), subjectName: name, types: Array.from(types) };
+        });
+
+        return {
+          needsMoreInfo: true,
+          message: `Lënda "${subjectName}" nuk u gjet. Këto janë lëndët e disponueshme për këtë student:`,
+          availableSubjectsAndTypes: opts,
+        };
+      }
+      throw new Error(`No subject found matching "${subjectName}"`);
+    }
     if (subjectCandidates.length > 1) {
       return {
         multipleMatches: true,
@@ -807,7 +848,48 @@ export async function getStudentAttendanceRecords(params: {
   let resolvedSubjectId: number | undefined;
   if (subjectName) {
     const subjectCandidates = await resolveSubjectByName(subjectName);
-    if (subjectCandidates.length === 0) throw new Error(`No subject found matching "${subjectName}"`);
+    if (subjectCandidates.length === 0) {
+      // Subject not found - return available subjects for this student
+      if (studentId) {
+        const studentAssignments2 = await prisma.attendance.findMany({
+          where: { studentId },
+          select: {
+            lecture: {
+              select: {
+                teachingAssignment: {
+                  select: {
+                    subject: { select: { id: true, name: true, code: true } },
+                    type: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
+          distinct: ['lectureId'],
+        });
+
+        const stMap2 = new Map<string, Set<string>>();
+        for (const a of studentAssignments2) {
+          const subj = a.lecture.teachingAssignment.subject;
+          const type = a.lecture.teachingAssignment.type;
+          const key = `${subj.id}:${subj.name}`;
+          if (!stMap2.has(key)) stMap2.set(key, new Set());
+          stMap2.get(key)!.add(type.name);
+        }
+
+        const opts2 = Array.from(stMap2.entries()).map(([key, types]) => {
+          const [id, name] = [key.split(':')[0], key.split(':').slice(1).join(':')];
+          return { subjectId: Number(id), subjectName: name, types: Array.from(types) };
+        });
+
+        return {
+          needsMoreInfo: true,
+          message: `Lënda "${subjectName}" nuk u gjet. Këto janë lëndët e disponueshme për këtë student:`,
+          availableSubjectsAndTypes: opts2,
+        };
+      }
+      throw new Error(`No subject found matching "${subjectName}"`);
+    }
     if (subjectCandidates.length > 1) {
       return {
         multipleMatches: true,
@@ -905,7 +987,41 @@ export async function getClassReport(params: {
 
   // Find subject (fuzzy matching)
   const subjectCandidates = await resolveSubjectByName(subjectName);
-  if (subjectCandidates.length === 0) throw new Error(`Subject "${subjectName}" not found`);
+  if (subjectCandidates.length === 0) {
+    // Subject not found - return available subjects for this class
+    const classAssignments = await prisma.teachingAssignment.findMany({
+      where: { classId: classObj.id },
+      include: {
+        subject: { select: { id: true, name: true, code: true } },
+        type: { select: { name: true } },
+      },
+    });
+
+    const subjectTypeMap = new Map<string, Set<string>>();
+    for (const a of classAssignments) {
+      const key = `${a.subject.id}:${a.subject.name}`;
+      if (!subjectTypeMap.has(key)) subjectTypeMap.set(key, new Set());
+      subjectTypeMap.get(key)!.add(a.type.name);
+    }
+
+    const availableOptions = Array.from(subjectTypeMap.entries()).map(([key, types]) => {
+      const [id, name] = [key.split(':')[0], key.split(':').slice(1).join(':')];
+      return { subjectId: Number(id), subjectName: name, types: Array.from(types) };
+    });
+
+    return {
+      needsMoreInfo: true,
+      message: `Lënda "${subjectName}" nuk u gjet për klasën ${classObj.name}. Këto janë lëndët e disponueshme:`,
+      availableSubjectsAndTypes: availableOptions,
+    };
+  }
+  if (subjectCandidates.length > 1) {
+    return {
+      multipleMatches: true,
+      message: `Shumë lëndë përputhen me "${subjectName}". Ju lutem specifikoni:`,
+      candidates: subjectCandidates.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+    };
+  }
   const subject = subjectCandidates[0];
 
   // Find teaching assignments
@@ -919,9 +1035,32 @@ export async function getClassReport(params: {
   });
 
   if (assignments.length === 0) {
-    throw new Error(
-      `No teaching assignment found for "${subject.name}" in class "${classObj.name}"${typeName ? ` for type "${typeName}"` : ''}`
-    );
+    // No assignment for this subject in this class - show available subjects
+    const classAssignments = await prisma.teachingAssignment.findMany({
+      where: { classId: classObj.id },
+      include: {
+        subject: { select: { id: true, name: true, code: true } },
+        type: { select: { name: true } },
+      },
+    });
+
+    const subjectTypeMap = new Map<string, Set<string>>();
+    for (const a of classAssignments) {
+      const key = `${a.subject.id}:${a.subject.name}`;
+      if (!subjectTypeMap.has(key)) subjectTypeMap.set(key, new Set());
+      subjectTypeMap.get(key)!.add(a.type.name);
+    }
+
+    const availableOptions = Array.from(subjectTypeMap.entries()).map(([key, types]) => {
+      const [id, name] = [key.split(':')[0], key.split(':').slice(1).join(':')];
+      return { subjectId: Number(id), subjectName: name, types: Array.from(types) };
+    });
+
+    return {
+      needsMoreInfo: true,
+      message: `Lënda "${subject.name}" nuk ka caktim mësimor për klasën ${classObj.name}${typeName ? ` për tipin "${typeName}"` : ''}. Këto janë lëndët e disponueshme:`,
+      availableSubjectsAndTypes: availableOptions,
+    };
   }
 
   // Get all lectures for these assignments
