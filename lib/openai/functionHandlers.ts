@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+type Subject = { id: number; name: string; code: string; programId: number };
+
 // Common Albanian stop words to ignore when matching subject names
 const STOP_WORDS = new Set(['dhe', 'e', 'te', 'i', 'ne', 'per', 'me', 'nga', 'se']);
 
@@ -37,11 +39,11 @@ async function resolveSubjectByName(subjectName: string) {
     .split(/\s+/)
     .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
 
-  if (words.length === 0) return [];
+  if (words.length === 0) return [] as Subject[];
 
   // Find subjects where ALL significant words appear in the name or code (normalized)
   const allSubjects = await prisma.subject.findMany();
-  const matched = allSubjects.filter((s) => {
+  const matched = allSubjects.filter((s: Subject) => {
     const nameNorm = normalizeAlbanian(s.name);
     const codeNorm = normalizeAlbanian(s.code || '');
     return words.every((word) => nameNorm.includes(word) || codeNorm.includes(word));
@@ -51,24 +53,24 @@ async function resolveSubjectByName(subjectName: string) {
 
   // Fallback: find subjects matching ANY of the significant words (ranked by match count)
   const scored = allSubjects
-    .map((s) => {
+    .map((s: Subject) => {
       const nameNorm = normalizeAlbanian(s.name);
       const codeNorm = normalizeAlbanian(s.code || '');
       const matchCount = words.filter((word) => nameNorm.includes(word) || codeNorm.includes(word)).length;
       return { subject: s, matchCount };
     })
-    .filter((s) => s.matchCount > 0)
-    .sort((a, b) => b.matchCount - a.matchCount);
+    .filter((s: { subject: Subject; matchCount: number }) => s.matchCount > 0)
+    .sort((a: { subject: Subject; matchCount: number }, b: { subject: Subject; matchCount: number }) => b.matchCount - a.matchCount);
 
   if (scored.length === 0) return [];
 
   // If the best match has significantly more matches than the rest, return it
   const bestScore = scored[0].matchCount;
-  const bestMatches = scored.filter((s) => s.matchCount === bestScore);
+  const bestMatches = scored.filter((s: { subject: Subject; matchCount: number }) => s.matchCount === bestScore);
 
   // Return best matches if at least 2 words match, or if only 1-2 significant words were searched
   if (bestScore >= 2 || words.length <= 2) {
-    return bestMatches.map((s) => s.subject);
+    return bestMatches.map((s: { subject: Subject; matchCount: number }) => s.subject);
   }
 
   return [];
@@ -674,7 +676,7 @@ export async function getAttendanceStatistics(params: {
       return {
         multipleMatches: true,
         message: `Multiple subjects match "${subjectName}". Please specify:`,
-        candidates: subjectCandidates.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+        candidates: subjectCandidates.map((s: Subject) => ({ id: s.id, name: s.name, code: s.code })),
       };
     }
     resolvedSubjectId = subjectCandidates[0].id;
@@ -894,7 +896,7 @@ export async function getStudentAttendanceRecords(params: {
       return {
         multipleMatches: true,
         message: `Multiple subjects match "${subjectName}". Please specify:`,
-        candidates: subjectCandidates.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+        candidates: subjectCandidates.map((s: Subject) => ({ id: s.id, name: s.name, code: s.code })),
       };
     }
     resolvedSubjectId = subjectCandidates[0].id;
@@ -1019,7 +1021,7 @@ export async function getClassReport(params: {
     return {
       multipleMatches: true,
       message: `Shumë lëndë përputhen me "${subjectName}". Ju lutem specifikoni:`,
-      candidates: subjectCandidates.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+      candidates: subjectCandidates.map((s: Subject) => ({ id: s.id, name: s.name, code: s.code })),
     };
   }
   const subject = subjectCandidates[0];
