@@ -19,16 +19,26 @@ Ky punim paraqet dizajnin, implementimin dhe vlerësimin e një asistenti të in
 
 ### 1.1 Konteksti
 
-Menaxhimi i prezencës në institucionet e arsimit të lartë mbetet një sfidë e përditshme. Sistemet tradicionale kërkojnë navigim manual nëpër ndërfaqe të shumta për të marrë informacion statistikor, duke rritur kohën e nevojshme dhe mundësinë e gabimeve. Me zhvillimin e modeleve të gjuhës së madhe (LLM-ve), mundësia e ndërveprimit me bazat e të dhënave përmes gjuhës natyrale ka hapur një paradigmë të re në dizajnin e sistemeve informative.
+Menaxhimi i prezencës në institucionet e arsimit të lartë mbetet një sfidë e përditshme. Në shumicën e universiteteve shqiptare, prezenca e studentëve regjistrohet akoma në **regjistër fizikë (leter)** — një metodë që paraqet kufizime të konsiderueshme:
+
+- **Pamundësia e nxjerrjes së statistikave në kohë reale** — Për të ditur sa mungesa ka një student, duhet numëruar manualisht në regjistër, faqë për faqë;
+- **Llogaritja e NK (Nuk Kalon) është pothuajse e pamundur** — Për të përcaktuar nëse një student ka kaluar pragun e mungesave për një lëndë, duhet numëruar çdo prezencë/mungesë manualisht dhe llogaritjet bëhen vetëm në fund të semestrit;
+- **Aktivizimet nuk gjurmohen** — Një profesor nuk ka mënyrë praktike të shohë se cili student ka marrë pjesë aktivisht (PARTICIPATED) gjatë seminareve;
+- **Gabime njerëzore** — Regjistrimet në letër janë të prirura ndaj gabimeve, humbjes së të dhënave, dhe vonerave;
+- **Mungesa e transparencës** — Studentët nuk kanë akses në informacionin e tyre të prezencës deri në fund të semestrit.
+
+Me zhvillimin e modeleve të gjuhës së madhe (LLM-ve), ka lindur mundësia e ndërveprimit me bazat e të dhënave përmes gjuhës natyrale, duke hapur një paradigmë të re në dizajnin e sistemeve informative.
 
 ### 1.2 Problemi
 
-Profesorët dhe administratorët shpesh kanë nevojë për informacion të shpejtë:
+Edhe në sistemet dixhitale ekzistuese, profesorët dhe administratorët shpesh kanë nevojë për informacion të shpejtë që kërkon disa hapa navigimi:
 - *"Sa mungesa ka studenti Endrit Mustafaj?"*
 - *"Cilat janë datat kur ka munguar?"*
 - *"Nxirr listën NK për klasën Infoek202 për seminaret"*
+- *"Kush ka munguar sot?"*
+- *"Cilët studentë janë në rrezik NK?"*
 
-Këto pyetje kërkojnë disa hapa navigimi në sistemet konvencionale: zgjedhja e modulit, filtrimi i klasës, gjetja e studentit, interpretimi i të dhënave. Një asistent AI mund t'i përgjigjet këtyre pyetjeve në sekonda.
+Në një sistem me regjistër fizik, këto pyetje kërkojnë orë të tëra punë manuale. Por edhe në sistemet dixhitale konvencionale, ato kërkojnë disa hapa navigimi: zgjedhja e modulit, filtrimi i klasës, gjetja e studentit, interpretimi i të dhënave. Një asistent AI mund t'i përgjigjet këtyre pyetjeve në sekonda, duke transformuar një proces që merr orë në një ndërveprim që merr sekonda.
 
 ### 1.3 Objektivi
 
