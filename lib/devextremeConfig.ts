@@ -8,12 +8,20 @@ const configureDevExtreme = () => {
 
     if (licenseKey) {
       config({ licenseKey });
-      console.log('DevExtreme license configured successfully');
+      if (process.env.NODE_ENV === "development") {
+        console.log('DevExtreme license configured successfully');
+      }
     } else {
-      console.warn('DEVEXTREME_KEY environment variable not found');
+      if (process.env.NODE_ENV === "development") {
+
+        console.warn('DEVEXTREME_KEY environment variable not found');
+      }
     }
   } catch (error) {
-    console.error('Failed to configure DevExtreme license:', error);
+    if (process.env.NODE_ENV === "development") {
+
+      console.error('Failed to configure DevExtreme license:', error);
+    }
   }
 };
 

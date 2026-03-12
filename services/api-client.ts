@@ -33,11 +33,12 @@ async function request<T>(url: string, options: RequestOptions = {}): Promise<T>
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
-  const data = await response.json();
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
     throw new ApiError(
-      data.error || `Request failed with status ${response.status}`,
+      data?.error || `Request failed with status ${response.status}`,
       response.status,
       data
     );

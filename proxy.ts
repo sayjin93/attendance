@@ -4,7 +4,7 @@ import { jwtVerify, SignJWT } from "jose";
 import { serialize } from "cookie";
 import { SECRET_KEY } from "./constants";
 
-export async function middleware(req: Request) {
+export async function proxy(req: Request) {
   try {
     // Get the session cookie
     const cookieStore = await cookies();
@@ -83,16 +83,16 @@ export async function middleware(req: Request) {
     // Pass the request along with our new headers
     return response;
   } catch (error) {
-    console.log("Error in middleware:", error);
+    console.log("Error in proxy:", error);
     return NextResponse.redirect(new URL("/login", req.url)); // Redirect if token is invalid/expired
   }
 }
 
-// Middleware applies to everything EXCEPT login, forgot-password, reset-password, API routes, and Next.js assets
+// Proxy applies to everything EXCEPT login, forgot-password, reset-password, API routes, and Next.js assets
 export const config = {
   matcher: [
     /*
-     * Apply middleware to all pages except:
+     * Apply proxy to all pages except:
      * 1. /api/* (exclude all API routes)
      * 2. /login (exclude the login page)
      * 3. /forgot-password (exclude forgot password page)
