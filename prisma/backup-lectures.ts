@@ -82,7 +82,7 @@ export async function seedLectures(prisma: PrismaClient) {
 `;
 
   // Write to file
-  const outputPath = path.join(__dirname, "seeds", "lectures-backup.ts");
+  const outputPath = path.join(__dirname, "seeds", "lectures.ts");
   fs.writeFileSync(outputPath, tsContent, "utf-8");
 
   console.log(`✅ Backup saved to: ${outputPath}`);

@@ -16,7 +16,7 @@ npx tsx prisma/backup-attendance.ts
 
 Ky komandë do të:
 1. Lexojë të gjitha të dhënat e attendance nga databaza
-2. Krijojë një skedar `prisma/seeds/attendance-backup.ts`
+2. Krijojë një skedar `prisma/seeds/attendance.ts`
 3. Përfshijë metadata (emrat e studentëve, klasat, datat, subjektet) si komente
 4. Gjenerojë një funksion `seedAttendance()` për restore
 
@@ -25,13 +25,13 @@ Ky komandë do të:
 Kontrollo që skedari është krijuar:
 
 ```bash
-ls prisma/seeds/attendance-backup.ts
+ls prisma/seeds/attendance.ts
 ```
 
 Shiko përmbajtjen:
 
 ```bash
-cat prisma/seeds/attendance-backup.ts
+cat prisma/seeds/attendance.ts
 ```
 
 ## Si të Riktheni (Restore) Backup
@@ -44,7 +44,7 @@ Backup-i do të rikthehet automatikisht kur ekzekutoni:
 npx prisma db seed
 ```
 
-Seed script-i kontrollon nëse ekziston `attendance-backup.ts` dhe e importon automatikisht.
+Seed script-i kontrollon nëse ekziston `attendance.ts` dhe e importon automatikisht.
 
 ### Manual
 
@@ -52,7 +52,7 @@ Nëse doni të riktheni vetëm attendance pa ekzekutuar gjithë seed:
 
 ```typescript
 import { PrismaClient } from "@prisma/client";
-import { seedAttendance } from "./prisma/seeds/attendance-backup";
+import { seedAttendance } from "./prisma/seeds/attendance";
 
 const prisma = new PrismaClient();
 
@@ -77,7 +77,7 @@ seedAttendance(prisma)
 npx tsx prisma/backup-attendance.ts
 
 # 2. Verifiko që backup është krijuar
-ls prisma/seeds/attendance-backup.ts
+ls prisma/seeds/attendance.ts
 
 # 3. Tani mund të resetosh database-n me siguri
 npx prisma migrate reset
@@ -158,7 +158,7 @@ Krijo backup para çdo operacioni të rrezikshëm:
 
 Shto në `.gitignore`:
 ```
-prisma/seeds/attendance-backup.ts
+prisma/seeds/attendance.ts
 ```
 
 ### 3. Dokumentimi
@@ -177,7 +177,7 @@ Para se të përdorësh backup në production:
 
 ## Troubleshooting
 
-### Error: Module not found './seeds/attendance-backup'
+### Error: Module not found './seeds/attendance'
 
 Kjo është normale nëse nuk ke krijuar backup akoma. Seed script-i do të anashkalojë backup-in nëse skedari nuk ekziston.
 
@@ -240,7 +240,7 @@ npx prisma migrate reset
 npx tsx prisma/backup-attendance.ts
 
 # 2. Download backup file lokalisht
-scp user@server:/path/to/attendance-backup.ts ./local-backup/
+scp user@server:/path/to/attendance.ts ./local-backup/
 
 # 3. Test migration në development
 npx prisma migrate dev

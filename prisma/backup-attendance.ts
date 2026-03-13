@@ -137,7 +137,7 @@ export async function seedAttendance(prisma: PrismaClient) {
 
     // Save to file
     const backupDir = path.join(__dirname, 'seeds');
-    const backupFile = path.join(backupDir, 'attendance-backup.ts');
+    const backupFile = path.join(backupDir, 'attendance.ts');
 
     // Ensure directory exists
     if (!fs.existsSync(backupDir)) {
