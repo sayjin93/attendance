@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../prisma";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
-
-export async function seedProfessors() {
+export async function seedProfessors(prisma: PrismaClient) {
   console.log("🧑‍🏫 Seeding professors...");
   
   // Insert Professors
@@ -32,15 +30,4 @@ export async function seedProfessors() {
   });
   
   console.log("✅ Professors seeded successfully!");
-}
-
-// Allow direct execution
-if (require.main === module) {
-  seedProfessors()
-    .then(() => prisma.$disconnect())
-    .catch(async (e) => {
-      console.error("❌ Error seeding professors:", e);
-      await prisma.$disconnect();
-      process.exit(1);
-    });
 }

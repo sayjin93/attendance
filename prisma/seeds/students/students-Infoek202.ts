@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import type { PrismaClient } from "../../prisma";
 
-export async function seedStudentsInfoek202() {
+export async function seedStudentsInfoek202(prisma: PrismaClient) {
   console.log("🌱 Seeding students for Infoek202...");
 
   const studentsInfoek202 = [
@@ -363,15 +362,4 @@ export async function seedStudentsInfoek202() {
   });
 
   console.log(`✅ Successfully seeded ${studentsInfoek202.length} students for Infoek202!`);
-}
-
-// Allow direct execution
-if (require.main === module) {
-  seedStudentsInfoek202()
-    .then(() => prisma.$disconnect())
-    .catch(async (e) => {
-      console.error("❌ Error seeding students for Infoek202:", e);
-      await prisma.$disconnect();
-      process.exit(1);
-    });
 }

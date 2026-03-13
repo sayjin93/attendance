@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../prisma";
 
-const prisma = new PrismaClient();
-
-export async function seedClasses() {
+export async function seedClasses(prisma: PrismaClient) {
   console.log("🏫 Seeding classes...");
   
   // Insert Classes
@@ -95,15 +93,4 @@ export async function seedClasses() {
   });
   
   console.log("✅ Classes seeded successfully!");
-}
-
-// Allow direct execution
-if (require.main === module) {
-  seedClasses()
-    .then(() => prisma.$disconnect())
-    .catch(async (e) => {
-      console.error("❌ Error seeding classes:", e);
-      await prisma.$disconnect();
-      process.exit(1);
-    });
 }

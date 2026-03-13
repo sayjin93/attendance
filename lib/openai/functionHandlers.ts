@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/prisma/prisma';
 
 type Subject = { id: number; name: string; code: string; programId: number };
 

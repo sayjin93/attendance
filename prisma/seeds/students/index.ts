@@ -1,28 +1,24 @@
-// Import individual functions to use in seedAllStudents
-import { seedStudentsINF205 } from './students-INF205';
-import { seedStudentsINF206 } from './students-INF206';
-import { seedStudentsInfoek202 } from './students-Infoek202';
-import { seedStudentsMSH1IE } from './students-MSH1IE';
-import { seedStudentsMSH1INFA } from './students-MSH1INFA';
-import { seedStudentsMSH1INFB } from './students-MSH1INFB';
-import { seedStudentsMSH1TI } from './students-MSH1TI';
-import { seedStudentsMSH2INF } from './students-MSH2INF';
-import { seedStudentsMSH2TI } from './students-MSH2TI';
+import fs from "fs";
+import path from "path";
+import { pathToFileURL } from "url";
+import type { PrismaClient } from "../../prisma";
 
-// Master function to seed all students
-export async function seedAllStudents() {
+export async function seedAllStudents(prisma: PrismaClient) {
   console.log("👥 Seeding all students...");
-  
-  // Seed students for each class
-  await seedStudentsINF205();
-  await seedStudentsINF206();
-  await seedStudentsInfoek202();
-  await seedStudentsMSH1IE();
-  await seedStudentsMSH1INFA();
-  await seedStudentsMSH1INFB();
-  await seedStudentsMSH1TI();
-  await seedStudentsMSH2INF();
-  await seedStudentsMSH2TI();
-  
+
+  const dir = path.dirname(__filename);
+  const files = fs.readdirSync(dir)
+    .filter((f) => f.startsWith("students-") && f.endsWith(".ts"))
+    .sort();
+
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const mod = await import(pathToFileURL(filePath).href);
+    const fn = Object.values(mod).find((v) => typeof v === "function") as
+      | ((prisma: PrismaClient) => Promise<void>)
+      | undefined;
+    if (fn) await fn(prisma);
+  }
+
   console.log("✅ All students seeded successfully!");
 }

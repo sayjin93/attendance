@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../prisma";
 
-const prisma = new PrismaClient();
-
-export async function seedTeachingAssignments() {
+export async function seedTeachingAssignments(prisma: PrismaClient) {
   console.log("👨‍🏫 Seeding teaching assignments...");
   
   // Insert TeachingAssignments (linking Professors with Subjects, Classes, and Types)
@@ -71,15 +69,4 @@ export async function seedTeachingAssignments() {
   });
   
   console.log("✅ Teaching Assignments seeded successfully!");
-}
-
-// Allow direct execution
-if (require.main === module) {
-  seedTeachingAssignments()
-    .then(() => prisma.$disconnect())
-    .catch(async (e) => {
-      console.error("❌ Error seeding teaching assignments:", e);
-      await prisma.$disconnect();
-      process.exit(1);
-    });
 }
