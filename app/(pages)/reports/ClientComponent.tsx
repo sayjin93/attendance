@@ -347,7 +347,7 @@ export default function ReportsPageClient({
           <CommonDataGrid
             dataSource={students}
             onExporting={onExporting}
-            storageKey="reportsDataGrid"
+            // storageKey="reportsDataGrid"
             keyExpr="id"
             columnsAutoWidth={true}
             selection={{ mode: "none" }}

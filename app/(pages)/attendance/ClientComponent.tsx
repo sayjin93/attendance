@@ -538,7 +538,7 @@ export default function AttendancePageClient({
               <div className="mt-6">
                 <CommonDataGrid
                   dataSource={students}
-                  storageKey="attendanceDataGrid"
+                  // storageKey="attendanceDataGrid"
                   showRowNumber={true}
                   keyExpr="id"
                   paging={{ pageSize: 100 }}

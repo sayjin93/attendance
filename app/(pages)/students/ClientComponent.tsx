@@ -417,7 +417,7 @@ export default function StudentsPageClient({ isAdmin }: { isAdmin: string }) {
             <CommonDataGrid
               ref={gridRef}
               dataSource={studentsWithRowNumbers}
-              storageKey="studentsDataGrid"
+              // storageKey="studentsDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
             >

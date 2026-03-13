@@ -249,7 +249,7 @@ export default function AssignmentsDataGrid({
             <CommonDataGrid
               ref={gridRef}
               dataSource={assignmentsWithRowNumbers as unknown as TeachingAssignment[]}
-              storageKey="assignmentsDataGrid"
+              // storageKey="assignmentsDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
             >

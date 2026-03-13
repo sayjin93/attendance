@@ -312,7 +312,7 @@ export default function ClassesPageClient({ isAdmin }: { isAdmin: string }) {
             <CommonDataGrid
               ref={gridRef}
               dataSource={classesWithRowNumbers}
-              storageKey="classesDataGrid"
+              // storageKey="classesDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
             >

@@ -445,7 +445,7 @@ export default function LecturesDataGrid({ assignments }: LecturesDataGridProps)
           <CommonDataGrid
             ref={gridRef}
             dataSource={lecturesWithRowNumbers as unknown as Lecture[]}
-            storageKey="lecturesDataGrid"
+            // storageKey="lecturesDataGrid"
             onExporting={onExporting}
             onSelectionChanged={handleSelectionChanged}
           >

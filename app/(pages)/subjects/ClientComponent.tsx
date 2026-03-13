@@ -320,7 +320,7 @@ export default function SubjectsPageClient({ isAdmin }: { isAdmin: string }) {
             <CommonDataGrid
               ref={gridRef}
               dataSource={subjectsWithRowNumbers}
-              storageKey="subjectsDataGrid"
+              // storageKey="subjectsDataGrid"
               onExporting={onExporting}
               onSelectionChanged={handleSelectionChanged}
             >
