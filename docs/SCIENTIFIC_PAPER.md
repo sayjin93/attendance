@@ -111,10 +111,10 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 │  │  getClassReport, getStudentAttendanceRecords...│ │
 │  └────────────────────────────────────────────────┘ │
 └──────────────────────┬──────────────────────────────┘
-                       │ Prisma ORM (Parameterized)
+                       │ Prisma ORM 7 + adapter-mariadb
 ┌──────────────────────▼──────────────────────────────┐
 │                 SHTRESA E TË DHËNAVE                 │
-│  MySQL Database                                      │
+│  MySQL/MariaDB Database                              │
 │  14 tabela: Professor, Student, Class, Subject,     │
 │  TeachingAssignment, Lecture, Attendance,            │
 │  AttendanceStatus, TeachingType, Program,            │
@@ -130,8 +130,8 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 | Framework | Next.js (App Router) | 16.1.6 |
 | Frontend | React | 19.2.4 |
 | Gjuha | TypeScript | 5.9.3 |
-| ORM | Prisma | 6.19.0 |
-| Database | MySQL | 8.x |
+| ORM | Prisma (adapter-mariadb) | 7.5.0 |
+| Database | MySQL/MariaDB | 8.x / 11.x |
 | AI Model | OpenAI GPT-5.4 | SDK 6.27.0 |
 | Autentifikim | jose (JWT) — access + refresh tokens | 6.2.0 |
 | Stilizim | Tailwind CSS + Sass | 4.2.1 / 1.98.0 |
@@ -566,6 +566,7 @@ Arkitektura e propozuar mund të adaptohet lehtë për sisteme të tjera univers
 OPENAI_API_KEY=sk-...
 DATABASE_URL=mysql://user:pass@localhost:3306/attendance
 SECRET_KEY=jwt-secret-key
+NEXT_PUBLIC_DEVEXTREME_KEY=dx_key_here
 ```
 
 ### B. Struktura e Projektit (AI Module)

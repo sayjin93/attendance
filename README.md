@@ -56,8 +56,8 @@ A modern, full-stack attendance management system built for educational institut
 
 **Backend**
 
-- [Prisma ORM 6](https://www.prisma.io/) - Database toolkit
-- [MySQL](https://www.mysql.com/) - Relational database
+- [Prisma ORM 7](https://www.prisma.io/) - Database toolkit with MariaDB driver adapter
+- [MySQL/MariaDB](https://mariadb.org/) - Relational database (via `@prisma/adapter-mariadb`)
 - [jose](https://github.com/panva/jose) - JWT implementation
 - [bcryptjs](https://github.com/dcodeIO/bcrypt.js) - Password hashing
 - [OpenAI](https://platform.openai.com/) - AI assistant with function calling
@@ -180,8 +180,8 @@ Attendance  ←   Student
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn
-- MySQL database server
+- Node.js 20.19+, 22.12+, or 24.0+
+- MySQL or MariaDB database server
 - Git
 
 ### Installation
@@ -200,35 +200,31 @@ Attendance  ←   Student
    ```
 
 3. **Configure environment variables**
-   Create a `.env` file in the root directory:
+   Copy `.env.example` to `.env` and fill in your values:
 
    ```env
    DATABASE_URL="mysql://username:password@localhost:3306/attendance"
-   SHADOW_DATABASE_URL="mysql://username:password@localhost:3306/attendance_shadow"
    SECRET_KEY="your-secure-secret-key-here"
    ```
 
+   See `.env.example` for all available variables (OpenAI, email, DevExtreme).
+
 4. **Set up the database**
 
-   ```bash
-   # Generate Prisma Client
-   npx prisma generate
+   Prisma Client is generated automatically on `npm install` (via `postinstall`). Then apply migrations and seed:
 
-   # Create the initial migration (REQUIRED - Do this first!)
+   ```bash
+   # Apply migrations and create tables
    npx prisma migrate dev --name init
 
-   # This will:
-   # - Create the migrations folder
-   # - Generate migration files
-   # - Apply migration to database
-   # - Run seed.ts automatically
+   # Seed the database
+   npx prisma db seed
 
-   # Alternative: Push schema without migrations (development only)
-   # npx prisma db push
-
-   # Seed initial data (if not auto-seeded by migrate dev)
-   # npx tsx prisma/seed.ts
+   # Or reset everything (drop + migrate + seed):
+   npx prisma migrate reset --force && npx prisma db seed
    ```
+
+   See [docs/PRISMA.md](docs/PRISMA.md) for the full Prisma documentation.
 
 5. **Run the development server**
 
