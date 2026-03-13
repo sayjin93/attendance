@@ -170,6 +170,7 @@ const AIAgentChat = () => {
 
     //#region refs
     const historyButtonRef = useRef<HTMLDivElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     //#endregion
 
     //#region Derived values
@@ -185,6 +186,17 @@ const AIAgentChat = () => {
             .then((sessions: DbSession[]) => setChatHistory(sessions))
             .catch(() => { });
     }, []);
+
+    useEffect(() => {
+        // Scroll chat to bottom when messages change or typing indicator appears
+        const timer = setTimeout(() => {
+            const scrollable = chatContainerRef.current?.querySelector('.dx-scrollable-container');
+            if (scrollable) {
+                scrollable.scrollTop = scrollable.scrollHeight;
+            }
+        }, 50);
+        return () => clearTimeout(timer);
+    }, [messages, typingUsers]);
     //#endregion
 
     //#region functions
@@ -437,7 +449,7 @@ const AIAgentChat = () => {
             </Popup>
 
             {/* DevExtreme Chat */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden" ref={chatContainerRef}>
                 <Chat
                     className="ai-assistant"
                     items={messages}
