@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
+import { jwtVerify, SignJWT } from "jose";
+import { prisma } from "@/prisma/prisma";
+import crypto from "crypto";
 
 const SECRET_KEY = process.env.SECRET_KEY!;
 const encodedSecret = new TextEncoder().encode(SECRET_KEY);
+
+const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 minutes in seconds
+const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
+const REFRESH_TOKEN_EXPIRY_MS = REFRESH_TOKEN_MAX_AGE * 1000;
 
 const ADMIN_ONLY_PATHS = [
   "/classes",
@@ -13,6 +19,19 @@ const ADMIN_ONLY_PATHS = [
   "/assignments",
 ];
 
+/** Clear both auth cookies on the given response. */
+function clearAuthCookies(response: NextResponse): void {
+  const opts = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 0,
+  };
+  response.cookies.set("access_token", "", opts);
+  response.cookies.set("refresh_token", "", opts);
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -20,50 +39,131 @@ export async function proxy(request: NextRequest) {
   const refreshToken = request.cookies.get("refresh_token")?.value;
 
   let payload: Record<string, unknown> | null = null;
-  let refreshSetCookies: string[] = [];
+  let needsNewAccessToken = false;
+  let newRefreshToken: string | null = null;
 
-  // 1. Try to verify access token
+  // 1. Try to verify the access token cryptographically.
   if (accessToken) {
     try {
       const result = await jwtVerify(accessToken, encodedSecret);
       payload = result.payload as Record<string, unknown>;
     } catch {
-      // Access token invalid/expired, fall through to refresh token
+      needsNewAccessToken = true;
     }
+  } else {
+    needsNewAccessToken = true;
   }
 
-  // 2. If access token failed/missing, validate refresh token against DB via
-  //    the refresh endpoint, which enforces revocation and rotates the token.
-  if (!payload && refreshToken) {
+  // 2. Even when the access token is valid, enforce that the paired refresh
+  //    token has not been revoked in the DB. This prevents a stolen/copied
+  //    session (both cookies) from remaining active after logout.
+  //    If the refresh token is present but invalid/expired, also reject —
+  //    this prevents bypassing the DB check by corrupting the refresh cookie.
+  if (payload && refreshToken) {
     try {
-      const refreshResponse = await fetch(
-        new URL("/api/auth/refresh", request.url),
-        {
-          method: "POST",
-          headers: { cookie: `refresh_token=${refreshToken}` },
+      const rtResult = await jwtVerify(refreshToken, encodedSecret);
+      const jti = rtResult.payload.jti as string | undefined;
+      if (jti) {
+        const stored = await prisma.refreshToken.findUnique({
+          where: { jti },
+          select: { revokedAt: true },
+        });
+        if (!stored || stored.revokedAt) {
+          payload = null; // Refresh token revoked → treat session as invalid
         }
-      );
-
-      if (refreshResponse.ok) {
-        payload = await refreshResponse.json();
-        refreshSetCookies = refreshResponse.headers.getSetCookie();
       }
     } catch {
-      // Network or parse error; payload stays null → redirect to login below
+      // Refresh token is present but JWT verification failed (tampered or
+      // expired) → reject the session rather than silently fall through.
+      payload = null;
     }
   }
 
-  // 3. No valid authentication → redirect to login and clear cookies
+  // 3. If access token is missing/expired, validate the refresh token against
+  //    the DB and, if valid, rotate it and mint a new access token.
+  if (!payload && refreshToken) {
+    try {
+      const rtResult = await jwtVerify(refreshToken, encodedSecret);
+      const rtPayload = rtResult.payload as Record<string, unknown>;
+      const jti = rtPayload.jti as string | undefined;
+
+      if (!jti) throw new Error("Missing jti");
+
+      const stored = await prisma.refreshToken.findUnique({ where: { jti } });
+
+      if (!stored || stored.revokedAt) {
+        // Revoked-token reuse detected → revoke the entire token family.
+        if (stored?.revokedAt) {
+          await prisma.refreshToken.updateMany({
+            where: {
+              professorId: stored.professorId,
+              revokedAt: null,
+            },
+            data: { revokedAt: new Date() },
+          });
+        }
+        throw new Error("Revoked");
+      }
+
+      // Fetch fresh user data so any role/name changes are picked up.
+      const professor = await prisma.professor.findUnique({
+        where: { id: stored.professorId },
+        select: { id: true, firstName: true, lastName: true, isAdmin: true },
+      });
+
+      if (!professor) throw new Error("User not found");
+
+      // Rotate: revoke old token, create new one (atomic).
+      const newJti = crypto.randomUUID();
+      await prisma.$transaction([
+        prisma.refreshToken.update({
+          where: { jti },
+          data: { revokedAt: new Date(), replacedBy: newJti },
+        }),
+        prisma.refreshToken.create({
+          data: {
+            jti: newJti,
+            professorId: professor.id,
+            expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
+          },
+        }),
+      ]);
+
+      // Build new refresh token JWT to set in the cookie.
+      newRefreshToken = await new SignJWT({
+        professorId: professor.id,
+        firstName: professor.firstName,
+        lastName: professor.lastName,
+        isAdmin: professor.isAdmin,
+        jti: newJti,
+      })
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("7d")
+        .sign(encodedSecret);
+
+      payload = {
+        professorId: professor.id,
+        firstName: professor.firstName,
+        lastName: professor.lastName,
+        isAdmin: professor.isAdmin,
+      };
+      needsNewAccessToken = true;
+    } catch {
+      payload = null;
+    }
+  }
+
+  // 4. No valid authentication → redirect to login and clear cookies.
   if (!payload || !payload.professorId) {
     const loginResponse = NextResponse.redirect(
       new URL("/login", request.url)
     );
-    loginResponse.cookies.delete("access_token");
-    loginResponse.cookies.delete("refresh_token");
+    clearAuthCookies(loginResponse);
     return loginResponse;
   }
 
-  // 4. Block non-admin users from admin-only routes
+  // 5. Block non-admin users from admin-only routes.
   const isAdminOnlyPath = ADMIN_ONLY_PATHS.some((path) =>
     pathname.startsWith(path)
   );
@@ -71,7 +171,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // 5. Forward user claims as headers for server components
+  // 6. Forward user claims as headers for server components.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("X-Professor-Id", String(payload.professorId));
   requestHeaders.set("X-First-Name", String(payload.firstName ?? ""));
@@ -80,10 +180,39 @@ export async function proxy(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
 
-  // 6. Forward new cookies issued by the refresh endpoint (new access token +
-  //    rotated refresh token) so the browser receives updated credentials.
-  for (const cookie of refreshSetCookies) {
-    response.headers.append("Set-Cookie", cookie);
+  const isProduction = process.env.NODE_ENV === "production";
+
+  // 7. Issue a fresh access token if the current one was expired/missing.
+  if (needsNewAccessToken) {
+    const newAccessToken = await new SignJWT({
+      professorId: payload.professorId,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      isAdmin: payload.isAdmin,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("15m")
+      .sign(encodedSecret);
+
+    response.cookies.set("access_token", newAccessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: ACCESS_TOKEN_MAX_AGE,
+    });
+  }
+
+  // 8. Set the rotated refresh token cookie if we just did a rotation.
+  if (newRefreshToken) {
+    response.cookies.set("refresh_token", newRefreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: REFRESH_TOKEN_MAX_AGE,
+    });
   }
 
   return response;
