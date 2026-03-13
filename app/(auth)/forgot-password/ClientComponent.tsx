@@ -55,7 +55,7 @@ export default function ForgotPasswordClient() {
         </p>
       </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-120">
         {message && (
           <div
             className={`mb-4 rounded-md p-4 ${

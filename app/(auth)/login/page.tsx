@@ -6,11 +6,12 @@ import { SECRET_KEY } from "@/constants";
 import { jwtVerify } from "jose";
 
 export default async function LoginPage() {
-  // Get the session cookie
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
 
-  // If there's no token, show the login page.
+  const token =
+    cookieStore.get("access_token")?.value ??
+    cookieStore.get("refresh_token")?.value;
+
   if (!token) {
     return <LoginPageClient />;
   }
@@ -20,11 +21,9 @@ export default async function LoginPage() {
     const result = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
     payload = result.payload;
   } catch {
-    // If verification fails, render the login page.
     return <LoginPageClient />;
   }
 
-  // If token is valid and contains professorId, perform the redirect.
   if (payload && payload.professorId) {
     return redirect("/dashboard");
   }

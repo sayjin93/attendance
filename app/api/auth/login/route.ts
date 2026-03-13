@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import bcrypt from "bcryptjs";
-import { SignJWT } from "jose";
-import { serialize } from "cookie";
-import { SECRET_KEY } from "@/constants";
+import crypto from "crypto";
+import {
+  createAccessToken,
+  createRefreshToken,
+  serializeAccessTokenCookie,
+  serializeRefreshTokenCookie,
+  type UserClaims,
+} from "@/lib/tokens";
 
 export async function POST(req: Request) {
   try {
-    const { identifier, password } = await req.json(); // 🔹 Accepts username OR email as identifier
+    const { identifier, password } = await req.json();
 
     if (!identifier || !password) {
       return NextResponse.json(
@@ -19,7 +24,7 @@ export async function POST(req: Request) {
     // Find user by username or email
     const professor = await prisma.professor.findFirst({
       where: {
-        OR: [{ email: identifier }, { username: identifier }], // 🔹 Search by email OR username
+        OR: [{ email: identifier }, { username: identifier }],
       },
     });
     if (!professor) {
@@ -38,40 +43,41 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create JWT
-    const token = await new SignJWT({
+    const claims: UserClaims = {
       professorId: professor.id,
       firstName: professor.firstName,
       lastName: professor.lastName,
       isAdmin: professor.isAdmin,
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("30m")
-      .sign(new TextEncoder().encode(SECRET_KEY));
+    };
 
-    // Create cookie with the token
-    const cookie = serialize("session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 30 * 60, // 30 minutes to match the token expiration
+    // Create access token (short-lived, 15 min)
+    const accessToken = await createAccessToken(claims);
+
+    // Create refresh token (long-lived, 7 days) with unique jti
+    const jti = crypto.randomUUID();
+    const refreshToken = await createRefreshToken(claims, jti);
+
+    // Store refresh token reference in database for revocation
+    await prisma.refreshToken.create({
+      data: {
+        jti,
+        professorId: professor.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
     });
 
-    // Return response with cookie
-    return new NextResponse(
-      JSON.stringify({
-        professorId: professor.id,
-        firstName: professor.firstName,
-        lastName: professor.lastName,
-        isAdmin: professor.isAdmin,
-      }),
-      {
-        status: 200,
-        headers: { "Set-Cookie": cookie },
-      }
+    // Return response with both cookies
+    const response = NextResponse.json(claims, { status: 200 });
+    response.headers.append(
+      "Set-Cookie",
+      serializeAccessTokenCookie(accessToken)
     );
+    response.headers.append(
+      "Set-Cookie",
+      serializeRefreshTokenCookie(refreshToken)
+    );
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json({ error: "Login failed" }, { status: 500 });

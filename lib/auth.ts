@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
-import { jwtVerify, JWTPayload, errors as joseErrors } from "jose";
+import { JWTPayload, errors as joseErrors } from "jose";
 import { NextResponse } from "next/server";
-import { SECRET_KEY } from "@/constants";
+import { verifyAccessToken } from "@/lib/tokens";
 
 export interface AuthPayload extends JWTPayload {
   professorId: number;
@@ -20,17 +20,14 @@ export function isAuthError(result: AuthResult): result is AuthFailure {
 
 export async function authenticateRequest(): Promise<AuthResult> {
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("access_token")?.value;
 
   if (!token) {
     return { error: "Not authenticated", status: 401 };
   }
 
   try {
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(SECRET_KEY)
-    );
+    const payload = await verifyAccessToken(token);
     if (!payload.professorId) {
       return { error: "Invalid session", status: 401 };
     }

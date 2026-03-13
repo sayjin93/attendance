@@ -3,13 +3,11 @@
 import { useEffect, useCallback, useRef } from "react";
 
 /**
- * Hook to automatically refresh the session when user is active
- * This prevents logout when the user is actively using the application
- * 
- * @param enabled - Whether to enable auto-refresh (default: true)
- * @param refreshInterval - How often to check and refresh in milliseconds (default: 5 minutes)
+ * Proactively refreshes the session (access + refresh tokens) while the user is active.
+ * Runs every 10 minutes by default, ensuring the 15-minute access token never expires
+ * during active use. Also rotates the refresh token for security.
  */
-export function useSessionRefresh(enabled = true, refreshInterval = 5 * 60 * 1000) {
+export function useSessionRefresh(enabled = true, refreshInterval = 10 * 60 * 1000) {
   const lastActivityRef = useRef<number>(Date.now());
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -20,10 +18,9 @@ export function useSessionRefresh(enabled = true, refreshInterval = 5 * 60 * 100
         credentials: "include",
       });
 
-      if (response.ok) {
-        console.log("Session refreshed successfully");
-      } else {
-        console.warn("Session refresh failed");
+      if (!response.ok) {
+        console.warn("Session refresh failed — redirecting to login");
+        window.location.href = "/login";
       }
     } catch (error) {
       console.error("Error refreshing session:", error);
@@ -37,26 +34,23 @@ export function useSessionRefresh(enabled = true, refreshInterval = 5 * 60 * 100
   useEffect(() => {
     if (!enabled) return;
 
-    // Track user activity
     const activityEvents = ["mousedown", "keydown", "scroll", "touchstart", "click"];
-    
+
     activityEvents.forEach((event) => {
       window.addEventListener(event, updateActivity, { passive: true });
     });
 
-    // Set up periodic session refresh
     refreshTimerRef.current = setInterval(() => {
       const timeSinceActivity = Date.now() - lastActivityRef.current;
-      const fiveMinutes = 5 * 60 * 1000;
+      const tenMinutes = 10 * 60 * 1000;
 
-      // Only refresh if user has been active in the last 5 minutes
-      if (timeSinceActivity < fiveMinutes) {
+      // Only refresh if user has been active within the last 10 minutes
+      if (timeSinceActivity < tenMinutes) {
         refreshSession();
       }
     }, refreshInterval);
 
     return () => {
-      // Cleanup
       activityEvents.forEach((event) => {
         window.removeEventListener(event, updateActivity);
       });

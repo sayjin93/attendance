@@ -28,7 +28,7 @@ A modern, full-stack attendance management system built for educational institut
 
 ### General Features
 
-- 🔐 **Secure Authentication**: JWT-based authentication with HTTP-only cookies and automatic session refresh
+- 🔐 **Secure Authentication**: JWT-based authentication with access token + refresh token rotation, HTTP-only cookies, and database-backed revocation
 - 🎨 **Modern UI**: Clean, responsive interface with Albanian language support
 - 🔄 **Real-time Updates**: TanStack Query for server state management and cache invalidation
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
@@ -138,14 +138,22 @@ const deleteMutation = useMutation({
 });
 ```
 
-#### Authentication Flow
+#### Authentication Flow (Access Token + Refresh Token)
 
-1. **Login**: User credentials → `/api/auth/login` → JWT stored in HTTP-only cookie (30-min expiry)
-2. **Middleware**: `middleware.ts` validates JWT, injects auth headers (`X-Professor-Id`, `X-Is-Admin`)
-3. **Server Auth**: `getAuthHeaders()` extracts auth from headers in Server Components
-4. **API Auth**: `requireAuth()` / `requireAdmin()` validates JWT in API routes
-5. **Session Refresh**: Automatic token refresh via `useSessionRefresh` hook
-6. **Protected Routes**: All `/(pages)/*` and `/api/*` routes require authentication
+The application implements a dual-token authentication architecture:
+
+- **Access Token** (15 min, httpOnly cookie): Short-lived JWT carrying user claims. Verified by proxy and API routes.
+- **Refresh Token** (7 days, httpOnly cookie): Long-lived JWT with a `jti` claim stored in the `RefreshToken` DB table. Enables revocation and rotation.
+
+1. **Login**: User credentials → `/api/auth/login` → Issues both access + refresh tokens, stores refresh `jti` in DB
+2. **Proxy**: `proxy.ts` validates access token; if expired, transparently creates a new one from the refresh token
+3. **Server Auth**: `getAuthHeaders()` extracts auth from proxy-injected headers in Server Components
+4. **API Auth**: `requireAuth()` / `requireAdmin()` validates access token in API routes
+5. **API Client**: 401 interceptor automatically calls `/api/auth/refresh` and retries the failed request (deduplicated)
+6. **Token Rotation**: Each refresh revokes the old token and issues a new pair; reuse of revoked tokens triggers family-wide revocation (theft detection)
+7. **Proactive Refresh**: `useSessionRefresh` hook rotates both tokens every 10 min while user is active
+8. **Logout**: Revokes refresh token in DB, clears both cookies
+9. **Protected Routes**: All `/(pages)/*` and `/api/*` routes require authentication
 
 #### Database Schema
 
@@ -340,6 +348,7 @@ attendance/
 │   ├── activityLogger.ts       # Activity logging for audit trail
 │   ├── auth.ts                 # Server-side auth (requireAuth, requireAdmin)
 │   ├── authUtils.ts            # Auth utility functions
+│   ├── tokens.ts               # Token creation, verification, and cookie serialization
 │   ├── devextremeConfig.ts     # DevExtreme configuration
 │   ├── emailService.ts         # Email sending via Nodemailer
 │   ├── export.ts               # createExportHandler() for PDF/Excel
@@ -361,7 +370,7 @@ attendance/
 │   ├── student.service.ts      # Student API operations
 │   └── subject.service.ts      # Subject API operations
 ├── prisma/                      # Database configuration
-│   ├── schema.prisma           # Prisma schema (10 models)
+│   ├── schema.prisma           # Prisma schema (14 models)
 │   ├── prisma.ts               # Prisma client singleton
 │   ├── seed.ts                 # Database seeder
 │   ├── backup-attendance.ts    # Attendance backup script
@@ -378,7 +387,7 @@ attendance/
 │   └── migrations/             # Database migrations
 ├── public/                      # Static assets
 │   └── images/                 # Logo and icons
-├── middleware.ts                # Auth middleware (JWT validation)
+├── proxy.ts                    # Auth proxy (JWT validation, transparent token refresh)
 ├── types.ts                    # Centralized TypeScript type definitions
 ├── eslint.config.mjs           # ESLint flat config
 ├── tailwind.config.ts          # Tailwind CSS configuration
@@ -403,7 +412,8 @@ attendance/
 ### Application Settings
 
 - **Port**: 9900 (configured in package.json)
-- **Session Duration**: 30 minutes (JWT expiry, auto-refreshed)
+- **Access Token Duration**: 15 minutes (auto-refreshed by proxy and API client)
+- **Refresh Token Duration**: 7 days (rotated on each refresh, stored in DB for revocation)
 - **Password Hash Rounds**: 10 (bcrypt)
 
 ## 🛠️ Development
@@ -539,7 +549,7 @@ Logout and clear session cookie.
 
 #### POST `/api/auth/refresh`
 
-Refresh JWT session token (called automatically by `useSessionRefresh` hook).
+Rotate access + refresh tokens. Returns a new token pair and revokes the old refresh token in the database. Called automatically by `useSessionRefresh` hook and the API client's 401 interceptor.
 
 #### POST `/api/auth/forgot-password`
 
@@ -653,10 +663,12 @@ The application uses Albanian language labels for the UI:
 ## 🔐 Security Features
 
 - **Password Hashing**: bcrypt with 10 salt rounds
-- **JWT Authentication**: Secure token-based auth with automatic refresh
-- **HTTP-only Cookies**: Prevents XSS attacks
+- **Dual-Token JWT Authentication**: Short-lived access token (15 min) + long-lived refresh token (7 days) with automatic rotation
+- **Database-Backed Revocation**: Refresh tokens stored in DB with `jti` claim for instant revocation
+- **Token Rotation & Theft Detection**: Each refresh invalidates the old token; reuse of revoked tokens triggers family-wide revocation
+- **HTTP-only Cookies**: Prevents XSS attacks on both tokens
 - **Role-based Access Control**: Admin and Professor roles via `requireAuth()` / `requireAdmin()`
-- **Protected Routes**: Middleware validates all protected routes
+- **Protected Routes**: Proxy validates all protected routes with transparent token refresh
 - **SQL Injection Prevention**: Prisma ORM parameterized queries
 - **Activity Logging**: All CRUD operations logged for audit trail
 

@@ -1,33 +1,75 @@
-# Session Management & Auto-Refresh
+# Session Management & Token Rotation
 
-This document explains how the session management and auto-refresh system works in this application.
+This document explains how the access token + refresh token system works in this application.
 
-## Problem
-Previously, the session would expire after 1 hour, logging users out even if they were actively using the application.
+## Architecture
 
-## Solution
-We've implemented a multi-layered session refresh system that automatically extends the session when users are active.
+The application uses a dual-token JWT architecture:
+
+- **Access Token** (15 min): Short-lived JWT in an httpOnly cookie (`access_token`). Carries user claims and is verified by the proxy and API routes.
+- **Refresh Token** (7 days): Long-lived JWT in an httpOnly cookie (`refresh_token`). Has a `jti` (JWT ID) claim stored in the `RefreshToken` database table, enabling server-side revocation and token rotation.
 
 ## How It Works
 
-### 1. Middleware Auto-Refresh (`middleware.ts`)
-The middleware automatically checks every request and refreshes the session token when it's about to expire:
+### 1. Login (`/api/auth/login`)
 
-- **Checks**: On every page navigation
-- **Refresh Trigger**: When less than 15 minutes remain on the session
-- **Action**: Automatically creates a new JWT token and cookie with a fresh 1-hour expiration
-- **User Experience**: Completely transparent - users never notice
+On successful login, the server issues both tokens:
 
-### 2. Client-Side Auto-Refresh (`useSessionRefresh` hook)
-A React hook that monitors user activity and proactively refreshes the session:
+- Creates an **access token** (15-minute expiry) with user claims (`professorId`, `firstName`, `lastName`, `isAdmin`)
+- Creates a **refresh token** (7-day expiry) with a unique `jti`
+- Stores the `jti` in the `RefreshToken` database table for revocation tracking
+- Sets both as httpOnly cookies in the response
 
-- **Activity Tracking**: Monitors mouse, keyboard, scroll, touch, and click events
-- **Smart Refresh**: Only refreshes if user has been active in the last 5 minutes
-- **Refresh Interval**: Checks every 5 minutes (configurable)
-- **API Endpoint**: Calls `/api/auth/refresh` to get a new token
+### 2. Proxy Auto-Refresh (`proxy.ts`)
 
-### 3. Session Check Endpoint (`/api/auth/session`)
-Returns the current session information without refreshing:
+The Next.js proxy intercepts every page navigation:
+
+- **Verifies** the `access_token` cookie
+- **If expired**: Falls back to the `refresh_token` to extract claims and issues a fresh access token transparently
+- **Injects headers**: `X-Professor-Id`, `X-First-Name`, `X-Last-Name`, `X-Is-Admin` for server components
+- **Blocks** non-admin users from admin-only routes
+
+User experience is seamless — they never see a login redirect flash.
+
+### 3. API Client 401 Interceptor (`services/api-client.ts`)
+
+The centralized API client handles token expiry for client-side API calls:
+
+- On a **401 response** (from any non-auth API route), automatically calls `/api/auth/refresh`
+- **Deduplicates** concurrent refresh attempts (shared promise)
+- **Retries** the failed request after a successful refresh
+- If refresh fails, the error propagates normally (redirected to login by `useAuth`)
+
+### 4. Token Rotation (`/api/auth/refresh`)
+
+Each refresh rotates the entire token pair:
+
+1. Verify the refresh token JWT signature and expiry
+2. Look up the `jti` in the `RefreshToken` database table
+3. **If revoked** (reuse detected): Revoke ALL tokens for that user (theft protection) and clear cookies
+4. Fetch fresh user data from the database (picks up name/role changes)
+5. Issue a new access token + refresh token pair
+6. **Atomic transaction**: Revoke old refresh token, create new one in DB
+7. Set both new cookies in the response
+8. Clean up expired/old revoked tokens (housekeeping)
+
+### 5. Proactive Refresh (`useSessionRefresh` hook)
+
+The client-side hook keeps the session alive during active use:
+
+- **Monitors activity**: mousedown, keydown, scroll, touchstart, click
+- **Every 10 minutes**: If the user was active, calls `/api/auth/refresh`
+- **On failure**: Redirects to `/login`
+- This also rotates the refresh token, keeping the 7-day window sliding
+
+### 6. Logout (`/api/auth/logout`)
+
+- Revokes the refresh token in the database
+- Clears both `access_token` and `refresh_token` cookies
+
+### 7. Session Check (`/api/auth/session`)
+
+Returns the current user info from the access token without refreshing:
 
 ```typescript
 GET /api/auth/session
@@ -36,48 +78,69 @@ GET /api/auth/session
 Response:
 ```json
 {
-  "professorId": "123",
+  "professorId": 1,
   "firstName": "John",
   "lastName": "Doe",
   "isAdmin": true
 }
 ```
 
-### 4. Session Refresh Endpoint (`/api/auth/refresh`)
-Creates a new session token, extending the expiration time:
+## Token Details
 
-```typescript
-POST /api/auth/refresh
-```
+### Access Token
+- **Cookie name**: `access_token`
+- **Expiry**: 15 minutes
+- **Payload**: `professorId`, `firstName`, `lastName`, `isAdmin`
+- **Verified by**: Proxy (page routes), `requireAuth()` / `requireAdmin()` (API routes)
 
-Response:
-```json
-{
-  "professorId": "123",
-  "firstName": "John",
-  "lastName": "Doe",
-  "isAdmin": true
+### Refresh Token
+- **Cookie name**: `refresh_token`
+- **Expiry**: 7 days
+- **Payload**: Same as access token + `jti` (unique token ID)
+- **Stored in DB**: `RefreshToken` table with `jti`, `professorId`, `expiresAt`, `revokedAt`, `replacedBy`
+- **Rotation**: Each use generates a new pair and invalidates the old one
+
+### Cookie Security
+- `httpOnly: true` — Prevents JavaScript access (XSS protection)
+- `secure: true` — HTTPS only in production
+- `sameSite: "lax"` — CSRF protection
+- `path: "/"` — Available to all routes
+
+## Database: RefreshToken Model
+
+```prisma
+model RefreshToken {
+  id          String    @id @default(cuid())
+  jti         String    @unique
+  professorId Int
+  professor   Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+  replacedBy  String?
+
+  @@index([professorId])
 }
 ```
 
-## Implementation Details
+## Security Features
 
-### Token Expiration
-- **Initial Duration**: 30 minutes from login
-- **Auto-Refresh Threshold**: 10 minutes before expiration (middleware)
-- **Client Refresh**: Every 5 minutes if user is active
-- **Activity Window**: User must be active within the last 5 minutes
+### Token Rotation
+Each refresh creates a new token pair and revokes the old one. The `replacedBy` field creates a chain for auditing.
 
-### Security Features
-- **httpOnly Cookie**: Prevents JavaScript access to the token
-- **Secure Flag**: Uses HTTPS in production
-- **SameSite**: Set to "lax" to prevent CSRF attacks
-- **JWT Signing**: Uses HS256 algorithm with a secret key
+### Theft Detection
+If a revoked refresh token is reused (e.g., by an attacker who stole an old token), the system:
+1. Detects it's already revoked
+2. Revokes ALL active refresh tokens for that user
+3. Clears cookies — forces re-login on all sessions
+
+### Server-Side Revocation
+Unlike a single-JWT system where tokens can't be invalidated before expiry, refresh tokens are validated against the database on every use. Compromised tokens can be revoked instantly.
 
 ## Usage
 
 ### In Your Application
-The session refresh is automatically enabled in `ClientLayout`:
+Session refresh is automatically enabled in `ClientLayout`:
 
 ```typescript
 // Automatically enabled for authenticated users
@@ -85,91 +148,46 @@ useSessionRefresh(!!professorId);
 ```
 
 ### Customization
-You can customize the refresh behavior:
 
 ```typescript
-// Refresh every 3 minutes instead of 5
-useSessionRefresh(true, 3 * 60 * 1000);
+// Refresh every 8 minutes instead of 10
+useSessionRefresh(true, 8 * 60 * 1000);
 
 // Disable auto-refresh
 useSessionRefresh(false);
-```
-
-### Middleware Refresh Threshold
-To change when the middleware refreshes the token, edit `middleware.ts`:
-
-```typescript
-// Current: refreshes when less than 10 minutes remain
-const shouldRefresh = timeUntilExpiry < 10 * 60;
-
-// Example: Change to 5 minutes
-const shouldRefresh = timeUntilExpiry < 5 * 60;
 ```
 
 ## User Scenarios
 
 ### Scenario 1: Active User
 - User logs in at 9:00 AM
-- User actively uses the app throughout the day
-- Session is automatically refreshed every 5-15 minutes
+- Access token expires at 9:15 AM, but proxy/API client transparently refresh it
+- Refresh token rotated every 10 min by `useSessionRefresh`
 - User is **never logged out** as long as they remain active
 
 ### Scenario 2: Idle User
 - User logs in at 9:00 AM
 - User leaves the browser open but doesn't interact
-- After 30 minutes (9:30 AM), the session expires
-- On next interaction, user is redirected to login
+- Access token expires at 9:15 AM
+- On next page navigation → proxy uses refresh token to issue a new access token
+- On next API call → API client uses refresh endpoint to retry
+- If idle for 7 days → refresh token expires, user redirected to login
 
-### Scenario 3: Occasional User
-- User logs in at 9:00 AM
-- User interacts at 9:20 AM - session refreshed
-- User doesn't interact again until 10:00 AM
-- Session has expired, user redirected to login
+### Scenario 3: Token Theft
+- Attacker steals refresh token and uses it
+- Legitimate user's next refresh attempt uses the now-revoked token
+- System detects reuse → revokes ALL tokens for that user
+- Both attacker and user must re-login (user is protected)
 
-## Monitoring
+## Files
 
-### Client Console
-The hook logs when the session is refreshed:
-```
-Session refreshed successfully
-```
-
-### Server Logs
-Middleware errors are logged in the console:
-```
-Error in middleware: [error details]
-```
-
-## Benefits
-
-✅ **No Unexpected Logouts**: Active users are never logged out  
-✅ **Improved UX**: Seamless experience with no interruptions  
-✅ **Security Maintained**: Inactive sessions still expire  
-✅ **Automatic**: No user action required  
-✅ **Efficient**: Only refreshes when necessary  
-✅ **Scalable**: Works on both server and client side
-
-## Troubleshooting
-
-### Issue: Still Getting Logged Out
-1. Check if `useSessionRefresh` is enabled in your layout
-2. Verify the activity events are firing (check console logs)
-3. Ensure cookies are not being blocked by browser settings
-
-### Issue: Session Not Refreshing
-1. Check browser console for errors
-2. Verify `/api/auth/refresh` endpoint is accessible
-3. Check that the JWT secret key is properly configured
-
-### Issue: Too Many Refresh Requests
-1. Increase the `refreshInterval` parameter
-2. Adjust the activity window threshold
-3. Check for unnecessary re-renders in your components
-
-## Files Modified/Created
-
-1. ✅ `middleware.ts` - Added auto-refresh logic
-2. ✅ `app/api/auth/session/route.ts` - Created session check endpoint
-3. ✅ `app/api/auth/refresh/route.ts` - Created refresh endpoint
-4. ✅ `hooks/useSessionRefresh.ts` - Created client-side refresh hook
-5. ✅ `app/(pages)/ClientLayout.tsx` - Integrated auto-refresh hook
+1. `lib/tokens.ts` — Token creation, verification, and cookie serialization
+2. `proxy.ts` — Auth proxy with transparent access token refresh
+3. `app/api/auth/login/route.ts` — Issues both tokens on login
+4. `app/api/auth/refresh/route.ts` — Token rotation with DB validation and theft detection
+5. `app/api/auth/logout/route.ts` — Revokes refresh token in DB, clears cookies
+6. `app/api/auth/session/route.ts` — Returns current session from access token
+7. `lib/auth.ts` — Server-side `requireAuth()` / `requireAdmin()` for API routes
+8. `services/api-client.ts` — 401 interceptor with deduplicated refresh + retry
+9. `hooks/useSessionRefresh.ts` — Proactive 10-minute refresh cycle
+10. `prisma/schema.prisma` — `RefreshToken` model

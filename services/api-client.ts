@@ -2,6 +2,10 @@
  * Centralized API client with consistent error handling.
  * All API calls go through this client to ensure uniform
  * error handling, response parsing, and type safety.
+ *
+ * Includes automatic token refresh: on 401 responses, the client
+ * transparently calls /api/auth/refresh and retries the request.
+ * Concurrent refresh attempts are deduplicated.
  */
 
 export class ApiError extends Error {
@@ -19,6 +23,21 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
 }
 
+// Shared refresh promise to deduplicate concurrent 401 refresh attempts
+let refreshPromise: Promise<boolean> | null = null;
+
+async function refreshTokens(): Promise<boolean> {
+  try {
+    const response = await fetch("/api/auth/refresh", {
+      method: "POST",
+      credentials: "include",
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function request<T>(url: string, options: RequestOptions = {}): Promise<T> {
   const { body, headers: customHeaders, ...rest } = options;
 
@@ -27,11 +46,28 @@ async function request<T>(url: string, options: RequestOptions = {}): Promise<T>
     ...customHeaders,
   };
 
-  const response = await fetch(url, {
+  const fetchOptions: RequestInit = {
     ...rest,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  };
+
+  let response = await fetch(url, fetchOptions);
+
+  // On 401, attempt a transparent token refresh and retry once
+  if (response.status === 401 && !url.includes("/api/auth/")) {
+    if (!refreshPromise) {
+      refreshPromise = refreshTokens().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    const refreshed = await refreshPromise;
+
+    if (refreshed) {
+      response = await fetch(url, fetchOptions);
+    }
+  }
 
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;

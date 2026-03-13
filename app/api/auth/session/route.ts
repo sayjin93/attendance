@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import { SECRET_KEY } from "@/constants";
+import { verifyAccessToken } from "@/lib/tokens";
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("session")?.value;
+    const token = cookieStore.get("access_token")?.value;
 
     if (!token) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    // Verify the token
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(SECRET_KEY)
-    );
+    const payload = await verifyAccessToken(token);
 
     return NextResponse.json({
       professorId: payload.professorId,

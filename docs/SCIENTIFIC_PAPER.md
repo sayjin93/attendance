@@ -1,8 +1,8 @@
 # Integrimi i Inteligjencës Artificiale në Sistemet e Menaxhimit të Prezencës: Një Qasje me OpenAI Function Calling
 
-**Autori:** [Emri i Autorit]  
-**Institucioni:** [Emri i Universitetit / Fakultetit]  
-**Email:** [email@institution.edu]  
+**Autori:** Jurgen Kruja  
+**Institucioni:** Universiteti Europian i Tiranës / Fakulteti i Inxhinierisë, Informatikës dhe Arkitekturës  
+**Email:** jurgen.kruja@uet.edu.al  
 **Data:** Mars 2026
 
 ---
@@ -115,10 +115,11 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 ┌──────────────────────▼──────────────────────────────┐
 │                 SHTRESA E TË DHËNAVE                 │
 │  MySQL Database                                      │
-│  13 tabela: Professor, Student, Class, Subject,     │
+│  14 tabela: Professor, Student, Class, Subject,     │
 │  TeachingAssignment, Lecture, Attendance,            │
 │  AttendanceStatus, TeachingType, Program,            │
-│  ActivityLog, ChatSession, ChatMessage              │
+│  ActivityLog, ChatSession, ChatMessage,              │
+│  RefreshToken                                        │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -132,15 +133,14 @@ Sistemi ndërtohet si një aplikacion monolitik me arkitekturë tre-shtresore:
 | ORM | Prisma | 6.19.0 |
 | Database | MySQL | 8.x |
 | AI Model | OpenAI GPT-5.4 | SDK 6.27.0 |
-| Autentifikim | jose (JWT) | 6.2.0 |
+| Autentifikim | jose (JWT) — access + refresh tokens | 6.2.0 |
 | Stilizim | Tailwind CSS + Sass | 4.2.1 / 1.98.0 |
 | UI Components | DevExtreme React | 25.2.5 |
 | State Management | TanStack React Query | 5.90.21 |
-| Animacione | Framer Motion | 12.35.1 |
 
 ### 3.3 Modeli i Bazës së të Dhënave
 
-Skema e bazës së të dhënave përmban 13 tabela me marrëdhënie relacionale:
+Skema e bazës së të dhënave përmban 14 tabela me marrëdhënie relacionale:
 
 ```
 Professor ──(1:N)──→ TeachingAssignment ←──(N:1)── Class
@@ -161,6 +161,10 @@ Professor ──(1:N)──→ TeachingAssignment ←──(N:1)── Class
 
 Professor ──(1:N)──→ ChatSession ──(1:N)──→ ChatMessage
                       (Historiku i bisedave AI)
+
+Professor ──(1:N)──→ RefreshToken
+                      (Tokenat e rifreskimit me jti,
+                       revocation, rotation)
 ```
 
 **Tabelat ChatSession dhe ChatMessage** ruajnë historikun e bisedave me AI Assistant-in, duke mundësuar rifillimin e bisedave të mëparshme dhe menaxhimin e sesioneve.
@@ -422,7 +426,8 @@ Kjo qasje është më e besueshme se rregullat në system prompt sepse **funksio
 
 | Shtresa | Mekanizmi | Implementimi |
 |---------|----------|-------------|
-| **Autentifikim** | JWT token | jose library, HTTP-only cookies |
+| **Autentifikim** | Access + Refresh Token | jose library, HTTP-only cookies, token rotation |
+| **Token Rotation** | Revocation + theft detection | RefreshToken tabela në DB me jti, revokedAt, replacedBy |
 | **Autorizim** | Bazuar në role | isAdmin flag, kontroll në system prompt |
 | **Mbrojtja e të dhënave** | Password hashing | bcryptjs 3.0.3 |
 | **Mbrojtja SQL** | Parameterized queries | Prisma ORM (prepared statements) |

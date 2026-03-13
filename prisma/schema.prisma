@@ -27,6 +27,20 @@ model Professor {
   passwordResetExpires DateTime?
   teachingAssignments  TeachingAssignment[]
   chatSessions         ChatSession[]
+  refreshTokens        RefreshToken[]
+}
+
+model RefreshToken {
+  id          String    @id @default(cuid())
+  jti         String    @unique
+  professorId Int
+  professor   Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+  replacedBy  String?
+
+  @@index([professorId])
 }
 
 model Program {
@@ -43,6 +57,8 @@ model Subject {
   programId           Int
   program             Program              @relation(fields: [programId], references: [id])
   teachingAssignments TeachingAssignment[]
+
+  @@index([programId])
 }
 
 model TeachingAssignment {
@@ -58,6 +74,9 @@ model TeachingAssignment {
   lectures    Lecture[]
 
   @@unique([professorId, subjectId, classId]) // Prevent duplicate assignments for same professor-subject-class combination
+  @@index([classId])
+  @@index([subjectId])
+  @@index([typeId])
 }
 
 model TeachingType {
@@ -73,6 +92,8 @@ model Class {
   program             Program              @relation(fields: [programId], references: [id])
   students            Student[]
   teachingAssignments TeachingAssignment[]
+
+  @@index([programId])
 }
 
 model Student {
@@ -88,6 +109,8 @@ model Student {
   classId          Int
   class            Class        @relation(fields: [classId], references: [id])
   attendance       Attendance[]
+
+  @@index([classId])
 }
 
 model Lecture {
@@ -98,6 +121,7 @@ model Lecture {
   attendance           Attendance[]
 
   @@unique([teachingAssignmentId, date]) // Një leksion për caktim për datë
+  @@index([date])
 }
 
 model Attendance {
@@ -110,6 +134,8 @@ model Attendance {
   status    AttendanceStatus @relation(fields: [statusId], references: [id])
 
   @@unique([studentId, lectureId]) // Prevent duplicate attendance records for same student-lecture
+  @@index([lectureId])
+  @@index([statusId])
 }
 
 model AttendanceStatus {
