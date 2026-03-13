@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify, SignJWT } from "jose";
+import { jwtVerify } from "jose";
 
 const SECRET_KEY = process.env.SECRET_KEY!;
 const encodedSecret = new TextEncoder().encode(SECRET_KEY);
@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
   const refreshToken = request.cookies.get("refresh_token")?.value;
 
   let payload: Record<string, unknown> | null = null;
-  let needsNewAccessToken = false;
+  let refreshSetCookies: string[] = [];
 
   // 1. Try to verify access token
   if (accessToken) {
@@ -28,29 +28,42 @@ export async function proxy(request: NextRequest) {
       const result = await jwtVerify(accessToken, encodedSecret);
       payload = result.payload as Record<string, unknown>;
     } catch {
-      needsNewAccessToken = true;
+      // Access token invalid/expired, fall through to refresh token
     }
-  } else {
-    needsNewAccessToken = true;
   }
 
-  // 2. If access token failed, try to extract claims from refresh token
+  // 2. If access token failed/missing, validate refresh token against DB via
+  //    the refresh endpoint, which enforces revocation and rotates the token.
   if (!payload && refreshToken) {
     try {
-      const result = await jwtVerify(refreshToken, encodedSecret);
-      payload = result.payload as Record<string, unknown>;
-      needsNewAccessToken = true;
+      const refreshResponse = await fetch(
+        new URL("/api/auth/refresh", request.url),
+        {
+          method: "POST",
+          headers: { cookie: `refresh_token=${refreshToken}` },
+        }
+      );
+
+      if (refreshResponse.ok) {
+        payload = await refreshResponse.json();
+        refreshSetCookies = refreshResponse.headers.getSetCookie();
+      }
     } catch {
-      payload = null;
+      // Network or parse error; payload stays null → redirect to login below
     }
   }
 
-  // 4. No valid authentication → redirect to login
+  // 3. No valid authentication → redirect to login and clear cookies
   if (!payload || !payload.professorId) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginResponse = NextResponse.redirect(
+      new URL("/login", request.url)
+    );
+    loginResponse.cookies.delete("access_token");
+    loginResponse.cookies.delete("refresh_token");
+    return loginResponse;
   }
 
-  // 5. Block non-admin users from admin-only routes
+  // 4. Block non-admin users from admin-only routes
   const isAdminOnlyPath = ADMIN_ONLY_PATHS.some((path) =>
     pathname.startsWith(path)
   );
@@ -58,7 +71,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // 6. Forward user claims as headers for server components
+  // 5. Forward user claims as headers for server components
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("X-Professor-Id", String(payload.professorId));
   requestHeaders.set("X-First-Name", String(payload.firstName ?? ""));
@@ -67,30 +80,10 @@ export async function proxy(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
 
-  // 7. Issue a fresh access token if the current one was expired/missing
-  if (needsNewAccessToken) {
-    try {
-      const newAccessToken = await new SignJWT({
-        professorId: payload.professorId,
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        isAdmin: payload.isAdmin,
-      })
-        .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime("15m")
-        .sign(encodedSecret);
-
-      response.cookies.set("access_token", newAccessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 15 * 60,
-      });
-    } catch {
-      // If token creation fails, continue without refresh
-    }
+  // 6. Forward new cookies issued by the refresh endpoint (new access token +
+  //    rotated refresh token) so the browser receives updated credentials.
+  for (const cookie of refreshSetCookies) {
+    response.headers.append("Set-Cookie", cookie);
   }
 
   return response;
