@@ -85,6 +85,25 @@ export async function POST() {
       return response;
     }
 
+    // Device fingerprint check: if fingerprint doesn't match, treat as token theft
+    const currentFingerprint = headerList.get("x-device-fingerprint");
+    if (storedToken.deviceFingerprint && currentFingerprint
+      && storedToken.deviceFingerprint !== currentFingerprint) {
+      await prisma.refreshToken.updateMany({
+        where: { professorId: storedToken.professorId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+
+      const response = NextResponse.json(
+        { error: "Session invalidated — token used from different device" },
+        { status: 401 }
+      );
+      clearTokenCookies().forEach((cookie) =>
+        response.headers.append("Set-Cookie", cookie)
+      );
+      return response;
+    }
+
     // Get fresh user data from database (picks up any role/name changes)
     const professor = await prisma.professor.findUnique({
       where: { id: storedToken.professorId },
@@ -119,6 +138,7 @@ export async function POST() {
           professorId: professor.id,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           ipAddress: currentIP,
+          deviceFingerprint: currentFingerprint || storedToken.deviceFingerprint,
         },
       }),
     ]);

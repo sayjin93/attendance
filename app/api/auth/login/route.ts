@@ -63,6 +63,7 @@ export async function POST(req: Request) {
     const ipAddress = headerList.get("x-forwarded-for")?.split(",")[0]?.trim()
       || headerList.get("x-real-ip")
       || null;
+    const deviceFingerprint = headerList.get("x-device-fingerprint") || null;
 
     await prisma.refreshToken.create({
       data: {
@@ -70,6 +71,7 @@ export async function POST(req: Request) {
         professorId: professor.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         ipAddress,
+        deviceFingerprint,
       },
     });
 

@@ -1,3 +1,5 @@
+import { getDeviceFingerprint, FINGERPRINT_HEADER } from "@/lib/fingerprint";
+
 /**
  * Centralized API client with consistent error handling.
  * All API calls go through this client to ensure uniform
@@ -28,9 +30,11 @@ let refreshPromise: Promise<boolean> | null = null;
 
 async function refreshTokens(): Promise<boolean> {
   try {
+    const fingerprint = await getDeviceFingerprint();
     const response = await fetch("/api/auth/refresh", {
       method: "POST",
       credentials: "include",
+      headers: { [FINGERPRINT_HEADER]: fingerprint },
     });
     return response.ok;
   } catch {

@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 // context
 import { useNotify } from "@/contexts/NotifyContext";
 
+// fingerprint
+import { getDeviceFingerprint, FINGERPRINT_HEADER } from "@/lib/fingerprint";
+
 // components
 import Link from "next/link";
 
@@ -35,9 +38,14 @@ export default function LoginPageClient() {
     try {
       setPosting(true);
 
+      const fingerprint = await getDeviceFingerprint();
+
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          [FINGERPRINT_HEADER]: fingerprint,
+        },
         body: JSON.stringify({ identifier, password }),
       });
 

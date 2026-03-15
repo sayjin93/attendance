@@ -35,9 +35,10 @@ model RefreshToken {
   professor   Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
   expiresAt   DateTime
   createdAt   DateTime  @default(now())
-  revokedAt   DateTime?
-  replacedBy  String?
-  ipAddress   String?
+  revokedAt         DateTime?
+  replacedBy        String?
+  ipAddress         String?
+  deviceFingerprint String?
 
   @@index([professorId])
 }

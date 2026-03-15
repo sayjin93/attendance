@@ -11,6 +11,7 @@
     "clean-install": "npx rimraf node_modules package-lock.json && npm install"
   },
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.1.0",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@prisma/adapter-mariadb": "^7.5.0",

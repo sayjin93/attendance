@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
+import { getDeviceFingerprint, FINGERPRINT_HEADER } from "@/lib/fingerprint";
 
 /**
  * Proactively refreshes the session (access + refresh tokens) while the user is active.
@@ -13,9 +14,11 @@ export function useSessionRefresh(enabled = true, refreshInterval = 10 * 60 * 10
 
   const refreshSession = useCallback(async () => {
     try {
+      const fingerprint = await getDeviceFingerprint();
       const response = await fetch("/api/auth/refresh", {
         method: "POST",
         credentials: "include",
+        headers: { [FINGERPRINT_HEADER]: fingerprint },
       });
 
       if (!response.ok) {
