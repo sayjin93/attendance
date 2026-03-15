@@ -37,6 +37,7 @@ model RefreshToken {
   createdAt   DateTime  @default(now())
   revokedAt   DateTime?
   replacedBy  String?
+  ipAddress   String?
 
   @@index([professorId])
 }

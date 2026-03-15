@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { prisma } from "@/prisma/prisma";
 import crypto from "crypto";
 import {
@@ -63,6 +63,28 @@ export async function POST() {
       return response;
     }
 
+    // IP address check: if IP doesn't match, treat as token theft
+    const headerList = await headers();
+    const currentIP = headerList.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || headerList.get("x-real-ip")
+      || null;
+    if (storedToken.ipAddress && currentIP && storedToken.ipAddress !== currentIP) {
+      // Different IP address → revoke ALL tokens for this user
+      await prisma.refreshToken.updateMany({
+        where: { professorId: storedToken.professorId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+
+      const response = NextResponse.json(
+        { error: "Session invalidated — token used from different IP" },
+        { status: 401 }
+      );
+      clearTokenCookies().forEach((cookie) =>
+        response.headers.append("Set-Cookie", cookie)
+      );
+      return response;
+    }
+
     // Get fresh user data from database (picks up any role/name changes)
     const professor = await prisma.professor.findUnique({
       where: { id: storedToken.professorId },
@@ -96,6 +118,7 @@ export async function POST() {
           jti: newJti,
           professorId: professor.id,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          ipAddress: currentIP,
         },
       }),
     ]);

@@ -55,7 +55,10 @@ async function request<T>(url: string, options: RequestOptions = {}): Promise<T>
   let response = await fetch(url, fetchOptions);
 
   // On 401, attempt a transparent token refresh and retry once
-  if (response.status === 401 && !url.includes("/api/auth/")) {
+  // Skip refresh for auth mutation endpoints to avoid infinite loops
+  const skipRefreshUrls = ["/api/auth/refresh", "/api/auth/login", "/api/auth/logout"];
+  const shouldSkipRefresh = skipRefreshUrls.some((u) => url.includes(u));
+  if (response.status === 401 && !shouldSkipRefresh) {
     if (!refreshPromise) {
       refreshPromise = refreshTokens().finally(() => {
         refreshPromise = null;

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { prisma } from "@/prisma/prisma";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -58,11 +59,17 @@ export async function POST(req: Request) {
     const refreshToken = await createRefreshToken(claims, jti);
 
     // Store refresh token reference in database for revocation
+    const headerList = await headers();
+    const ipAddress = headerList.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || headerList.get("x-real-ip")
+      || null;
+
     await prisma.refreshToken.create({
       data: {
         jti,
         professorId: professor.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ipAddress,
       },
     });
 

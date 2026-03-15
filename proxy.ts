@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify, SignJWT } from "jose";
-
-const SECRET_KEY = process.env.SECRET_KEY!;
-const encodedSecret = new TextEncoder().encode(SECRET_KEY);
+import { prisma } from "@/prisma/prisma";
+import crypto from "crypto";
+import {
+  verifyAccessToken,
+  verifyRefreshToken,
+  createAccessToken,
+  createRefreshToken,
+  type UserClaims,
+} from "@/lib/tokens";
 
 const ADMIN_ONLY_PATHS = [
   "/classes",
@@ -13,41 +18,145 @@ const ADMIN_ONLY_PATHS = [
   "/assignments",
 ];
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: "lax" as const,
+  path: "/",
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;
 
-  let payload: Record<string, unknown> | null = null;
-  let needsNewAccessToken = false;
+  let payload: UserClaims | null = null;
+  let newAccessToken: string | null = null;
+  let newRefreshToken: string | null = null;
 
-  // 1. Try to verify access token
-  if (accessToken) {
+  // 1. Validate refresh token exists in DB (required for all requests)
+  //    This ensures deleting/revoking a token in DB immediately invalidates the session
+  let refreshTokenValid = false;
+  let refreshPayload: Awaited<ReturnType<typeof verifyRefreshToken>> | null = null;
+
+  if (refreshToken) {
     try {
-      const result = await jwtVerify(accessToken, encodedSecret);
-      payload = result.payload as Record<string, unknown>;
+      refreshPayload = await verifyRefreshToken(refreshToken);
+      if (refreshPayload.jti) {
+        const storedToken = await prisma.refreshToken.findUnique({
+          where: { jti: refreshPayload.jti },
+          select: { revokedAt: true, ipAddress: true, professorId: true },
+        });
+
+        if (storedToken && !storedToken.revokedAt) {
+          // IP address check: if IP doesn't match, treat as token theft
+          const currentIP = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+            || request.headers.get("x-real-ip")
+            || null;
+          if (storedToken.ipAddress && currentIP && storedToken.ipAddress !== currentIP) {
+            // Different IP → revoke ALL tokens for this user
+            await prisma.refreshToken.updateMany({
+              where: { professorId: storedToken.professorId, revokedAt: null },
+              data: { revokedAt: new Date() },
+            });
+            refreshTokenValid = false;
+          } else {
+            refreshTokenValid = true;
+          }
+        }
+      }
     } catch {
-      needsNewAccessToken = true;
+      // Refresh token JWT invalid
     }
-  } else {
-    needsNewAccessToken = true;
   }
 
-  // 2. If access token failed, try to extract claims from refresh token
-  if (!payload && refreshToken) {
+  // 2. Try to verify access token (only if refresh token is valid in DB)
+  if (refreshTokenValid && accessToken) {
     try {
-      const result = await jwtVerify(refreshToken, encodedSecret);
-      payload = result.payload as Record<string, unknown>;
-      needsNewAccessToken = true;
+      const result = await verifyAccessToken(accessToken);
+      payload = {
+        professorId: result.professorId,
+        firstName: result.firstName,
+        lastName: result.lastName,
+        isAdmin: result.isAdmin,
+      };
     } catch {
-      payload = null;
+      // Access token invalid/expired — will try refresh token rotation
+    }
+  }
+
+  // 3. If access token invalid but refresh token is valid in DB, rotate tokens
+  if (!payload && refreshTokenValid && refreshPayload) {
+    try {
+      if (refreshPayload.jti) {
+        const storedToken = await prisma.refreshToken.findUnique({
+          where: { jti: refreshPayload.jti },
+        });
+
+        if (storedToken && !storedToken.revokedAt) {
+          // Valid token in DB — get fresh user data and rotate
+          const professor = await prisma.professor.findUnique({
+            where: { id: storedToken.professorId },
+            select: { id: true, firstName: true, lastName: true, isAdmin: true },
+          });
+
+          if (professor) {
+            const claims: UserClaims = {
+              professorId: professor.id,
+              firstName: professor.firstName,
+              lastName: professor.lastName,
+              isAdmin: professor.isAdmin,
+            };
+
+            const newJti = crypto.randomUUID();
+            newAccessToken = await createAccessToken(claims);
+            newRefreshToken = await createRefreshToken(claims, newJti);
+
+            const currentIP = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+              || request.headers.get("x-real-ip")
+              || null;
+
+            // Atomic: revoke old refresh token, create new one
+            await prisma.$transaction([
+              prisma.refreshToken.update({
+                where: { jti: refreshPayload.jti },
+                data: { revokedAt: new Date(), replacedBy: newJti },
+              }),
+              prisma.refreshToken.create({
+                data: {
+                  jti: newJti,
+                  professorId: professor.id,
+                  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                  ipAddress: currentIP,
+                },
+              }),
+            ]);
+
+            payload = claims;
+          }
+        } else if (storedToken?.revokedAt) {
+          // Revoked token reuse detected → theft protection: revoke ALL tokens for user
+          await prisma.refreshToken.updateMany({
+            where: { professorId: storedToken.professorId, revokedAt: null },
+            data: { revokedAt: new Date() },
+          });
+        }
+        // If token not found in DB (deleted), payload stays null → redirect to login
+      }
+    } catch {
+      // Refresh token JWT invalid — user needs to re-login
     }
   }
 
   // 4. No valid authentication → redirect to login
   if (!payload || !payload.professorId) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.delete("access_token");
+    response.cookies.delete("refresh_token");
+    return response;
   }
 
   // 5. Block non-admin users from admin-only routes
@@ -67,30 +176,18 @@ export async function proxy(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
 
-  // 7. Issue a fresh access token if the current one was expired/missing
-  if (needsNewAccessToken) {
-    try {
-      const newAccessToken = await new SignJWT({
-        professorId: payload.professorId,
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        isAdmin: payload.isAdmin,
-      })
-        .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime("15m")
-        .sign(encodedSecret);
-
-      response.cookies.set("access_token", newAccessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 15 * 60,
-      });
-    } catch {
-      // If token creation fails, continue without refresh
-    }
+  // 7. Set rotated cookies if tokens were refreshed
+  if (newAccessToken) {
+    response.cookies.set("access_token", newAccessToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: 15 * 60,
+    });
+  }
+  if (newRefreshToken) {
+    response.cookies.set("refresh_token", newRefreshToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: 7 * 24 * 60 * 60,
+    });
   }
 
   return response;

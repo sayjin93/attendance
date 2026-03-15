@@ -25,7 +25,9 @@ On successful login, the server issues both tokens:
 The Next.js proxy intercepts every page navigation:
 
 - **Verifies** the `access_token` cookie
-- **If expired**: Falls back to the `refresh_token` to extract claims and issues a fresh access token transparently
+- **If expired**: Falls back to the `refresh_token` — validates it against the database (checks `jti` exists and is not revoked), fetches fresh user data, and performs **full token rotation** (revoke old + issue new pair)
+- **Theft detection**: If a revoked refresh token is reused in the proxy, all tokens for that user are revoked immediately
+- **If token deleted from DB**: Treated as invalid — user is redirected to login
 - **Injects headers**: `X-Professor-Id`, `X-First-Name`, `X-Last-Name`, `X-Is-Admin` for server components
 - **Blocks** non-admin users from admin-only routes
 
