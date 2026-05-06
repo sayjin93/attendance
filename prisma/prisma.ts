@@ -4,7 +4,14 @@ import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 export { PrismaClient };
 
 function parseDatabaseUrl(url: string) {
-  const parsed = new URL(url);
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(
+      `Invalid DATABASE_URL: expected a connection string like "mysql://user:password@host:3306/database", but got ${JSON.stringify(url)}. Check your .env file.`,
+    );
+  }
   return {
     host: parsed.hostname,
     port: parsed.port ? Number(parsed.port) : 3306,
@@ -15,7 +22,13 @@ function parseDatabaseUrl(url: string) {
 }
 
 export function createPrismaClient() {
-  const adapter = new PrismaMariaDb(parseDatabaseUrl(process.env.DATABASE_URL!));
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error(
+      "Missing DATABASE_URL environment variable. Define it in your .env file (e.g. DATABASE_URL=\"mysql://user:password@localhost:3306/attendance\").",
+    );
+  }
+  const adapter = new PrismaMariaDb(parseDatabaseUrl(url));
   return new PrismaClient({ adapter });
 }
 

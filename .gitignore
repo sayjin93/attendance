@@ -45,3 +45,6 @@ prisma/migrations/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Package lock files
+package-lock.json
